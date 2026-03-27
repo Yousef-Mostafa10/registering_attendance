@@ -1,0 +1,100 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.metadata/
+Thumbs.db
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# VS Code
+.vscode/
+.vscode-server/
+*.code-workspace
+
+# Flutter/Dart
+**/doc/api/
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+flutter_*.png
+
+# Android - ⚠️ نرفع المشروع بدون ملفات البناء
+android/app/build/
+android/.gradle/
+android/local.properties
+android/key.properties
+**/android/**/generated/
+**/android/**/build/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/.idea/
+android/captures/
+android/*.iml
+
+# iOS - ⚠️ نرفع المشروع بدون ملفات البناء
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/App.framework/
+ios/Flutter/Flutter.framework/
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/ServiceDefinitions.json
+**/ios/**/generated/
+**/ios/**/build/
+
+# macOS - ⚠️ نرفع المشروع بدون ملفات البناء
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/.symlinks/
+macos/Runner.xcworkspace/
+macos/Runner.xcodeproj/project.xcworkspace/
+**/macos/**/generated/
+**/macos/**/build/
+
+# Linux - ⚠️ نرفع المشروع بدون ملفات البناء
+linux/flutter/ephemeral/
+**/linux/**/generated/
+**/linux/**/build/
+
+# Windows - ⚠️ نرفع المشروع بدون ملفات البناء
+windows/flutter/ephemeral/
+**/windows/**/generated/
+**/windows/**/build/
+
+# Web
+web/icons/
+web/favicon.png
+**/web/**/generated/
+
+# Coverage
+coverage/
+coverage.json
+**/coverage/
+
+# Test
+test/.test_credentials
+**/test/**/generated/
+
+# Symbols
+app.*.symbols
+
+# Exceptions to the rules
+!.gitkeep
