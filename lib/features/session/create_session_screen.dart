@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'session_models.dart';
 import 'session_service.dart';
+import 'qr_display_screen.dart';
 import '../../Auth/colors.dart';
 
 class CreateSessionScreen extends StatefulWidget {
@@ -111,18 +112,16 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
       
       if (!mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Session ${result.sessionId} created successfully!'),
-          backgroundColor: AppColors.successColor,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QrDisplayScreen(
+            sessionId: result.sessionId,
+            initialQrContent: result.qrContent,
+            initialPinCode: result.pinCode,
           ),
         ),
       );
-      
-      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       
@@ -152,9 +151,38 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                     backgroundColor: AppColors.primaryColor,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
                     print('Resuming session: $activeId');
+                    try {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      final response = await SessionService().resumeSession(activeId!);
+                      if (!mounted) return;
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => QrDisplayScreen(
+                            sessionId: activeId!,
+                            initialQrContent: response.qrContent,
+                            initialPinCode: response.pinCode,
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error resuming session: $e')),
+                        );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    }
                   },
                   child: const Text('Continue', style: TextStyle(color: Colors.white)),
                 ),

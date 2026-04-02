@@ -54,11 +54,32 @@ class CreateSessionResponse {
   });
 
   factory CreateSessionResponse.fromJson(Map<String, dynamic> json) {
+    // Support multiple possible field name conventions from the API
+    final sessionId =
+        json['sessionId'] as int? ??
+        json['sessionid'] as int? ??
+        json['id'] as int? ??
+        json['session_id'] as int? ??
+        0;
+    final qrContent =
+        json['qrContent'] as String? ??
+        json['qr_content'] as String? ??
+        json['qrcode'] as String? ??
+        json['qr'] as String? ??
+        '';
+    final pinCode =
+        json['pinCode'] as String? ??
+        json['pin_code'] as String? ??
+        json['pin'] as String? ??
+        '';
+
+    print('[CreateSessionResponse] sessionId=$sessionId  qrContent=$qrContent  pinCode=$pinCode');
+
     return CreateSessionResponse(
       message: json['message'] as String? ?? '',
-      sessionId: json['sessionId'] as int? ?? 0,
-      qrContent: json['qrContent'] as String? ?? '',
-      pinCode: json['pinCode'] as String? ?? '',
+      sessionId: sessionId,
+      qrContent: qrContent,
+      pinCode: pinCode,
       isResumed: json['isResumed'] as bool? ?? false,
     );
   }

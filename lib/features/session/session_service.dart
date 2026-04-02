@@ -31,9 +31,16 @@ class SessionService {
       );
 
       print('Status Code: ${response.statusCode}');
+      print('=== CREATE SESSION RAW RESPONSE ===');
+      print(response.body);
+      print('===================================');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return CreateSessionResponse.fromJson(jsonDecode(response.body));
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        print('Decoded keys: ${decoded.keys.toList()}');
+        print('sessionId value: ${decoded['sessionId']}');
+        print('id value: ${decoded['id']}');
+        return CreateSessionResponse.fromJson(decoded);
       } else {
         throw Exception(response.body);
       }
@@ -110,9 +117,14 @@ class SessionService {
       );
 
       print('Status Code: ${response.statusCode}');
+      print('=== RESUME SESSION RAW RESPONSE ===');
+      print(response.body);
+      print('===================================');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return CreateSessionResponse.fromJson(jsonDecode(response.body));
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        print('Decoded keys: ${decoded.keys.toList()}');
+        return CreateSessionResponse.fromJson(decoded);
       } else {
         throw Exception(response.body);
       }
