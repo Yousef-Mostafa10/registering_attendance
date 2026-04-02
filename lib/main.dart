@@ -23,8 +23,7 @@ class CollegeAttendanceApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFFF4F1DE),
       ),
-      //sdhsjkdhskjdhsjkhdjkshdjsjkdhsk
-      home: const  ActivationLoginPage(),
+      home: const ActivationLoginPage(showLogin: true),
     );
   }
 }

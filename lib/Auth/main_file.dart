@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 
 // استيراد الملفات المنفصلة
 import '../Home/AdminDashboard.dart';
+import '../Home/CoursesListPage.dart';
+import '../Home/DoctorDashboardPage.dart';
 import 'activation_page.dart';
 import 'colors.dart';
 import 'login_page.dart';
@@ -180,25 +182,36 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
     required String email,
     required String deviceId,
   }) {
-    // تم تعطيل الانتقال لصفحة الهوم حتى تبني صفحتك الجديدة
-    print('✅ Login Success! Token: $token');
-    
-    // لإظهار رسالة للمستخدم أنه تم الدخول بنجاح
-    if (mounted) {
-       AuthWidgets.showSuccessSnackBar(context, 'Signed in as $userName');
-       Navigator.pushAndRemoveUntil(
-         context,
-         MaterialPageRoute(
-           builder: (context) => AdminDashboard(
-             userName: userName,
-             email: email,
-             role: role,
-             token: token,
-           ),
-         ),
-             (route) => false, // إزالة كل الصفحات السابقة
-       );
+    if (!mounted) return;
+    AuthWidgets.showSuccessSnackBar(context, 'Signed in as $userName');
+
+    Widget destination;
+
+    if (role == 'Doctor' || role == 'TA') {
+      // الدكتور والـ TA يذهبان لشاشتهم المخصصة
+      destination = DoctorDashboardPage(
+        userName: userName,
+        email: email,
+        role: role,
+        token: token,
+      );
+    } else if (role == 'Admin') {
+      destination = AdminDashboard(
+        userName: userName,
+        email: email,
+        role: role,
+        token: token,
+      );
+    } else {
+      // Student أو أي role آخر
+      destination = const CoursesListPage();
     }
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => destination),
+      (route) => false,
+    );
   }
 
   Widget _buildWaveDecoration() {
