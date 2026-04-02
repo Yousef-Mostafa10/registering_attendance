@@ -6,7 +6,7 @@ import 'SectionReportPage.dart';
 import 'AbsenceWarningsPage.dart';
 import 'CourseSessionsHistoryPage.dart';
 import 'EnrolledStudentsPage.dart';
-import 'CreateSessionPage.dart';
+import '../../features/session/create_session_screen.dart';
 
 class CourseDashboardPage extends StatefulWidget {
   final Map<String, dynamic> course;
@@ -177,7 +177,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                       subtitle: 'Create a Lecture or Section session with GPS',
                       icon: Icons.play_circle_fill,
                       color: AppColors.darkColor,
-                      onTap: () => _goto(CreateSessionPage(courseId: courseId, courseName: courseName)),
+                      onTap: () => _goto(CreateSessionScreen(courseId: int.tryParse(courseId) ?? 0)),
                     ),
                     const SizedBox(height: 12),
                     _actionCard(

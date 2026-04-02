@@ -12,10 +12,10 @@ import 'colors.dart';
 import 'login_page.dart';
 import 'auth_storage.dart';
 import 'auth_widgets.dart';
-
 class ActivationLoginPage extends StatefulWidget {
   final bool showLogin;
-  const ActivationLoginPage({Key? key, this.showLogin = false}) : super(key: key);
+  const ActivationLoginPage({Key? key, this.showLogin = false})
+    : super(key: key);
 
   @override
   _ActivationLoginPageState createState() => _ActivationLoginPageState();
@@ -46,21 +46,13 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOut,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
     _animationController.forward();
 
@@ -72,10 +64,7 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
 
   Future<void> _initApp() async {
     // تشغيل الحصول على الـ ID وفحص الدخول في نفس الوقت
-    await Future.wait([
-      _checkLoginStatus(),
-      _getDeviceId(),
-    ]);
+    await Future.wait([_checkLoginStatus(), _getDeviceId()]);
   }
 
   // فحص هل المستخدم مسجل دخول مسبقاً
@@ -261,7 +250,10 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
             _buildWaveDecoration(),
             SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 child: Column(
                   children: [
                     // App logo and title
@@ -324,16 +316,16 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
                           ),
                           child: _showLogin
                               ? LoginPage(
-                            onSwitchToActivation: _toggleView,
-                            deviceId: _deviceId,
-                            onDeviceIdRefresh: (value) => _getDeviceId(),
-                            onLoginSuccess: _handleLoginSuccess,
-                          )
+                                  onSwitchToActivation: _toggleView,
+                                  deviceId: _deviceId,
+                                  onDeviceIdRefresh: (value) => _getDeviceId(),
+                                  onLoginSuccess: _handleLoginSuccess,
+                                )
                               : ActivationPage(
-                            onSwitchToLogin: _toggleView,
-                            deviceId: _deviceId,
-                            onDeviceIdRefresh: (value) => _getDeviceId(),
-                          ),
+                                  onSwitchToLogin: _toggleView,
+                                  deviceId: _deviceId,
+                                  onDeviceIdRefresh: (value) => _getDeviceId(),
+                                ),
                         ),
                       ),
                     ),
