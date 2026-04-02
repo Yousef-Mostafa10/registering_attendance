@@ -17,8 +17,6 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
   final TextEditingController _studentCodesController = TextEditingController();
 
   bool _isLoading = false;
-  String? _apiResponse;
-  bool _isSuccess = false;
   String? _authToken;
 
   static const String _apiUrl = 'http://supergm-001-site1.ntempurl.com/api/Course/enroll-bulk';
@@ -89,8 +87,6 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
 
     setState(() {
       _isLoading = true;
-      _apiResponse = null;
-      _isSuccess = false;
     });
 
     try {
@@ -121,35 +117,24 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
         body: jsonEncode(enrollmentData),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 207) {
         final responseData = jsonDecode(response.body);
-        setState(() {
-          _apiResponse = responseData['message'] ?? 'Students enrolled successfully!';
-          _isSuccess = true;
-        });
 
-        // تنظيف الحقول بعد النجاح
         _studentCodesController.clear();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_apiResponse!),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        // Show the Result Dialog
+        _showResultDialog(
+          responseData['added'] != null ? List<String>.from(responseData['added']) : [],
+          responseData['skipped'] != null ? List<String>.from(responseData['skipped']) : [],
+          responseData['notFound'] != null ? List<String>.from(responseData['notFound']) : [],
+          responseData['message'] ?? 'Enrollment process completed',
         );
+
       } else {
         final errorData = jsonDecode(response.body);
         throw Exception(errorData['message'] ?? 'Failed to enroll students: ${response.statusCode}');
       }
-    } catch (e) {
-      setState(() {
-        _apiResponse = 'Error: ${e.toString()}';
-        _isSuccess = false;
-      });
+      } catch (e) {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -166,6 +151,49 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _showResultDialog(List<String> added, List<String> skipped, List<String> notFound, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Enrollment Results', style: TextStyle(color: AppColors.darkColor, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (message.isNotEmpty) Text(message, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                if (added.isNotEmpty) ...[
+                  const Text('Added successfully:', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  Wrap(spacing: 8, children: added.map((e) => Chip(label: Text(e, style: const TextStyle(fontSize: 12)), backgroundColor: Colors.green.withOpacity(0.2))).toList()),
+                  const SizedBox(height: 10),
+                ],
+                if (skipped.isNotEmpty) ...[
+                  const Text('Skipped (Already Enrolled):', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+                  Wrap(spacing: 8, children: skipped.map((e) => Chip(label: Text(e, style: const TextStyle(fontSize: 12)), backgroundColor: Colors.orange.withOpacity(0.2))).toList()),
+                  const SizedBox(height: 10),
+                ],
+                if (notFound.isNotEmpty) ...[
+                  const Text('Not Found:', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  Wrap(spacing: 8, children: notFound.map((e) => Chip(label: Text(e, style: const TextStyle(fontSize: 12, color: Colors.white)), backgroundColor: Colors.red)).toList()),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -339,65 +367,6 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-
-                        // API Response
-                        if (_apiResponse != null)
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            padding: const EdgeInsets.all(16),
-                            margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(
-                              color: _isSuccess
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.red.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: _isSuccess ? Colors.green : Colors.red,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isSuccess ? Icons.check_circle : Icons.error,
-                                  color: _isSuccess ? Colors.green : Colors.red,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    _apiResponse!,
-                                    style: TextStyle(
-                                      color: AppColors.darkColor,
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (!_isSuccess)
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _apiResponse = null;
-                                      });
-                                    },
-                                    child: Container(
-                                      width: 20,
-                                      height: 20,
-                                      margin: const EdgeInsets.only(left: 8),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 14,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
                   ),

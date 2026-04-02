@@ -43,6 +43,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   StreamController<Map<String, dynamic>>.broadcast();
   late Timer _refreshTimer;
   String? _authToken;
+  String? _userRole;
   bool _isLoading = true;
 
   @override
@@ -52,7 +53,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     // تحديث الإحصائيات كل 30 ثانية تلقائياً
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (_authToken != null && _authToken!.isNotEmpty) {
+      if (_authToken != null && _authToken!.isNotEmpty && _userRole == 'Admin') {
         _fetchStatistics();
       }
     });
@@ -73,8 +74,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     try {
       final prefs = await SharedPreferences.getInstance();
       _authToken = prefs.getString('auth_token');
-
-      print('✅ Loaded token from SharedPreferences: ${_authToken != null ? "Yes" : "No"}');
+      _userRole = prefs.getString('user_role');
 
       if (_authToken != null && _authToken!.isNotEmpty) {
         // بيانات أولية أثناء التحميل
@@ -86,8 +86,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
           'loading': true,
         });
 
-        // جلب البيانات
-        await _fetchStatistics();
+        // جلب البيانات فقط للـ Admin
+        if (_userRole == 'Admin') {
+          await _fetchStatistics();
+        } else {
+          // للدكتور والـ TA - لا توجد إحصائيات Admin
+          _statsStreamController.add({
+            'doctors': 0,
+            'tas': 0,
+            'students': 0,
+            'courses': 0,
+            'error': 'non_admin',
+          });
+        }
       } else {
         print('⚠️ No token found in SharedPreferences');
         _statsStreamController.add({
@@ -111,6 +122,90 @@ class _AdminDashboardState extends State<AdminDashboard> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _logout() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        titlePadding: EdgeInsets.zero,
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        title: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: const BoxDecoration(
+            color: AppColors.errorColor,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.logout, color: Colors.white, size: 32),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Are you sure you want to logout from your account?',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      side: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.errorColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      await AuthStorage.clearUserData();
+      if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     }
   }
 
@@ -173,7 +268,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
       }
 
       if (hasError) {
-        stats['error'] = 'partial_error';
+        bool has403 = results.any((r) => r['error'] == 'api_403' || r['error'] == 'api_401' || r['error'] == 'api_404' && r['error'] != null);
+        stats['error'] = has403 ? 'api_403' : 'partial_error';
       }
 
       print('📈 Final Stats: $stats');
@@ -239,7 +335,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         slivers: [
           // App Bar مع تأثير زجاجي (بدون زر refresh)
           SliverAppBar(
-            expandedHeight: 180,
+            expandedHeight: 140,
             collapsedHeight: 80,
             pinned: true,
             floating: true,
@@ -252,8 +348,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16, top: 30),
+              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
               title: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   CircleAvatar(
                     backgroundColor: Colors.white.withOpacity(0.2),
@@ -264,26 +361,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Admin Dashboard',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${widget.role} Dashboard',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.visible,
                         ),
-                      ),
-                      Text(
-                        widget.userName,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 12,
+                        Text(
+                          widget.userName,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 11,
+                          ),
+                          overflow: TextOverflow.visible,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -311,12 +413,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                   child: const Icon(Icons.logout, size: 22, color: Colors.white),
                 ),
-                onPressed: () async {
-                  await AuthStorage.clearUserData();
-                  if (context.mounted) {
-                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                  }
-                },
+                onPressed: _logout,
               ),
               const SizedBox(width: 10),
             ],
@@ -381,7 +478,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome back,',
+                            'Welcome ${widget.role},',
                             style: TextStyle(
                               fontSize: 16,
                               color: AppColors.darkColor.withOpacity(0.7),
@@ -486,6 +583,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
                   // التحقق من وجود أخطاء
                   if (stats.containsKey('error') && stats['error'] != null) {
+                    if (stats['error'] == 'api_403' || widget.role != 'Admin') {
+                      return _buildForbiddenStatsGrid(message: 'No Access Permission');
+                    }
+                    
                     String errorMessage = 'Network Error';
                     if (stats['error'] == 'no_token') {
                       errorMessage = 'Authentication Required';
@@ -530,97 +631,101 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
 
           // باقي الأقسام كما هي...
-          // People Management Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
-              child: Text(
-                'People Management',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkColor,
+          // People Management Section - Admin Only
+          if (widget.role == 'Admin')
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
+                child: Text(
+                  'People Management',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkColor,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // People Operations Grid
-          _buildOperationsGrid(
-            context,
-            operations: [
-              {
-                'title': 'Create Dr,TA',
-                'icon': Icons.person_add,
-                'color': AppColors.primaryColor,
-                'page': () => CreateAccountPage(),
-              },
-              {
-                'title': 'List TAs',
-                'icon': Icons.list,
-                'color': AppColors.warningColor,
-                'page': () => TAsListPage(),
-              },
-              {
-                'title': 'List Doctors',
-                'icon': Icons.list,
-                'color': AppColors.primaryColor.withOpacity(0.8),
-                'page': () => DoctorsListPage(),
-              },
-              {
-                'title': 'Delete User',
-                'icon': Icons.person_remove,
-                'color': AppColors.errorColor,
-                'page': () =>  DeleteUserPage(),
-              },
-              {
-                'title': 'Reset Student Account',
-                'icon': Icons.restart_alt,
-                'color': AppColors.warningColor,
-                'page': () => ResetStudentAccountPage(),
-              },
-              {
-                'title': 'Reset for New Year',
-                'icon': Icons.autorenew,
-                'color': Colors.orange,
-                'page': () => ResetStudentsForNewYearPage(),
-              },
-            ],
-          ),
+          // People Operations Grid - Admin Only
+          if (widget.role == 'Admin')
+            _buildOperationsGrid(
+              context,
+              operations: [
+                {
+                  'title': 'Create Dr,TA',
+                  'icon': Icons.person_add,
+                  'color': AppColors.primaryColor,
+                  'page': () => CreateAccountPage(),
+                },
+                {
+                  'title': 'List TAs',
+                  'icon': Icons.list,
+                  'color': AppColors.warningColor,
+                  'page': () => TAsListPage(),
+                },
+                {
+                  'title': 'List Doctors',
+                  'icon': Icons.list,
+                  'color': AppColors.primaryColor.withOpacity(0.8),
+                  'page': () => DoctorsListPage(),
+                },
+                {
+                  'title': 'Delete User',
+                  'icon': Icons.person_remove,
+                  'color': AppColors.errorColor,
+                  'page': () =>  DeleteUserPage(),
+                },
+                {
+                  'title': 'Reset Student Account',
+                  'icon': Icons.restart_alt,
+                  'color': AppColors.warningColor,
+                  'page': () => ResetStudentAccountPage(),
+                },
+                {
+                  'title': 'Reset for New Year',
+                  'icon': Icons.autorenew,
+                  'color': Colors.orange,
+                  'page': () => ResetStudentsForNewYearPage(),
+                },
+              ],
+            ),
 
-          // Students Management Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
-              child: Text(
-                'Students Management',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkColor,
+          // Students Management Section - Admin Only
+          if (widget.role == 'Admin')
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
+                child: Text(
+                  'Students Management',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkColor,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Students Operations Grid
-          _buildOperationsGrid(
-            context,
-            operations: [
-              {
-                'title': 'Bulk Create Students',
-                'icon': Icons.upload_file,
-                'color': AppColors.secondaryColor,
-                'page': () => CreateStudentsBulkPage(),
-              },
-              {
-                'title': 'Bulk Delete Students',
-                'icon': Icons.delete_forever,
-                'color': AppColors.errorColor,
-                'page': () =>  DeleteStudentsBulkPage(),
-              },
-            ],
-          ),
+          // Students Operations Grid - Admin Only
+          if (widget.role == 'Admin')
+            _buildOperationsGrid(
+              context,
+              operations: [
+                {
+                  'title': 'Bulk Create Students',
+                  'icon': Icons.upload_file,
+                  'color': AppColors.secondaryColor,
+                  'page': () => CreateStudentsBulkPage(),
+                },
+                {
+                  'title': 'Bulk Delete Students',
+                  'icon': Icons.delete_forever,
+                  'color': AppColors.errorColor,
+                  'page': () =>  DeleteStudentsBulkPage(),
+                },
+              ],
+            ),
 
           // Course Enrollment Section
           SliverToBoxAdapter(
@@ -675,24 +780,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
           _buildOperationsGrid(
             context,
             operations: [
-              {
-                'title': 'Create Course',
-                'icon': Icons.add_circle,
-                'color': AppColors.successColor,
-                'page': () => Navigator.push(context,MaterialPageRoute(builder: (context)=>CreateCoursePage()))
-              },
+              if (widget.role == 'Admin')
+                {
+                  'title': 'Create Course',
+                  'icon': Icons.add_circle,
+                  'color': AppColors.successColor,
+                  'page': () => Navigator.push(context,MaterialPageRoute(builder: (context)=>CreateCoursePage()))
+                },
               {
                 'title': 'List Courses',
                 'icon': Icons.library_books,
                 'color': AppColors.successColor.withOpacity(0.8),
                 'page': () => CoursesListPage(),
               },
-              {
-                'title': 'Delete Course',
-                'icon': Icons.delete,
-                'color': AppColors.errorColor,
-                'page': () => DeleteCoursePage(),
-              },
+              if (widget.role == 'Admin')
+                {
+                  'title': 'Delete Course',
+                  'icon': Icons.delete,
+                  'color': AppColors.errorColor,
+                  'page': () => DeleteCoursePage(),
+                },
             ],
           ),
 
@@ -782,6 +889,47 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildForbiddenStatsGrid({required String message}) {
+    return Column(
+      children: [
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 4,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 0.7,
+          children: [
+            _buildCompactStatCard(icon: Icons.groups, title: 'Doctors', count: '-', color: Colors.grey),
+            _buildCompactStatCard(icon: Icons.school, title: 'TAs', count: '-', color: Colors.grey),
+            _buildCompactStatCard(icon: Icons.people, title: 'Students', count: '-', color: Colors.grey),
+            _buildCompactStatCard(icon: Icons.book_online, title: 'Courses', count: '-', color: Colors.grey),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 16, color: Colors.grey[700]),
+              const SizedBox(width: 8),
+              Text(
+                message,
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
