@@ -1,7 +1,7 @@
 // reset_student_account_page.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 
@@ -21,7 +21,7 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
   bool _isSuccess = false;
   String? _authToken;
 
-  static const String _apiUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/reset-student-account';
+  static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/reset-student-account';
 
   @override
   void initState() {
@@ -460,3 +460,4 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
     );
   }
 }
+

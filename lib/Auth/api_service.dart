@@ -1,9 +1,9 @@
 // api_service.dart — All Developer 2 endpoints with correct URLs from Swagger
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://supergm-001-site1.ntempurl.com/api';
+  static const String baseUrl = 'http://msngroup-001-site1.ktempurl.com/api';
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
 
@@ -204,3 +204,4 @@ class ApiService {
     return {'statusCode': response.statusCode, 'body': response.body};
   }
 }
+

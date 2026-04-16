@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 
@@ -23,8 +23,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   String? _authToken;
 
   // الـ URLs للـ APIs
-  static const String _doctorApiUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/create-doctor';
-  static const String _taApiUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/create-TA';
+  static const String _doctorApiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/create-doctor';
+  static const String _taApiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/create-TA';
 
   @override
   void initState() {
@@ -702,3 +702,4 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 }
+

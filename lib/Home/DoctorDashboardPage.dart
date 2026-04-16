@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
 import '../Auth/api_service.dart';
@@ -535,3 +535,4 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
         style: TextStyle(fontSize: 16, color: AppColors.darkColor.withOpacity(0.5))),
   ]));
 }
+

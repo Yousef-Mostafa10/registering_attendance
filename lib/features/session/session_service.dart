@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import '../../Auth/auth_storage.dart';
 import 'session_models.dart';
 
 class SessionService {
-  static const String baseUrl = 'http://supergm-001-site1.ntempurl.com/api';
+  static const String baseUrl = 'http://msngroup-001-site1.ktempurl.com/api';
 
   Future<String> _getToken() async {
     final token = await AuthStorage.getToken();
@@ -182,3 +182,4 @@ void main() async {
   }
 }
 */
+

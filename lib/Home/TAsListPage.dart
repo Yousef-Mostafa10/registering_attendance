@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -24,8 +24,8 @@ class _TAsListPageState extends State<TAsListPage> {
   String? _authToken;
   Timer? _refreshTimer;
 
-  static const String _tasUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/list-TAs';
-  static const String _tasCountUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/number-of-tas';
+  static const String _tasUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/list-TAs';
+  static const String _tasCountUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/number-of-tas';
 
   @override
   void initState() {
@@ -957,3 +957,4 @@ class _TAsListPageState extends State<TAsListPage> {
     );
   }
 }
+

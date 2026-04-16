@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:shimmer/shimmer.dart';
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/creatCourse.dart';
+import 'package:registering_attendance/Home/QRScannerPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
@@ -31,9 +33,9 @@ class _CoursesListPageState extends State<CoursesListPage> {
   String? _authToken;
   String? _userRole;
 
-  static const String _adminCoursesUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/list-courses';
-  static const String _studentCoursesUrl = 'http://supergm-001-site1.ntempurl.com/api/Course/student-courses';
-  static const String _myCoursesUrl = 'http://supergm-001-site1.ntempurl.com/api/Course/my-courses';
+  static const String _adminCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/list-courses';
+  static const String _studentCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/student-courses';
+  static const String _myCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/my-courses';
 
   final List<Color> _colors = [
     const Color(0xFF1A9E8F),
@@ -211,6 +213,14 @@ class _CoursesListPageState extends State<CoursesListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
+      floatingActionButton: _userRole == 'Student' 
+        ? FloatingActionButton.extended(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerPage())),
+            backgroundColor: AppColors.successColor,
+            icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+            label: const Text('Scan Attendance', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )
+        : null,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(
@@ -269,17 +279,76 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorColor),
-                          child: const Text('Logout'),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      titlePadding: EdgeInsets.zero,
+                      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                      title: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: const BoxDecoration(
+                          color: AppColors.errorColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                            topRight: Radius.circular(24),
+                          ),
                         ),
-                      ],
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.logout, color: Colors.white, size: 32),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Logout',
+                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Are you sure you want to logout from your account?',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    side: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.errorColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                   if (confirm == true && context.mounted) {
@@ -356,7 +425,24 @@ class _CoursesListPageState extends State<CoursesListPage> {
             // Content
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.primaryColor))
+                  ? ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: 4,
+                      itemBuilder: (_, __) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
                   : _errorMessage.isNotEmpty
                       ? _buildErrorState()
                       : _filteredCourses.isEmpty
@@ -624,3 +710,4 @@ class _CoursesListPageState extends State<CoursesListPage> {
     );
   }
 }
+

@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/BulkCourseEnrollmentPage.dart';
 import 'package:registering_attendance/Home/CourseEnrollmentPage.dart';
 import 'package:registering_attendance/Home/CoursesListPage.dart';
@@ -16,6 +16,7 @@ import 'package:registering_attendance/Home/ResetStudentsForNewYearPage.dart';
 import 'package:registering_attendance/Home/TAsListPage.dart';
 import 'package:registering_attendance/Home/creatCourse.dart';
 import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
+import 'package:registering_attendance/Home/AssignStaffPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
@@ -236,7 +237,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       // قائمة endpoints - تأكد من مطابقتها تماماً مع الـ API
       final endpoints = [
         {'key': 'doctors', 'endpoint': 'number-of-doctors'},
-        {'key': 'tas', 'endpoint': 'number-of-tas'},
+        {'key': 'tas', 'endpoint': 'number-of-TAs'},
         {'key': 'students', 'endpoint': 'number-of-students'},
         {'key': 'courses', 'endpoint': 'number-of-courses'},
       ];
@@ -302,7 +303,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://supergm-001-site1.ntempurl.com/api/Admin/$endpoint'),
+        Uri.parse('http://msngroup-001-site1.ktempurl.com/api/Admin/$endpoint'),
         headers: {
           'accept': '*/*',
           'Authorization': 'Bearer $_authToken',
@@ -800,6 +801,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   'color': AppColors.errorColor,
                   'page': () => DeleteCoursePage(),
                 },
+              if (widget.role == 'Admin')
+                {
+                  'title': 'Assign Staff',
+                  'icon': Icons.assignment_ind,
+                  'color': Colors.deepPurple,
+                  'page': () => const AssignStaffPage(),
+                },
             ],
           ),
 
@@ -1170,3 +1178,4 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 }
+

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -23,7 +23,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
   String? _authToken;
   Timer? _refreshTimer;
 
-  static const String _doctorsUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/list-doctors';
+  static const String _doctorsUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/list-doctors';
 
   @override
   void initState() {
@@ -901,3 +901,4 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
     );
   }
 }
+

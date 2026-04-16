@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 
@@ -19,7 +19,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
   bool _isLoading = false;
   String? _authToken;
 
-  static const String _apiUrl = 'http://supergm-001-site1.ntempurl.com/api/Course/enroll-bulk';
+  static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/enroll-bulk';
 
   @override
   void initState() {
@@ -617,3 +617,4 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
     );
   }
 }
+

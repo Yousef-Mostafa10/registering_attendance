@@ -6,7 +6,7 @@ import 'SectionReportPage.dart';
 import 'AbsenceWarningsPage.dart';
 import 'CourseSessionsHistoryPage.dart';
 import 'EnrolledStudentsPage.dart';
-import '../../features/session/create_session_screen.dart';
+import 'CreateSessionPage.dart';
 import '../../features/session/session_service.dart';
 
 class CourseDashboardPage extends StatefulWidget {
@@ -218,8 +218,9 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                       icon: Icons.play_circle_fill,
                       color: AppColors.darkColor,
                       onTap: () => _goto(
-                        CreateSessionScreen(
-                          courseId: int.tryParse(courseId) ?? 0,
+                        CreateSessionPage(
+                          courseId: courseId,
+                          courseName: courseName,
                         ),
                       ),
                     ),
