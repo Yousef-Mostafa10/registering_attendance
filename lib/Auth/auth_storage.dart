@@ -40,6 +40,12 @@ class AuthStorage {
     };
   }
 
+  // الحصول على التوكن فقط
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyToken);
+  }
+
   // مسح البيانات عند تسجيل الخروج
   static Future<void> clearUserData() async {
     final prefs = await SharedPreferences.getInstance();

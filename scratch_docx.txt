@@ -1,0 +1,457 @@
+University Attendance System
+Flutter / Dart — Frontend Work Division
+3 Developers  •  34 Endpoints  •  5 Controllers  •  API v1
+Project Overview
+This document divides the University Attendance System API (34 endpoints, 5 controllers) across 3 Flutter developers. The split is designed to balance workload fairly while grouping related screens and state management concerns together. Each developer owns a complete vertical slice of the app.
+Base URL:
+http://supergm-001-site1.ntempurl.com
+Auth: All protected endpoints require Authorization: Bearer <JWT> header.
+⚖️  Load Balancing Note
+The original split gave Dev 3 a heavier load (13 endpoints). In this revised split, the Attendance reporting endpoints (lecture-report, section-report, absence-warnings, session-attendees history) have been moved to Developer 2, leaving Developer 3 with the pure real-time work (session lifecycle + live attendance submit). This makes all three loads comparable in effort.
+Division Summary
+Developer
+Scope
+Endpoints
+Key Flutter Work
+Load
+Developer 1
+Auth + Admin
+16
+Secure storage, token interceptor, admin dashboard
+🔴 High
+Developer 2
+Course + Attendance Reports
+13
+Course cards, enrollment, reports, absence warnings
+🟡 Medium
+Developer 3
+Session + Live Attendance
+11
+QR scanner, GPS, SSE stream, live dashboard
+🔴 High
+⚠️  Swagger Cross-Reference Notes:
+DELETE /api/Admin/delete-user/{universityCode} exists in Swagger but not in the Arabic docs — assigned to Developer 1.
+Rate limiting (HTTP 429) is defined for all Auth endpoints — handle in the global Dio interceptor.
+CreaterSessionDto: latitude/longitude are nullable in schema but required by business logic — always send GPS.
+SubmitAttendanceDto: scannedQrContent and sessionPIN are both nullable — student sends whichever they used.
+bulk-delete-students takes an array of integer IDs (not university code strings) per Swagger schema.
+Shared Flutter Foundation (All Developers)
+Before any developer starts, the team should agree on and set up these shared utilities once:
+Recommended Packages
+Package
+Purpose
+dio
+HTTP client with interceptor support
+flutter_secure_storage
+Secure JWT + deviceId persistence
+geolocator
+GPS coordinates for attendance submit and session create
+mobile_scanner
+QR code scanning (Dev 3 — student app)
+provider / riverpod
+State management
+go_router
+Role-based routing after login
+eventsource / http_sse
+SSE stream for live dashboard (Dev 3)
+excel / csv
+Parse spreadsheets for bulk student import (Dev 1)
+Shared Files to Create Once
+lib/core/api_client.dart — Dio instance with base URL + Bearer token header injection
+lib/core/auth_interceptor.dart — Auto refresh on 401; logout on refresh failure; 429 handling
+lib/core/device_id.dart — Generate UUID once, persist in flutter_secure_storage, export getter
+lib/core/token_storage.dart — Save/read/clear accessToken, refreshToken, role, userName
+lib/core/role_guard.dart — GoRouter redirect logic based on decoded JWT role
+lib/models/ — Dart model classes with fromJson/toJson for every DTO
+HTTP Error Handling (Global Interceptor)
+Code
+Status
+Flutter Action
+400
+Bad Request
+Show SnackBar with server error message from response body
+401
+Unauthorized
+Trigger token refresh silently → retry. On failure → logout
+403
+Forbidden
+Show dialog: 'You do not have permission for this action'
+404
+Not Found
+Show contextual message (Student not found, Course not found, etc.)
+429
+Rate Limited
+Show: 'Too many attempts. Please wait.' Disable button temporarily
+500
+Server Error
+Show generic error snackbar + log to console
+DEVELOPER 1
+Authentication & Admin Panel
+Auth Controller (3 endpoints)  •  Admin Controller (13 endpoints)  •  Total: 16 endpoints
+Developer 1 builds the login flow, account activation, token lifecycle, and the full admin dashboard. This is the most security-sensitive part of the app.
+Auth Controller
+Method
+Endpoint
+Auth
+Description
+POST
+/api/Auth/activate
+Public
+Activate account + bind hardware device
+POST
+/api/Auth/Login
+Public
+Login → JWT + refreshToken + role + userName
+POST
+/api/Auth/refresh-token
+Public
+Silent token refresh; 400/401 → force logout
+ActivateAccountDto  →  Dart Model
+class ActivateAccountDto {
+  final String universityEmail;   // required, email format
+  final String universityCode;    // required — matched against email
+  final String newPassword;       // required, min 6 chars
+  final String deviceId;          // required — hardware binding
+}
+LoginDto  →  Dart Model
+class LoginDto {
+  final String email;      // required
+  final String password;   // required, min 6 chars
+  final String deviceId;   // required — from device_id.dart shared util
+}
+Login Response  →  Dart Model
+class LoginResponse {
+  final bool   isSuccess;
+  final String token;         // store in flutter_secure_storage
+  final String refreshToken;  // store in flutter_secure_storage
+  final String role;          // 'Student'|'Doctor'|'TA'|'Admin' → use for routing
+  final String userName;      // display in AppBar/drawer
+  final String message;
+}
+Flutter Notes — Auth:
+On successful login: save token + refreshToken + role + userName via token_storage.dart, then use go_router to redirect based on role.
+DeviceId: call DeviceIdService.getDeviceId() from shared util — same value must flow into login, activate, and refresh calls.
+Silent refresh: in auth_interceptor.dart, on 401 → POST /refresh-token → retry original request. If refresh returns 400/401 → clear storage → navigate to /login.
+Handle 429 on both activate and login — show message and disable the submit button for 30 seconds.
+TokenDto for refresh includes deviceId — server invalidates refresh token if deviceId mismatches (security kill switch).
+Admin Controller
+Method
+Endpoint
+Auth
+Description
+POST
+/api/Admin/create-doctor
+Admin
+Auto-generates DOC-xxxx code; uses CreateDoctorDto
+POST
+/api/Admin/create-TA
+Admin
+Auto-generates TA-xxxx code; uses CreateDoctorDto
+GET
+/api/Admin/list-doctors
+Admin
+Returns [{ id, name, email, universityCode }]
+GET
+/api/Admin/list-TAs
+Admin
+Returns [{ id, name, email, universityCode }]
+POST
+/api/Admin/create-course
+Admin/Doctor
+Admin sets doctorId; Doctor auto-assigned via token
+POST
+/api/Admin/assign-staff
+Admin/Doctor
+Query params: courseCode + staffUniversityCode
+GET
+/api/Admin/list-courses
+Admin
+Includes doctorName + studentCount per course
+DELETE
+/api/Admin/delete-course/{id}
+Admin/Doctor
+Doctor: 403 if not course owner
+DELETE
+/api/Admin/delete-user/{code}
+Admin
+⚠️ Swagger-only — permanent deletion, confirm first
+POST
+/api/Admin/create-students-bulk
+Admin
+Parse Excel/CSV → List<CreateStudentDto> → POST
+POST
+/api/Admin/bulk-delete-students
+Admin
+Body: List<int> of student IDs (not codes)
+POST
+/api/Admin/reset-student-account
+Admin
+Body: plain String universityCode
+GET
+/api/Admin/number-of-doctors
+Admin
+Dashboard stat card
+GET
+/api/Admin/number-of-TAs
+Admin
+Dashboard stat card
+GET
+/api/Admin/number-of-students
+Admin
+Dashboard stat card
+GET
+/api/Admin/number-of-courses
+Admin
+Dashboard stat card
+POST
+/api/Admin/reset-system-for-new-year
+Admin
+🛑 DANGER — show double-confirm AlertDialog
+Flutter Notes — Admin:
+Dashboard stats: use Future.wait([]) to call all 4 number-of-* endpoints in parallel and populate stat cards simultaneously.
+Bulk student import: use the excel package to parse .xlsx from FilePicker, map rows to List<CreateStudentDto>, then POST array.
+assign-staff: send courseCode and staffUniversityCode as Dio queryParameters map, not in the body.
+reset-student-account: send body as plain quoted String — dio.post(url, data: json.encode(universityCode)).
+bulk-delete-students: body is List<int> of database IDs — not university code strings.
+🛑 reset-system-for-new-year: wrap in showDialog with two confirmation steps and red warning text. Use WillPopScope to prevent accidental dismiss.
+DEVELOPER 2
+Course Management & Attendance Reports
+Course Controller (6 endpoints)  •  Attendance Reports (4 endpoints)  •  Session History (1 endpoint)  •  Total: 11 endpoints
+Developer 2 builds course lists for all roles, enrollment flows, and all read-only attendance reports. This is the data-display focused slice of the app.
+Course Controller
+Method
+Endpoint
+Auth
+Description
+GET
+/api/Course/my-courses
+Doctor/TA
+Course list with role label (Main Doctor / Assistant)
+GET
+/api/Course/student-courses
+Student
+Enrolled courses with doctorName + staff[] names
+POST
+/api/Course/enroll
+Doctor/Admin
+Single enroll via EnrollmentDto — 403 if not course owner
+POST
+/api/Course/enroll-bulk
+Doctor/Admin
+Returns added[], skipped[], notFound[] summary
+GET
+/api/Course/number-of-enrolled-students/{courseId}
+Doctor/TA/Admin
+Returns { count: int } for stat widgets
+GET
+/api/Course/get-enrolled-students/{courseId}
+Doctor/TA/Admin
+Searchable student roster
+EnrollmentDto  →  Dart Model
+class EnrollmentDto {
+  final int    courseId;
+  final String studentUniversityCode;  // easier for doctor than DB id
+}
+BulkEnrollmentDto  →  Dart Model
+class BulkEnrollmentDto {
+  final int          courseId;
+  final List<String> studentCodes;  // university codes
+}
+Attendance Reports (moved from Dev 3)
+Method
+Endpoint
+Auth
+Description
+GET
+/api/Attendance/session-attendees/{sessionId}
+All
+Attendee history for a session; ?search= filter
+GET
+/api/Attendance/lecture-report/{courseId}
+Doctor
+Full lecture attendance + optional grade calc
+GET
+/api/Attendance/section-report/{courseId}
+Doctor/TA
+Section attendance + optional grade calc
+GET
+/api/Attendance/absence-warnings/{courseId}
+Doctor
+Students exceeding 3 absences
+GET
+/api/Session/course-sessions/{courseId}/{type}
+All
+Session history; type = Lecture or Section
+Lecture / Section Report Response  →  Dart Model
+class AttendanceReport {
+  final int              courseTotalLectures;
+  final double?          totalMarksAssigned;  // null if not requested
+  final List<StudentRow> students;
+}
+class StudentRow {
+  final String  studentName;
+  final String  universityCode;
+  final int     lectureAttended;
+  final int     absenceInLectures;
+  final double? earnedMarks;  // server-calculated: attended/total * totalMarks
+}
+Flutter Notes — Course & Reports:
+my-courses: display role as a Chip widget — blue for 'Main Doctor', grey for 'Assistant'.
+student-courses: map staff[] array to a row of small Avatar widgets under each course card.
+enroll-bulk: after response show a ResultDialog listing added (green), skipped (orange), notFound (red) codes.
+get-enrolled-students: use a TextField with debounce (300ms) that appends ?search= to the request URL.
+lecture-report / section-report: add an optional TextField for totalMarks; if filled, append ?totalMarks=X to the URL.
+absence-warnings: if returned array is empty and total lectures <= 3, show 'No warnings yet — not enough lectures held'.
+session-attendees: supports ?search= filter — useful for quickly finding a student in a long attendee list.
+course-sessions history: pass type as 'Lecture' or 'Section' path param to filter the list.
+DEVELOPER 3
+Session Lifecycle & Live Attendance
+Session Controller (6 endpoints)  •  Attendance Submit & Manual (3 endpoints)  •  Total: 9 endpoints
+Developer 3 builds the real-time core: opening sessions, rotating QR codes, the student QR scanner with GPS, and the live SSE dashboard. This is the most technically complex slice.
+Session Controller
+Method
+Endpoint
+Auth
+Description
+POST
+/api/Session/create
+Doctor/TA
+Creates session + generates first QR/PIN; TA cannot create Lecture
+PUT
+/api/Session/update-radius/{sessionId}
+Doctor/TA
+Body: int radius in meters
+POST
+/api/Session/rotate-qr/{sessionId}
+Doctor/TA
+New QR + PIN — call every ~10s via Timer.periodic
+PUT
+/api/Session/stop/{sessionId}
+Doctor/TA
+Closes session; sends SSE 'closed' event; stop timer
+PUT
+/api/Session/resume/{sessionId}
+Doctor/TA
+Re-opens session; generates fresh QR + PIN
+GET
+/api/Session/live-dashboard/{sessionId}
+Doctor/TA/Admin
+⚡ SSE stream — use http_sse or EventSource package
+CreaterSessionDto  →  Dart Model
+class CreateSessionDto {
+  final int     courseId;
+  final String  title;          // max 200 chars
+  final String  sessionType;    // 'Lecture' or 'Section'
+  final double? latitude;       // nullable in schema — always send GPS
+  final double? longitude;      // nullable in schema — always send GPS
+  final int     allowRadius;    // meters, e.g. 50
+}
+Session Create Response  →  Dart Model
+class CreateSessionResponse {
+  final String message;
+  final int    sessionId;    // use for all subsequent calls
+  final String qrContent;   // render as QR widget on doctor screen
+  final String pinCode;     // 4-digit PIN displayed beside QR
+  final bool   isResumed;   // true = existing session reused
+}
+Flutter — QR Rotation Timer:
+Timer? _qrTimer;
+void startQrRotation(int sessionId) {
+  _qrTimer = Timer.periodic(Duration(seconds: 10), (_) async {
+    final res = await sessionService.rotateQr(sessionId);
+    setState(() { qrContent = res.newQr; pinCode = res.newPin; });
+  });
+}
+void stopQrRotation() => _qrTimer?.cancel();
+Flutter — SSE Live Dashboard:
+// Use the http_sse package or dart:io HttpClient for SSE
+final client = http.Client();
+final request = http.Request('GET', Uri.parse(url));
+request.headers['Authorization'] = 'Bearer $token';
+request.headers['Accept'] = 'text/event-stream';
+final response = await client.send(request);
+response.stream.transform(utf8.decoder).listen((data) {
+  final event = jsonDecode(data);
+  if (event['status'] == 'closed') {
+    stopQrRotation();  // Kill switch — stop timer too
+    client.close();    // Close the SSE stream
+  } else {
+    setState(() { count = event['count']; attendees = event['attendees']; });
+  }
+});
+Attendance Submit & Manual
+Method
+Endpoint
+Auth
+Description
+POST
+/api/Attendance/submit
+Student
+3-layer check: Device + QR expiry + GPS Haversine
+POST
+/api/Attendance/manual-add
+Doctor/TA
+Manual add by code; server verifies course ownership
+DELETE
+/api/Attendance/delete/{sessionId}/{studentId}
+Doctor/TA
+Remove record; SSE live-dashboard auto-updates
+SubmitAttendanceDto  →  Dart Model
+class SubmitAttendanceDto {
+  final int     sessionId;
+  final String  deviceId;          // from device_id.dart — must match activation
+  final double  studentLatitude;   // required — from geolocator package
+  final double  studentLongitude;  // required — from geolocator package
+  final String? scannedQrContent;  // nullable — from mobile_scanner
+  final String? sessionPIN;        // nullable — from manual PIN entry
+}
+Flutter Notes — Session & Attendance:
+GPS: call Geolocator.requestPermission() and Geolocator.getCurrentPosition() before opening QR scanner screen.
+QR scan: use mobile_scanner package. On scan, populate scannedQrContent field and auto-submit (no tap needed).
+PIN entry: provide a 4-digit TextField alternative on the same screen — set sessionPIN, leave scannedQrContent null.
+403 on submit = device mismatch (cheating attempt) — show a prominent AlertDialog warning, do NOT allow retry.
+400 on submit = out of range, expired QR, or already recorded — show specific message based on response body text.
+Stop session: call stop endpoint → cancel _qrTimer → SSE stream will receive status:closed → close the stream.
+delete attendance: no need to manually refresh the live dashboard — the SSE stream auto-updates when a record is deleted.
+Always dispose the SSE client and cancel the timer in the widget's dispose() method to prevent memory leaks.
+Cross-Developer Dependencies
+Coordinate these points before starting development to avoid integration issues:
+From
+To
+Dependency
+Action Required
+Dev 1
+Dev 2+3
+Login response role field used by Dev 2 and Dev 3 for routing + permission checks
+Agree on role string constants: 'Student', 'Doctor', 'TA', 'Admin' in a shared enums file
+Dev 1
+Dev 3
+deviceId used in Auth (Dev 1) AND in SubmitAttendanceDto (Dev 3) — must be identical
+Dev 1 creates device_id.dart shared utility. Dev 3 imports it — never generate separately
+Dev 2
+Dev 3
+courseId from Dev 2's course list screen navigates into Dev 3's session creation screen
+Pass courseId via GoRouter extra or route params. Agree on the navigation path name
+Dev 3
+Dev 2
+sessionId created by Dev 3 is needed by Dev 2's session-attendees history screen
+Dev 3 exposes sessionId after create; Dev 2 receives it via navigation argument
+Dev 1
+Dev 3
+reset-student-account clears deviceId — affected student will get 403 on next attendance
+Dev 3 handles 403 gracefully: 'Device mismatch — contact admin to reset account'
+Suggested Flutter Folder Structure
+lib/
+  core/
+    api_client.dart          ← Dio instance (Dev 1 creates)
+    auth_interceptor.dart    ← 401 silent refresh (Dev 1 creates)
+    device_id.dart           ← Shared UUID util (Dev 1 creates)
+    token_storage.dart       ← flutter_secure_storage wrapper (Dev 1)
+  models/                   ← All fromJson/toJson Dart models
+  features/
+    auth/                   ← Dev 1: login, activate screens + service
+    admin/                  ← Dev 1: dashboard, staff mgmt, course mgmt
+    course/                 ← Dev 2: course list, enrollment screens
+    reports/                ← Dev 2: lecture/section reports, warnings
+    session/                ← Dev 3: create session, QR display, SSE dashboard
+    attendance/             ← Dev 3: QR scanner, PIN entry, manual add

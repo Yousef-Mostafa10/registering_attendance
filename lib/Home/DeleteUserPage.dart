@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/DoctorsListPage.dart';
 import 'package:registering_attendance/Home/TAsListPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,7 +23,7 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
   bool _isSuccess = false;
   String? _authToken;
 
-  static const String _apiBaseUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/delete-user';
+  static const String _apiBaseUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/delete-user';
 
   @override
   void initState() {
@@ -803,3 +803,4 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
     );
   }
 }
+

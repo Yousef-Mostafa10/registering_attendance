@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:shimmer/shimmer.dart';
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/creatCourse.dart';
+import 'package:registering_attendance/Home/QRScannerPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
+import 'Reports/CourseDashboardPage.dart';
 
 class CoursesListPage extends StatefulWidget {
   const CoursesListPage({Key? key}) : super(key: key);
@@ -15,186 +20,192 @@ class CoursesListPage extends StatefulWidget {
 
 class _CoursesListPageState extends State<CoursesListPage> {
   final TextEditingController _searchController = TextEditingController();
-  final StreamController<List<Map<String, dynamic>>> _coursesStreamController =
-  StreamController<List<Map<String, dynamic>>>.broadcast();
-  final StreamController<Map<String, int>> _statsStreamController =
-  StreamController<Map<String, int>>.broadcast();
-
-  String _searchQuery = '';
-  String? _authToken;
+  Timer? _debounceTimer;
   Timer? _refreshTimer;
 
-  static const String _apiUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/list-courses';
-  static const String _coursesCountUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/number-of-courses';
-  static const String _studentsCountUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/number-of-students';
+  List<Map<String, dynamic>> _allCourses = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+  String _searchQuery = '';
+  int _totalCourses = 0;
+  int _totalStudents = 0;
+
+  String? _authToken;
+  String? _userRole;
+
+  static const String _adminCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/list-courses';
+  static const String _studentCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/student-courses';
+  static const String _myCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/my-courses';
+
+  final List<Color> _colors = [
+    const Color(0xFF1A9E8F),
+    const Color(0xFF2E7D32),
+    const Color(0xFF1565C0),
+    const Color(0xFF6A1B9A),
+    const Color(0xFFE65100),
+    const Color(0xFF880E4F),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadTokenAndFetchData();
     _searchController.addListener(_onSearchChanged);
-
-    // تحديث تلقائي كل 30 ثانية
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (_authToken != null) {
-        _fetchAllData();
-      }
+    _loadAndFetch();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_authToken != null) _fetchCourses();
     });
   }
 
   @override
   void dispose() {
-    _coursesStreamController.close();
-    _statsStreamController.close();
-    _refreshTimer?.cancel();
     _searchController.dispose();
+    _debounceTimer?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged() {
-    setState(() {
-      _searchQuery = _searchController.text.toLowerCase();
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      setState(() => _searchQuery = _searchController.text.toLowerCase());
     });
   }
 
-  Future<void> _loadTokenAndFetchData() async {
+  Future<void> _loadAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     _authToken = prefs.getString('auth_token');
+    _userRole = prefs.getString('user_role');
 
     if (_authToken == null) {
-      _coursesStreamController.add([]);
-      _statsStreamController.add({'courses': 0, 'students': 0});
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Not authenticated';
+      });
       return;
     }
-
-    await _fetchAllData();
-  }
-
-  Future<void> _fetchAllData() async {
-    if (_authToken == null) return;
-
-    try {
-      // جلب البيانات بالتوازي
-      await Future.wait([
-        _fetchCourses(),
-        _fetchStatistics(),
-      ]);
-    } catch (e) {
-      print('Error fetching all data: $e');
-    }
+    await _fetchCourses();
   }
 
   Future<void> _fetchCourses() async {
+    if (!mounted) return;
+    setState(() { _isLoading = true; _errorMessage = ''; });
+
     try {
+      // اختيار الـ URL المناسب بناءً على الدور
+      String url;
+      if (_userRole == 'Admin') {
+        url = _adminCoursesUrl;
+      } else if (_userRole == 'Doctor' || _userRole == 'TA') {
+        url = _myCoursesUrl;
+      } else {
+        url = _studentCoursesUrl;
+      }
+
       final response = await http.get(
-        Uri.parse(_apiUrl),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-        },
+        Uri.parse(url),
+        headers: {'accept': '*/*', 'Authorization': 'Bearer $_authToken'},
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> coursesData = jsonDecode(response.body);
-        final courses = _processCoursesData(coursesData);
-        _coursesStreamController.add(courses);
+        var decoded = jsonDecode(response.body);
+        List<dynamic> rawList = [];
+        if (decoded is List) {
+          rawList = decoded;
+        } else if (decoded is Map && decoded.containsKey(r'$values')) {
+          rawList = decoded[r'$values'] ?? [];
+        }
+
+        List<Map<String, dynamic>> courses = [];
+        for (int i = 0; i < rawList.length; i++) {
+          var c = rawList[i];
+          int? studentCount = c['studentCount'] != null
+              ? int.tryParse(c['studentCount'].toString())
+              : null;
+
+          courses.add({
+            'id': c['id']?.toString() ?? c['courseId']?.toString() ?? '',
+            'name': c['name'] ?? c['courseName'] ?? 'Unknown',
+            'doctorName': c['doctorName'] ?? c['instructorName'] ?? '',
+            'studentCount': studentCount,
+            'role': c['role'],         // Doctor/TA chip
+            'staff': c['staff'],       // Student avatars
+            'code': c['code'] ?? '',
+            'color': _colors[i % _colors.length],
+          });
+        }
+
+        // للدكتور: جلب عدد الطلاب لكل كورس من endpoint منفصل
+        if ((_userRole == 'Doctor' || _userRole == 'TA') && courses.isNotEmpty) {
+          await _fetchEnrolledCountsForCourses(courses);
+        }
+
+        int totalStudents = 0;
+        for (var c in courses) {
+          totalStudents += (c['studentCount'] as int? ?? 0);
+        }
+
+        if (mounted) {
+          setState(() {
+            _allCourses = courses;
+            _totalCourses = courses.length;
+            _totalStudents = totalStudents;
+            _isLoading = false;
+          });
+        }
       } else if (response.statusCode == 401) {
-        print('Unauthorized - Token may be expired');
-        _coursesStreamController.add([]);
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Session expired. Please login again.';
+        });
       } else {
-        throw Exception('Failed to load courses: ${response.statusCode}');
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Error ${response.statusCode}: ${response.body}';
+        });
       }
     } catch (e) {
-      print('Error fetching courses: $e');
-      _coursesStreamController.add([]);
-    }
-  }
-
-  Future<void> _fetchStatistics() async {
-    try {
-      // جلب عدد الكورسات
-      final coursesCountResponse = await http.get(
-        Uri.parse(_coursesCountUrl),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-        },
-      );
-
-      // جلب عدد الطلاب
-      final studentsCountResponse = await http.get(
-        Uri.parse(_studentsCountUrl),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-        },
-      );
-
-      int coursesCount = 0;
-      int studentsCount = 0;
-
-      if (coursesCountResponse.statusCode == 200) {
-        final data = jsonDecode(coursesCountResponse.body);
-        coursesCount = data['count'] ?? 0;
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
       }
+    }
+  }
 
-      if (studentsCountResponse.statusCode == 200) {
-        final data = jsonDecode(studentsCountResponse.body);
-        studentsCount = data['count'] ?? 0;
+  /// جلب عدد الطلاب لكل كورس للدكتور/TA من /Course/number-of-enrolled-students/{id}
+  Future<void> _fetchEnrolledCountsForCourses(List<Map<String, dynamic>> courses) async {
+    final futures = courses.map((course) async {
+      try {
+        final res = await ApiService.getEnrolledCount(
+          courseId: course['id'].toString(),
+          token: _authToken!,
+        );
+        if (res['statusCode'] == 200) {
+          final data = jsonDecode(res['body']);
+          // الـ API ممكن يرجع { "count": 5 } أو مجرد رقم
+          int count = 0;
+          if (data is int) {
+            count = data;
+          } else if (data is Map) {
+            count = int.tryParse(data['count']?.toString() ?? '0') ?? 0;
+          }
+          course['studentCount'] = count;
+        }
+      } catch (_) {
+        // تجاهل الخطأ — الرقم سيبقى null
       }
+    }).toList();
 
-      _statsStreamController.add({
-        'courses': coursesCount,
-        'students': studentsCount,
-      });
-
-    } catch (e) {
-      print('Error fetching statistics: $e');
-      _statsStreamController.add({'courses': 0, 'students': 0});
-    }
+    await Future.wait(futures);
   }
 
-  List<Map<String, dynamic>> _processCoursesData(List<dynamic> coursesData) {
-    List<Map<String, dynamic>> courses = [];
-
-    // قائمة ألوان للكورسات
-    final colors = [
-      AppColors.primaryColor,
-      AppColors.successColor,
-      AppColors.accentColor,
-      AppColors.secondaryColor,
-      AppColors.warningColor,
-      AppColors.errorColor,
-    ];
-
-    for (int i = 0; i < coursesData.length; i++) {
-      var course = coursesData[i];
-
-      Map<String, dynamic> courseMap = {
-        'id': course['id'].toString(),
-        'name': course['name'],
-        'doctorName': course['doctorName'],
-        'studentCount': course['studentCount'],
-        'color': colors[i % colors.length],
-      };
-
-      courses.add(courseMap);
-    }
-
-    return courses;
-  }
-
-  List<Map<String, dynamic>> _filterCourses(List<Map<String, dynamic>> courses) {
-    if (_searchQuery.isEmpty) return courses;
-
-    return courses.where((course) {
-      final name = course['name'].toString().toLowerCase();
-      final doctor = course['doctorName'].toString().toLowerCase();
-      final studentCount = course['studentCount'].toString();
-
-      return name.contains(_searchQuery) ||
-          doctor.contains(_searchQuery) ||
-          studentCount.contains(_searchQuery);
+  List<Map<String, dynamic>> get _filteredCourses {
+    if (_searchQuery.isEmpty) return _allCourses;
+    return _allCourses.where((c) {
+      return c['name'].toString().toLowerCase().contains(_searchQuery) ||
+          c['doctorName'].toString().toLowerCase().contains(_searchQuery) ||
+          c['id'].toString().contains(_searchQuery);
     }).toList();
   }
 
@@ -202,306 +213,252 @@ class _CoursesListPageState extends State<CoursesListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
+      floatingActionButton: _userRole == 'Student' 
+        ? FloatingActionButton.extended(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerPage())),
+            backgroundColor: AppColors.successColor,
+            icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+            label: const Text('Scan Attendance', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )
+        : null,
       body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            // App Bar
-            SliverAppBar(
-              floating: true,
-              snap: true,
-              backgroundColor: AppColors.primaryColor,
-              elevation: 4,
-              shape: const ContinuousRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            floating: true,
+            snap: true,
+            backgroundColor: AppColors.primaryColor,
+            elevation: 4,
+            shape: const ContinuousRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            automaticallyImplyLeading: false,
+            title: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.white24,
+                  child: Icon(Icons.school, color: Colors.white, size: 18),
                 ),
-              ),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                const SizedBox(width: 10),
+                Text(
+                  _userRole == 'Doctor' || _userRole == 'TA'
+                      ? 'My Courses'
+                      : _userRole == 'Student'
+                          ? 'My Enrolled Courses'
+                          : 'Courses List',
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            actions: [
+              if (_userRole == 'Admin' || _userRole == 'Doctor')
+                IconButton(
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CreateCoursePage()),
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Courses List',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                ),
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: _fetchCourses,
               ),
-              centerTitle: false,
-              expandedHeight: 120,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
+              IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primaryColor,
-                        AppColors.darkColor,
-                      ],
-                    ),
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 16),
-                    child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: StreamBuilder<List<Map<String, dynamic>>>(
-                        stream: _coursesStreamController.stream,
-                        builder: (context, snapshot) {
-                          final courses = snapshot.data ?? [];
-                          final filteredCourses = _filterCourses(courses);
-
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  child: const Icon(Icons.logout, size: 18, color: Colors.white),
+                ),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      titlePadding: EdgeInsets.zero,
+                      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                      title: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: const BoxDecoration(
+                          color: AppColors.errorColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                            topRight: Radius.circular(24),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.logout, color: Colors.white, size: 32),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Logout',
+                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Are you sure you want to logout from your account?',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
                             children: [
-                              Text(
-                                '${filteredCourses.length} course${filteredCourses.length != 1 ? 's' : ''}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    side: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Auto-refresh every 30 seconds',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
-                                  fontSize: 10,
-                                  fontStyle: FontStyle.italic,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.errorColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                               ),
                             ],
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ];
-        },
-        body: Column(
-          children: [
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search, color: AppColors.darkColor.withOpacity(0.5)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search courses...',
-                          hintStyle: TextStyle(
-                            color: AppColors.darkColor.withOpacity(0.4),
-                          ),
-                          border: InputBorder.none,
-                        ),
-                        style: TextStyle(
-                          color: AppColors.darkColor,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    if (_searchQuery.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          _searchController.clear();
-                        },
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.lightColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.clear,
-                            size: 20,
-                            color: AppColors.accentColor,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Statistics
-            StreamBuilder<Map<String, int>>(
-              stream: _statsStreamController.stream,
-              builder: (context, statsSnapshot) {
-                final stats = statsSnapshot.data ?? {'courses': 0, 'students': 0};
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Row(
-                    children: [
-                      _buildStatCard(
-                        icon: Icons.book,
-                        title: 'Total Courses',
-                        value: stats['courses']?.toString() ?? '0',
-                        color: AppColors.primaryColor,
-                        isLoading: !statsSnapshot.hasData,
-                      ),
-                      const SizedBox(width: 12),
-                      _buildStatCard(
-                        icon: Icons.people,
-                        title: 'Total Students',
-                        value: stats['students']?.toString() ?? '0',
-                        color: AppColors.successColor,
-                        isLoading: !statsSnapshot.hasData,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            // Courses List
-            Expanded(
-              child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: _coursesStreamController.stream,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return _buildLoadingState();
-                  }
-
-                  final courses = snapshot.data!;
-                  final filteredCourses = _filterCourses(courses);
-
-                  if (courses.isEmpty) {
-                    return _buildEmptyState();
-                  }
-
-                  return filteredCourses.isEmpty
-                      ? _buildNoResultsState()
-                      : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    itemCount: filteredCourses.length,
-                    itemBuilder: (context, index) {
-                      final course = filteredCourses[index];
-                      return _buildCourseCard(course);
-                    },
                   );
+                  if (confirm == true && context.mounted) {
+                    await AuthStorage.clearUserData();
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                    }
+                  }
                 },
               ),
+              const SizedBox(width: 4),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(80),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 4),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      const Icon(Icons.search, color: Colors.white70),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: 'Search courses...',
+                            hintStyle: TextStyle(color: Colors.white60),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      if (_searchQuery.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.white70),
+                          onPressed: () => _searchController.clear(),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+        body: Column(
+          children: [
+            // Stats Row
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  _buildStatCard(
+                    icon: Icons.book,
+                    title: 'Total Courses',
+                    value: _isLoading ? '...' : _totalCourses.toString(),
+                    color: AppColors.primaryColor,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    icon: Icons.people,
+                    title: 'Total Students',
+                    value: _isLoading ? '...' : _totalStudents.toString(),
+                    color: AppColors.successColor,
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: _isLoading
+                  ? ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: 4,
+                      itemBuilder: (_, __) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : _errorMessage.isNotEmpty
+                      ? _buildErrorState()
+                      : _filteredCourses.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
+                              onRefresh: _fetchCourses,
+                              color: AppColors.primaryColor,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                itemCount: _filteredCourses.length,
+                                itemBuilder: (_, i) => _buildCourseCard(_filteredCourses[i]),
+                              ),
+                            ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateCoursePage(),
-            ),
-          ).then((value) {
-            // تحديث جميع البيانات بعد إضافة كورس جديد
-            if (value == true) {
-              _fetchAllData();
-            }
-          });
-        },
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColors.primaryColor,
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.book_outlined,
-            size: 80,
-            color: AppColors.darkColor.withOpacity(0.3),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'No courses available',
-            style: TextStyle(
-              fontSize: 18,
-              color: AppColors.darkColor.withOpacity(0.5),
-            ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: _fetchAllData,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoResultsState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 60,
-            color: AppColors.darkColor.withOpacity(0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No courses found',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.darkColor.withOpacity(0.5),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try a different search term',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.darkColor.withOpacity(0.4),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -511,7 +468,6 @@ class _CoursesListPageState extends State<CoursesListPage> {
     required String title,
     required String value,
     required Color color,
-    bool isLoading = false,
   }) {
     return Expanded(
       child: Container(
@@ -519,56 +475,22 @@ class _CoursesListPageState extends State<CoursesListPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: isLoading
-                  ? Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: color,
-                  ),
-                ),
-              )
-                  : Icon(icon, color: color, size: 24),
+              width: 48, height: 48,
+              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    isLoading ? '...' : value,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkColor,
-                    ),
-                  ),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.darkColor.withOpacity(0.6),
-                    ),
-                  ),
+                  Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+                  Text(title, style: TextStyle(fontSize: 12, color: AppColors.darkColor.withOpacity(0.6))),
                 ],
               ),
             ),
@@ -579,28 +501,36 @@ class _CoursesListPageState extends State<CoursesListPage> {
   }
 
   Widget _buildCourseCard(Map<String, dynamic> course) {
+    final Color color = course['color'] as Color;
+    final String? role = course['role']?.toString();           // Doctor/TA chip
+    final dynamic staffList = course['staff'];                  // Student role avatars
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
-          onTap: () => _showCourseDetails(course),
           borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            // جميع الأدوار (Admin/Doctor/TA) يفتحون نفس Course Dashboard
+            if (_userRole == 'Admin' || _userRole == 'Doctor' || _userRole == 'TA') {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => CourseDashboardPage(course: course),
+              ));
+            } else {
+              // الطالب لا يملك Dashboard — يعرض فقط تفاصيل المقرر
+              _showStudentCourseDetails(course);
+            }
+          },
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Course Color Indicator
+                // Color Indicator
                 Container(
-                  width: 4,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: course['color'],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                  width: 4, height: 70,
+                  decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
                 ),
                 const SizedBox(width: 16),
 
@@ -609,54 +539,80 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header Row: ID + Student Count
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: (course['color'] as Color).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'ID: ${course['id']}',
-                              style: TextStyle(
-                                color: course['color'],
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                            child: Text('ID: ${course['id']}', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                          Builder(builder: (context) {
+                            final count = course['studentCount'];
+                            return Chip(
+                              label: Text(
+                                count == null ? '— students' : '$count student${count == 1 ? '' : 's'}',
+                                style: const TextStyle(fontSize: 11),
                               ),
-                            ),
-                          ),
-                          Chip(
-                            label: Text(
-                              '${course['studentCount']} student${course['studentCount'] != 1 ? 's' : ''}',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            backgroundColor: AppColors.lightColor,
-                            visualDensity: VisualDensity.compact,
-                          ),
+                              backgroundColor: AppColors.lightColor,
+                              visualDensity: VisualDensity.compact,
+                            );
+                          }),
                         ],
                       ),
                       const SizedBox(height: 8),
+
+                      // Course Name
                       Text(
                         course['name'],
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkColor,
-                        ),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Dr. ${course['doctorName']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.darkColor.withOpacity(0.7),
+
+                      // Doctor Name (للأدمن والطالب فقط)
+                      if (course['doctorName']?.toString().isNotEmpty == true) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Dr. ${course['doctorName']}',
+                          style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.65)),
                         ),
-                      ),
+                      ],
+
+                      // Role Chip (للدكتور/TA فقط — Main Doctor = أزرق / Assistant = رمادي)
+                      if (role != null) ...[
+                        const SizedBox(height: 8),
+                        Chip(
+                          label: Text(role, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                          backgroundColor: role.toLowerCase().contains('main') ? Colors.blue : Colors.grey,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+
+                      // Staff Avatars (للطالب فقط)
+                      if (staffList != null && staffList is List && staffList.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: (staffList).take(4).map<Widget>((s) {
+                            final name = s['name']?.toString() ?? '?';
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: AppColors.primaryColor.withOpacity(0.15),
+                                child: Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                  style: TextStyle(fontSize: 10, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.darkColor.withOpacity(0.3)),
               ],
             ),
           ),
@@ -665,142 +621,22 @@ class _CoursesListPageState extends State<CoursesListPage> {
     );
   }
 
-  void _showCourseDetails(Map<String, dynamic> course) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.6,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              spreadRadius: 5,
-            ),
-          ],
-        ),
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Handle
-            Container(
-              width: 60,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            // Course Details
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: (course['color'] as Color).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: course['color'] as Color,
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Course ID: ${course['id']}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: (course['color'] as Color),
-                                ),
-                              ),
-                              Chip(
-                                label: Text(
-                                  '${course['studentCount']} student${course['studentCount'] != 1 ? 's' : ''}',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                backgroundColor: (course['color'] as Color).withOpacity(0.2),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            course['name'],
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Details
-                    const Text(
-                      'Course Details',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildDetailItem(
-                      icon: Icons.person,
-                      label: 'Instructor',
-                      value: 'Dr. ${course['doctorName']}',
-                    ),
-                    _buildDetailItem(
-                      icon: Icons.people,
-                      label: 'Students',
-                      value: '${course['studentCount']} student${course['studentCount'] != 1 ? 's' : ''}',
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Close Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.errorColor),
+            const SizedBox(height: 16),
+            Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.errorColor)),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _fetchCourses,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
             ),
           ],
         ),
@@ -808,52 +644,70 @@ class _CoursesListPageState extends State<CoursesListPage> {
     );
   }
 
-  Widget _buildDetailItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.book_outlined, size: 80, color: AppColors.darkColor.withOpacity(0.2)),
+          const SizedBox(height: 16),
+          Text('No courses available', style: TextStyle(fontSize: 18, color: AppColors.darkColor.withOpacity(0.5))),
+          if (_searchQuery.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('Try a different search term', style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.4))),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showStudentCourseDetails(Map<String, dynamic> course) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 36,
-              height: 36,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.lightColor,
-                borderRadius: BorderRadius.circular(8),
+                color: (course['color'] as Color).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: (course['color'] as Color).withOpacity(0.3)),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primaryColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.darkColor.withOpacity(0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Course ID: ${course['id']}', style: TextStyle(color: course['color'], fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(course['name'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  ]),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            if (course['doctorName']?.toString().isNotEmpty == true)
+              ListTile(
+                leading: CircleAvatar(backgroundColor: AppColors.primaryColor.withOpacity(0.1), child: const Icon(Icons.person, color: AppColors.primaryColor)),
+                title: const Text('Instructor'),
+                subtitle: Text('Dr. ${course['doctorName']}'),
+              ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('Close'),
+              ),
+            ),
           ],
-        ));
-    }
+        ),
+      ),
+    );
+  }
 }
+

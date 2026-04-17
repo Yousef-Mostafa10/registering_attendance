@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 
@@ -21,7 +21,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
   String? _authToken;
   Map<String, dynamic>? _apiResult;
 
-  static const String _apiUrl = 'http://supergm-001-site1.ntempurl.com/api/Admin/create-students-bulk';
+  static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/create-students-bulk';
 
   // قائمة للطلاب الذين سيتم إضافتهم
   List<Map<String, String>> _studentsList = [];
@@ -867,3 +867,4 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
     );
   }
 }
+
