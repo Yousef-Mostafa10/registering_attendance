@@ -10,6 +10,7 @@ import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
 import '../Auth/api_service.dart';
 import 'Reports/CourseDashboardPage.dart';
+import 'Reports/StudentSessionsHistoryPage.dart';
 
 class CoursesListPage extends StatefulWidget {
   const CoursesListPage({Key? key}) : super(key: key);
@@ -33,9 +34,12 @@ class _CoursesListPageState extends State<CoursesListPage> {
   String? _authToken;
   String? _userRole;
 
-  static const String _adminCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/list-courses';
-  static const String _studentCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/student-courses';
-  static const String _myCoursesUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/my-courses';
+  static const String _adminCoursesUrl =
+      'http://msngroup-001-site1.ktempurl.com/api/Admin/list-courses';
+  static const String _studentCoursesUrl =
+      'http://msngroup-001-site1.ktempurl.com/api/Course/student-courses';
+  static const String _myCoursesUrl =
+      'http://msngroup-001-site1.ktempurl.com/api/Course/my-courses';
 
   final List<Color> _colors = [
     const Color(0xFF1A9E8F),
@@ -88,7 +92,10 @@ class _CoursesListPageState extends State<CoursesListPage> {
 
   Future<void> _fetchCourses() async {
     if (!mounted) return;
-    setState(() { _isLoading = true; _errorMessage = ''; });
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
 
     try {
       // اختيار الـ URL المناسب بناءً على الدور
@@ -127,15 +134,16 @@ class _CoursesListPageState extends State<CoursesListPage> {
             'name': c['name'] ?? c['courseName'] ?? 'Unknown',
             'doctorName': c['doctorName'] ?? c['instructorName'] ?? '',
             'studentCount': studentCount,
-            'role': c['role'],         // Doctor/TA chip
-            'staff': c['staff'],       // Student avatars
+            'role': c['role'], // Doctor/TA chip
+            'staff': c['staff'], // Student avatars
             'code': c['code'] ?? '',
             'color': _colors[i % _colors.length],
           });
         }
 
         // للدكتور: جلب عدد الطلاب لكل كورس من endpoint منفصل
-        if ((_userRole == 'Doctor' || _userRole == 'TA') && courses.isNotEmpty) {
+        if ((_userRole == 'Doctor' || _userRole == 'TA') &&
+            courses.isNotEmpty) {
           await _fetchEnrolledCountsForCourses(courses);
         }
 
@@ -174,7 +182,9 @@ class _CoursesListPageState extends State<CoursesListPage> {
   }
 
   /// جلب عدد الطلاب لكل كورس للدكتور/TA من /Course/number-of-enrolled-students/{id}
-  Future<void> _fetchEnrolledCountsForCourses(List<Map<String, dynamic>> courses) async {
+  Future<void> _fetchEnrolledCountsForCourses(
+    List<Map<String, dynamic>> courses,
+  ) async {
     final futures = courses.map((course) async {
       try {
         final res = await ApiService.getEnrolledCount(
@@ -213,14 +223,23 @@ class _CoursesListPageState extends State<CoursesListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
-      floatingActionButton: _userRole == 'Student' 
-        ? FloatingActionButton.extended(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerPage())),
-            backgroundColor: AppColors.successColor,
-            icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
-            label: const Text('Scan Attendance', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          )
-        : null,
+      floatingActionButton: _userRole == 'Student'
+          ? FloatingActionButton.extended(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const QRScannerPage()),
+              ),
+              backgroundColor: AppColors.successColor,
+              icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+              label: const Text(
+                'Scan Attendance',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(
@@ -247,9 +266,13 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   _userRole == 'Doctor' || _userRole == 'TA'
                       ? 'My Courses'
                       : _userRole == 'Student'
-                          ? 'My Enrolled Courses'
-                          : 'Courses List',
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      ? 'Registered Courses'
+                      : 'Courses List',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -273,13 +296,19 @@ class _CoursesListPageState extends State<CoursesListPage> {
                     color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.logout, size: 18, color: Colors.white),
+                  child: const Icon(
+                    Icons.logout,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                 ),
                 onPressed: () async {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
                       titlePadding: EdgeInsets.zero,
                       contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                       title: Container(
@@ -299,12 +328,20 @@ class _CoursesListPageState extends State<CoursesListPage> {
                                 color: Colors.white.withOpacity(0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.logout, color: Colors.white, size: 32),
+                              child: const Icon(
+                                Icons.logout,
+                                color: Colors.white,
+                                size: 32,
+                              ),
                             ),
                             const SizedBox(height: 12),
                             const Text(
                               'Logout',
-                              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -315,20 +352,35 @@ class _CoursesListPageState extends State<CoursesListPage> {
                           const Text(
                             'Are you sure you want to logout from your account?',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.darkColor,
+                            ),
                           ),
                           const SizedBox(height: 24),
                           Row(
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed: () => Navigator.pop(context, false),
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
                                   style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    side: BorderSide(color: Colors.grey.shade300),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    side: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
                                   ),
-                                  child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                                  child: Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -338,11 +390,20 @@ class _CoursesListPageState extends State<CoursesListPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.errorColor,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                     elevation: 0,
                                   ),
-                                  child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  child: const Text(
+                                    'Logout',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -354,7 +415,11 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   if (confirm == true && context.mounted) {
                     await AuthStorage.clearUserData();
                     if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/',
+                        (route) => false,
+                      );
                     }
                   }
                 },
@@ -364,7 +429,12 @@ class _CoursesListPageState extends State<CoursesListPage> {
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(80),
               child: Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 4),
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  top: 4,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
@@ -400,27 +470,27 @@ class _CoursesListPageState extends State<CoursesListPage> {
         ],
         body: Column(
           children: [
-            // Stats Row
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _buildStatCard(
-                    icon: Icons.book,
-                    title: 'Total Courses',
-                    value: _isLoading ? '...' : _totalCourses.toString(),
-                    color: AppColors.primaryColor,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildStatCard(
-                    icon: Icons.people,
-                    title: 'Total Students',
-                    value: _isLoading ? '...' : _totalStudents.toString(),
-                    color: AppColors.successColor,
-                  ),
-                ],
+            if (_userRole != 'Student')
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    _buildStatCard(
+                      icon: Icons.book,
+                      title: 'Total Courses',
+                      value: _isLoading ? '...' : _totalCourses.toString(),
+                      color: AppColors.primaryColor,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
+                      icon: Icons.people,
+                      title: 'Total Students',
+                      value: _isLoading ? '...' : _totalStudents.toString(),
+                      color: AppColors.successColor,
+                    ),
+                  ],
+                ),
               ),
-            ),
 
             // Content
             Expanded(
@@ -444,18 +514,19 @@ class _CoursesListPageState extends State<CoursesListPage> {
                       ),
                     )
                   : _errorMessage.isNotEmpty
-                      ? _buildErrorState()
-                      : _filteredCourses.isEmpty
-                          ? _buildEmptyState()
-                          : RefreshIndicator(
-                              onRefresh: _fetchCourses,
-                              color: AppColors.primaryColor,
-                              child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemCount: _filteredCourses.length,
-                                itemBuilder: (_, i) => _buildCourseCard(_filteredCourses[i]),
-                              ),
-                            ),
+                  ? _buildErrorState()
+                  : _filteredCourses.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _fetchCourses,
+                      color: AppColors.primaryColor,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _filteredCourses.length,
+                        itemBuilder: (_, i) =>
+                            _buildCourseCard(_filteredCourses[i]),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -475,13 +546,23 @@ class _CoursesListPageState extends State<CoursesListPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 48, height: 48,
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 12),
@@ -489,8 +570,21 @@ class _CoursesListPageState extends State<CoursesListPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
-                  Text(title, style: TextStyle(fontSize: 12, color: AppColors.darkColor.withOpacity(0.6))),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkColor,
+                    ),
+                  ),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.darkColor.withOpacity(0.6),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -502,8 +596,8 @@ class _CoursesListPageState extends State<CoursesListPage> {
 
   Widget _buildCourseCard(Map<String, dynamic> course) {
     final Color color = course['color'] as Color;
-    final String? role = course['role']?.toString();           // Doctor/TA chip
-    final dynamic staffList = course['staff'];                  // Student role avatars
+    final String? role = course['role']?.toString(); // Doctor/TA chip
+    final dynamic staffList = course['staff']; // Student role avatars
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -514,13 +608,25 @@ class _CoursesListPageState extends State<CoursesListPage> {
           borderRadius: BorderRadius.circular(16),
           onTap: () {
             // جميع الأدوار (Admin/Doctor/TA) يفتحون نفس Course Dashboard
-            if (_userRole == 'Admin' || _userRole == 'Doctor' || _userRole == 'TA') {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => CourseDashboardPage(course: course),
-              ));
+            if (_userRole == 'Admin' ||
+                _userRole == 'Doctor' ||
+                _userRole == 'TA') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CourseDashboardPage(course: course),
+                ),
+              );
             } else {
-              // الطالب لا يملك Dashboard — يعرض فقط تفاصيل المقرر
-              _showStudentCourseDetails(course);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StudentSessionsHistoryPage(
+                    courseId: course['id'].toString(),
+                    courseName: course['name'].toString(),
+                  ),
+                ),
+              );
             }
           },
           child: Padding(
@@ -529,8 +635,12 @@ class _CoursesListPageState extends State<CoursesListPage> {
               children: [
                 // Color Indicator
                 Container(
-                  width: 4, height: 70,
-                  decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+                  width: 4,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
                 const SizedBox(width: 16),
 
@@ -544,21 +654,38 @@ class _CoursesListPageState extends State<CoursesListPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                            child: Text('ID: ${course['id']}', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-                          ),
-                          Builder(builder: (context) {
-                            final count = course['studentCount'];
-                            return Chip(
-                              label: Text(
-                                count == null ? '— students' : '$count student${count == 1 ? '' : 's'}',
-                                style: const TextStyle(fontSize: 11),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'ID: ${course['id']}',
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
                               ),
-                              backgroundColor: AppColors.lightColor,
-                              visualDensity: VisualDensity.compact,
-                            );
-                          }),
+                            ),
+                          ),
+                          Builder(
+                            builder: (context) {
+                              final count = course['studentCount'];
+                              return Chip(
+                                label: Text(
+                                  count == null
+                                      ? '— students'
+                                      : '$count student${count == 1 ? '' : 's'}',
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                                backgroundColor: AppColors.lightColor,
+                                visualDensity: VisualDensity.compact,
+                              );
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -566,15 +693,23 @@ class _CoursesListPageState extends State<CoursesListPage> {
                       // Course Name
                       Text(
                         course['name'],
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkColor,
+                        ),
                       ),
 
                       // Doctor Name (للأدمن والطالب فقط)
-                      if (course['doctorName']?.toString().isNotEmpty == true) ...[
+                      if (course['doctorName']?.toString().isNotEmpty ==
+                          true) ...[
                         const SizedBox(height: 4),
                         Text(
                           'Dr. ${course['doctorName']}',
-                          style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.65)),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.darkColor.withOpacity(0.65),
+                          ),
                         ),
                       ],
 
@@ -582,14 +717,24 @@ class _CoursesListPageState extends State<CoursesListPage> {
                       if (role != null) ...[
                         const SizedBox(height: 8),
                         Chip(
-                          label: Text(role, style: const TextStyle(color: Colors.white, fontSize: 12)),
-                          backgroundColor: role.toLowerCase().contains('main') ? Colors.blue : Colors.grey,
+                          label: Text(
+                            role,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                          backgroundColor: role.toLowerCase().contains('main')
+                              ? Colors.blue
+                              : Colors.grey,
                           visualDensity: VisualDensity.compact,
                         ),
                       ],
 
                       // Staff Avatars (للطالب فقط)
-                      if (staffList != null && staffList is List && staffList.isNotEmpty) ...[
+                      if (staffList != null &&
+                          staffList is List &&
+                          staffList.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Row(
                           children: (staffList).take(4).map<Widget>((s) {
@@ -598,10 +743,15 @@ class _CoursesListPageState extends State<CoursesListPage> {
                               padding: const EdgeInsets.only(right: 4),
                               child: CircleAvatar(
                                 radius: 12,
-                                backgroundColor: AppColors.primaryColor.withOpacity(0.15),
+                                backgroundColor: AppColors.primaryColor
+                                    .withOpacity(0.15),
                                 child: Text(
                                   name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                  style: TextStyle(fontSize: 10, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             );
@@ -612,7 +762,11 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.darkColor.withOpacity(0.3)),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: AppColors.darkColor.withOpacity(0.3),
+                ),
               ],
             ),
           ),
@@ -628,15 +782,25 @@ class _CoursesListPageState extends State<CoursesListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: AppColors.errorColor),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppColors.errorColor,
+            ),
             const SizedBox(height: 16),
-            Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.errorColor)),
+            Text(
+              _errorMessage,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.errorColor),
+            ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _fetchCourses,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+              ),
             ),
           ],
         ),
@@ -649,65 +813,31 @@ class _CoursesListPageState extends State<CoursesListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.book_outlined, size: 80, color: AppColors.darkColor.withOpacity(0.2)),
+          Icon(
+            Icons.book_outlined,
+            size: 80,
+            color: AppColors.darkColor.withOpacity(0.2),
+          ),
           const SizedBox(height: 16),
-          Text('No courses available', style: TextStyle(fontSize: 18, color: AppColors.darkColor.withOpacity(0.5))),
+          Text(
+            'No courses available',
+            style: TextStyle(
+              fontSize: 18,
+              color: AppColors.darkColor.withOpacity(0.5),
+            ),
+          ),
           if (_searchQuery.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text('Try a different search term', style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.4))),
+            Text(
+              'Try a different search term',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.darkColor.withOpacity(0.4),
+              ),
+            ),
           ],
         ],
       ),
     );
   }
-
-  void _showStudentCourseDetails(Map<String, dynamic> course) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: (course['color'] as Color).withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: (course['color'] as Color).withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Course ID: ${course['id']}', style: TextStyle(color: course['color'], fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text(course['name'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  ]),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (course['doctorName']?.toString().isNotEmpty == true)
-              ListTile(
-                leading: CircleAvatar(backgroundColor: AppColors.primaryColor.withOpacity(0.1), child: const Icon(Icons.person, color: AppColors.primaryColor)),
-                title: const Text('Instructor'),
-                subtitle: Text('Dr. ${course['doctorName']}'),
-              ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: const Text('Close'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
-

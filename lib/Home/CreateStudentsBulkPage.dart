@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:excel/excel.dart' as excel;
+import 'package:file_picker/file_picker.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
@@ -20,8 +23,12 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
   bool _isSuccess = false;
   String? _authToken;
   Map<String, dynamic>? _apiResult;
+  bool _isImporting = false;
+  String? _importMessage;
+  List<String> _importErrors = [];
 
-  static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/create-students-bulk';
+  static const String _apiUrl =
+      'http://msngroup-001-site1.ktempurl.com/api/Admin/create-students-bulk';
 
   // قائمة للطلاب الذين سيتم إضافتهم
   List<Map<String, String>> _studentsList = [];
@@ -134,7 +141,159 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
       _apiResponse = null;
       _isSuccess = false;
       _apiResult = null;
+      _importMessage = null;
+      _importErrors = [];
     });
+  }
+
+  String _normalizeHeader(dynamic value) {
+    if (value == null) return '';
+    return value.toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  }
+
+  int? _findHeaderIndex(Map<String, int> headers, List<String> candidates) {
+    for (final key in candidates) {
+      final normalized = _normalizeHeader(key);
+      if (headers.containsKey(normalized)) return headers[normalized];
+    }
+    return null;
+  }
+
+  String _cellValue(List<excel.Data?> row, int? index) {
+    if (index == null || index >= row.length) return '';
+    final cell = row[index];
+    final value = cell?.value;
+    return value?.toString().trim() ?? '';
+  }
+
+  Future<void> _importStudentsFromExcel() async {
+    if (_isImporting) return;
+    setState(() {
+      _isImporting = true;
+      _importMessage = null;
+      _importErrors = [];
+    });
+
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+      );
+
+      if (result == null) {
+        setState(() => _isImporting = false);
+        return;
+      }
+
+      final path = result.files.single.path;
+      if (path == null) {
+        throw Exception('Selected file is not available.');
+      }
+
+      final bytes = File(path).readAsBytesSync();
+      final workbook = excel.Excel.decodeBytes(bytes);
+      if (workbook.tables.isEmpty) {
+        throw Exception('No sheets found in the Excel file.');
+      }
+
+      final sheet = workbook.tables.values.first;
+      if (sheet == null || sheet.rows.isEmpty) {
+        throw Exception('The Excel sheet is empty.');
+      }
+
+      final headerRow = sheet.rows.first;
+      final headerMap = <String, int>{};
+      for (int i = 0; i < headerRow.length; i++) {
+        final key = _normalizeHeader(headerRow[i]?.value);
+        if (key.isNotEmpty) headerMap[key] = i;
+      }
+
+      final nameIndex = _findHeaderIndex(headerMap, [
+        'name',
+        'student name',
+        'full name',
+      ]);
+      final emailIndex = _findHeaderIndex(headerMap, [
+        'university email',
+        'email',
+        'student email',
+      ]);
+      final codeIndex = _findHeaderIndex(headerMap, [
+        'university code',
+        'code',
+        'student code',
+      ]);
+
+      if (nameIndex == null || emailIndex == null || codeIndex == null) {
+        throw Exception(
+          'Missing required headers. Use: name, universityEmail, universityCode.',
+        );
+      }
+
+      int added = 0;
+      int skipped = 0;
+      final errors = <String>[];
+
+      for (int i = 1; i < sheet.rows.length; i++) {
+        final row = sheet.rows[i];
+        final name = _cellValue(row, nameIndex);
+        final email = _cellValue(row, emailIndex);
+        final code = _cellValue(row, codeIndex);
+
+        if (name.isEmpty && email.isEmpty && code.isEmpty) {
+          continue;
+        }
+
+        final nameError = _validateName(name);
+        final emailError = _validateEmail(email);
+        final codeError = _validateCode(code);
+
+        if (nameError != null || emailError != null || codeError != null) {
+          skipped++;
+          errors.add('Row ${i + 1}: ${nameError ?? emailError ?? codeError}');
+          continue;
+        }
+
+        _studentsList.add({
+          'name': name,
+          'universityEmail': email,
+          'universityCode': code,
+        });
+        added++;
+      }
+
+      setState(() {
+        _importMessage = 'Imported $added students, skipped $skipped rows.';
+        _importErrors = errors;
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_importMessage ?? 'Import completed'),
+          backgroundColor: AppColors.successColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _importMessage = 'Import failed: ${e.toString()}';
+        _importErrors = [];
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_importMessage ?? 'Import failed'),
+            backgroundColor: AppColors.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isImporting = false);
+      }
+    }
   }
 
   Future<void> _submitForm() async {
@@ -191,7 +350,8 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
         final responseData = jsonDecode(response.body);
         setState(() {
           _apiResult = responseData;
-          _apiResponse = responseData['message'] ?? 'Students created successfully!';
+          _apiResponse =
+              responseData['message'] ?? 'Students created successfully!';
           _isSuccess = true;
         });
 
@@ -206,10 +366,11 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
             ),
           ),
         );
-
       } else if (response.statusCode == 400) {
         final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Bad request: ${response.statusCode}');
+        throw Exception(
+          errorData['message'] ?? 'Bad request: ${response.statusCode}',
+        );
       } else if (response.statusCode == 401) {
         throw Exception('Unauthorized - Token may be expired');
       } else {
@@ -282,10 +443,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primaryColor,
-                      AppColors.darkColor,
-                    ],
+                    colors: [AppColors.primaryColor, AppColors.darkColor],
                   ),
                 ),
               ),
@@ -343,11 +501,12 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+                  _buildImportCard(),
+                  const SizedBox(height: 16),
 
                   // API Response
-                  if (_apiResponse != null)
-                    _buildApiResponseCard(),
+                  if (_apiResponse != null) _buildApiResponseCard(),
 
                   // Add Student Form
                   _buildAddStudentForm(),
@@ -377,20 +536,20 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                         ),
                         child: _isLoading
                             ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : Text(
-                          'Create ${_studentsList.length} Student${_studentsList.length != 1 ? 's' : ''}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                                'Create ${_studentsList.length} Student${_studentsList.length != 1 ? 's' : ''}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -549,9 +708,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
             keyboardType: keyboardType,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(
-                color: AppColors.darkColor.withOpacity(0.4),
-              ),
+              hintStyle: TextStyle(color: AppColors.darkColor.withOpacity(0.4)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -565,10 +722,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppColors.errorColor,
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: AppColors.errorColor, width: 1.5),
               ),
               filled: true,
               fillColor: Colors.white,
@@ -581,10 +735,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                 vertical: 16,
               ),
             ),
-            style: TextStyle(
-              color: AppColors.darkColor,
-              fontSize: 16,
-            ),
+            style: TextStyle(color: AppColors.darkColor, fontSize: 16),
             validator: validator,
           ),
         ),
@@ -621,7 +772,10 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.successColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -650,6 +804,161 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
               return _buildStudentListItem(student, index);
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImportCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Import From Excel',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Upload an Excel file with columns: name, universityEmail, universityCode',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.darkColor.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _isImporting ? null : _importStudentsFromExcel,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: _isImporting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.upload_file),
+                  label: Text(
+                    _isImporting ? 'Importing...' : 'Upload Excel',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton(
+                onPressed: _isImporting
+                    ? null
+                    : () {
+                        setState(() {
+                          _importMessage = null;
+                          _importErrors = [];
+                        });
+                      },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  side: BorderSide(color: Colors.grey.shade300),
+                ),
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+          if (_importMessage != null) ...[
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  _importErrors.isEmpty
+                      ? Icons.check_circle
+                      : Icons.warning_amber,
+                  color: _importErrors.isEmpty
+                      ? AppColors.successColor
+                      : AppColors.warningColor,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _importMessage!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.darkColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (_importErrors.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.errorColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.errorColor.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _importErrors.take(5).map((e) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      e,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.errorColor,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            if (_importErrors.length > 5) ...[
+              const SizedBox(height: 6),
+              Text(
+                '...and ${_importErrors.length - 5} more errors',
+                style: TextStyle(fontSize: 12, color: AppColors.errorColor),
+              ),
+            ],
+          ],
         ],
       ),
     );
@@ -738,11 +1047,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
             ),
           ),
           IconButton(
-            icon: Icon(
-              Icons.delete,
-              color: AppColors.errorColor,
-              size: 20,
-            ),
+            icon: Icon(Icons.delete, color: AppColors.errorColor, size: 20),
             onPressed: () => _removeStudent(index),
           ),
         ],
@@ -839,10 +1144,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -867,4 +1169,3 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
     );
   }
 }
-
