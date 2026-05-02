@@ -13,6 +13,7 @@ import 'package:registering_attendance/Home/DeleteUserPage.dart';
 import 'package:registering_attendance/Home/DoctorsListPage.dart';
 import 'package:registering_attendance/Home/ResetStudentAccountPage.dart';
 import 'package:registering_attendance/Home/ResetStudentsForNewYearPage.dart';
+import 'package:registering_attendance/Home/ResetStudentsAccountsPage.dart';
 import 'package:registering_attendance/Home/TAsListPage.dart';
 import 'package:registering_attendance/Home/creatCourse.dart';
 import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
@@ -20,6 +21,7 @@ import 'package:registering_attendance/Home/AssignStaffPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 
 class AdminDashboard extends StatefulWidget {
   final String userName;
@@ -43,7 +45,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final StreamController<Map<String, dynamic>> _statsStreamController =
   StreamController<Map<String, dynamic>>.broadcast();
   late Timer _refreshTimer;
-  String? _authToken;
   String? _userRole;
   bool _isLoading = true;
 
@@ -53,8 +54,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _initializeData();
 
     // تحديث الإحصائيات كل 30 ثانية تلقائياً
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (_authToken != null && _authToken!.isNotEmpty && _userRole == 'Admin') {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+      final token = await AuthStorage.getToken();
+      if (token != null && token.isNotEmpty && _userRole == 'Admin') {
         _fetchStatistics();
       }
     });
@@ -74,10 +76,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> _loadAuthTokenAndStartStream() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _authToken = prefs.getString('auth_token');
       _userRole = prefs.getString('user_role');
+      final token = prefs.getString('auth_token');
 
-      if (_authToken != null && _authToken!.isNotEmpty) {
+      if (token != null && token.isNotEmpty) {
         // بيانات أولية أثناء التحميل
         _statsStreamController.add({
           'doctors': 0,
@@ -213,24 +215,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<void> _fetchStatistics() async {
     print('\n📊 Fetching Statistics...');
 
-    if (_authToken == null || _authToken!.isEmpty) {
+    final token = await AuthStorage.getToken();
+    if (token == null || token.isEmpty) {
       print('❌ Auth token is null or empty!');
-
-      // محاولة إعادة تحميل التوكن
-      final prefs = await SharedPreferences.getInstance();
-      _authToken = prefs.getString('auth_token');
-
-      if (_authToken == null || _authToken!.isEmpty) {
-        print('❌ Still no token after reload');
-        _statsStreamController.add({
-          'doctors': 0,
-          'tas': 0,
-          'students': 0,
-          'courses': 0,
-          'error': 'no_token'
-        });
-        return;
-      }
+      _statsStreamController.add({
+        'doctors': 0,
+        'tas': 0,
+        'students': 0,
+        'courses': 0,
+        'error': 'no_token'
+      });
+      return;
     }
 
     try {
@@ -269,8 +264,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
       }
 
       if (hasError) {
-        bool has403 = results.any((r) => r['error'] == 'api_403' || r['error'] == 'api_401' || r['error'] == 'api_404' && r['error'] != null);
-        stats['error'] = has403 ? 'api_403' : 'partial_error';
+        bool hasUnauthorized = results.any((r) => r['error'] == 'unauthorized' || r['error'] == 'api_401');
+        bool has403 = results.any((r) => r['error'] == 'api_403' || r['error'] == 'api_404');
+        
+        if (hasUnauthorized) {
+          stats['error'] = 'unauthorized';
+        } else if (has403) {
+          stats['error'] = 'api_403';
+        } else {
+          stats['error'] = 'partial_error';
+        }
       }
 
       print('📈 Final Stats: $stats');
@@ -297,27 +300,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Future<Map<String, dynamic>> _fetchApiData(String endpoint) async {
-    if (_authToken == null || _authToken!.isEmpty) {
+    final token = await AuthStorage.getToken();
+    if (token == null || token.isEmpty) {
       return {'count': 0, 'error': 'no_token'};
     }
 
     try {
-      final response = await http.get(
-        Uri.parse('http://msngroup-001-site1.ktempurl.com/api/Admin/$endpoint'),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-        },
+      final response = await ApiService.getAdminStatistic(
+        endpoint: endpoint,
+        token: token,
       ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else if (response.statusCode == 401) {
+      final statusCode = response['statusCode'] as int;
+      final responseBody = response['body'] as String;
+
+      if (statusCode == 200) {
+        try {
+          return jsonDecode(responseBody);
+        } catch (_) {
+          return {'count': 0, 'error': 'parse_error'};
+        }
+      } else if (statusCode == 401) {
         print('🔒 Unauthorized for $endpoint - Token may be expired');
         return {'count': 0, 'error': 'unauthorized'};
       } else {
-        print('⚠️ API Error ${response.statusCode} for $endpoint');
-        return {'count': 0, 'error': 'api_${response.statusCode}'};
+        print('⚠️ API Error $statusCode for $endpoint');
+        return {'count': 0, 'error': 'api_$statusCode'};
       }
     } on TimeoutException {
       print('⏰ Timeout fetching $endpoint');
@@ -631,109 +639,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
 
-          // باقي الأقسام كما هي...
-          // People Management Section - Admin Only
-          if (widget.role == 'Admin')
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
-                child: Text(
-                  'People Management',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkColor,
-                  ),
-                ),
-              ),
-            ),
-
-          // People Operations Grid - Admin Only
-          if (widget.role == 'Admin')
-            _buildOperationsGrid(
-              context,
-              operations: [
-                {
-                  'title': 'Create Dr,TA',
-                  'icon': Icons.person_add,
-                  'color': AppColors.primaryColor,
-                  'page': () => CreateAccountPage(),
-                },
-                {
-                  'title': 'List TAs',
-                  'icon': Icons.list,
-                  'color': AppColors.warningColor,
-                  'page': () => TAsListPage(),
-                },
-                {
-                  'title': 'List Doctors',
-                  'icon': Icons.list,
-                  'color': AppColors.primaryColor.withOpacity(0.8),
-                  'page': () => DoctorsListPage(),
-                },
-                {
-                  'title': 'Delete User',
-                  'icon': Icons.person_remove,
-                  'color': AppColors.errorColor,
-                  'page': () =>  DeleteUserPage(),
-                },
-                {
-                  'title': 'Reset Student Account',
-                  'icon': Icons.restart_alt,
-                  'color': AppColors.warningColor,
-                  'page': () => ResetStudentAccountPage(),
-                },
-                {
-                  'title': 'Reset for New Year',
-                  'icon': Icons.autorenew,
-                  'color': Colors.orange,
-                  'page': () => ResetStudentsForNewYearPage(),
-                },
-              ],
-            ),
-
-          // Students Management Section - Admin Only
-          if (widget.role == 'Admin')
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
-                child: Text(
-                  'Students Management',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkColor,
-                  ),
-                ),
-              ),
-            ),
-
-          // Students Operations Grid - Admin Only
-          if (widget.role == 'Admin')
-            _buildOperationsGrid(
-              context,
-              operations: [
-                {
-                  'title': 'Bulk Create Students',
-                  'icon': Icons.upload_file,
-                  'color': AppColors.secondaryColor,
-                  'page': () => CreateStudentsBulkPage(),
-                },
-                {
-                  'title': 'Bulk Delete Students',
-                  'icon': Icons.delete_forever,
-                  'color': AppColors.errorColor,
-                  'page': () =>  DeleteStudentsBulkPage(),
-                },
-              ],
-            ),
-
-          // Course Enrollment Section
+          // Main Categories Menu
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
               child: Text(
-                'Course Enrollment',
+                'Dashboard Menu',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -743,72 +654,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
 
-          // Course Enrollment Operations Grid
-          _buildOperationsGrid(
-            context,
-            operations: [
-              {
-                'title': 'Enroll Student',
-                'icon': Icons.person_add_alt,
-                'color': Colors.blue,
-                'page': () =>Navigator.push(context,MaterialPageRoute(builder: (context)=>CourseEnrollmentPage()))
-              },
-              {
-                'title': 'Bulk Enroll',
-                'icon': Icons.group_add,
-                'color': Colors.teal,
-                'page': () => Navigator.push(context,MaterialPageRoute(builder: (context)=>BulkCourseEnrollmentPage()))
-              },
-            ],
-          ),
-
-          // Courses Management Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
-              child: Text(
-                'Courses Management',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkColor,
-                ),
-              ),
-            ),
-          ),
-
-          // Courses Operations Grid
-          _buildOperationsGrid(
-            context,
-            operations: [
-              if (widget.role == 'Admin')
-                {
-                  'title': 'Create Course',
-                  'icon': Icons.add_circle,
-                  'color': AppColors.successColor,
-                  'page': () => Navigator.push(context,MaterialPageRoute(builder: (context)=>CreateCoursePage()))
-                },
-              {
-                'title': 'List Courses',
-                'icon': Icons.library_books,
-                'color': AppColors.successColor.withOpacity(0.8),
-                'page': () => CoursesListPage(),
-              },
-              if (widget.role == 'Admin')
-                {
-                  'title': 'Delete Course',
-                  'icon': Icons.delete,
-                  'color': AppColors.errorColor,
-                  'page': () => DeleteCoursePage(),
-                },
-              if (widget.role == 'Admin')
-                {
-                  'title': 'Assign Staff',
-                  'icon': Icons.assignment_ind,
-                  'color': Colors.deepPurple,
-                  'page': () => const AssignStaffPage(),
-                },
-            ],
+          // Categories Grid
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            sliver: _buildCategoriesGrid(context),
           ),
 
           // Bottom Space
@@ -1067,9 +916,111 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  SliverGrid _buildOperationsGrid(BuildContext context, {
-    required List<Map<String, dynamic>> operations,
-  }) {
+  SliverGrid _buildCategoriesGrid(BuildContext context) {
+    final List<Map<String, dynamic>> categories = [];
+    
+    if (widget.role == 'Admin') {
+      categories.add({
+        'title': 'Staff Management',
+        'icon': Icons.people_alt,
+        'color': Colors.blue,
+        'operations': [
+          {
+            'title': 'Create Dr,TA',
+            'icon': Icons.person_add,
+            'color': AppColors.primaryColor,
+            'page': () => CreateAccountPage(),
+          },
+          {
+            'title': 'List Doctors',
+            'icon': Icons.list,
+            'color': AppColors.primaryColor.withOpacity(0.8),
+            'page': () => DoctorsListPage(),
+          },
+          {
+            'title': 'List TAs',
+            'icon': Icons.list,
+            'color': AppColors.warningColor,
+            'page': () => TAsListPage(),
+          },
+        ],
+      });
+
+      categories.add({
+        'title': 'Student Management',
+        'icon': Icons.school,
+        'color': Colors.orange,
+        'operations': [
+          {
+            'title': 'Bulk Create Students',
+            'icon': Icons.upload_file,
+            'color': AppColors.secondaryColor,
+            'page': () => CreateStudentsBulkPage(),
+          },
+          {
+            'title': 'Bulk Delete Students',
+            'icon': Icons.delete_forever,
+            'color': AppColors.errorColor,
+            'page': () => DeleteStudentsBulkPage(),
+          },
+          {
+            'title': 'Reset Accounts',
+            'icon': Icons.manage_accounts,
+            'color': AppColors.warningColor,
+            'page': () => const ResetStudentsAccountsPage(),
+          },
+        ],
+      });
+    }
+
+    categories.add({
+      'title': 'Course Enrollment',
+      'icon': Icons.how_to_reg,
+      'color': Colors.teal,
+      'operations': [
+        {
+          'title': 'Enroll Student',
+          'icon': Icons.person_add_alt,
+          'color': Colors.blue,
+          'page': () => CourseEnrollmentPage(),
+        },
+        {
+          'title': 'Bulk Enroll',
+          'icon': Icons.group_add,
+          'color': Colors.teal,
+          'page': () => BulkCourseEnrollmentPage(),
+        },
+      ],
+    });
+
+    categories.add({
+      'title': 'Course Management',
+      'icon': Icons.library_books,
+      'color': Colors.deepPurple,
+      'operations': [
+        if (widget.role == 'Admin')
+          {
+            'title': 'Create Course',
+            'icon': Icons.add_circle,
+            'color': AppColors.successColor,
+            'page': () => CreateCoursePage(),
+          },
+        {
+          'title': 'List Courses',
+          'icon': Icons.list_alt,
+          'color': AppColors.successColor.withOpacity(0.8),
+          'page': () => CoursesListPage(),
+        },
+        if (widget.role == 'Admin')
+          {
+            'title': 'Assign Staff',
+            'icon': Icons.assignment_ind,
+            'color': Colors.deepPurple,
+            'page': () => const AssignStaffPage(),
+          },
+      ],
+    });
+
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -1078,28 +1029,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
         childAspectRatio: 1.0,
       ),
       delegate: SliverChildBuilderDelegate(
-            (context, index) {
-          final op = operations[index];
+        (context, index) {
+          final cat = categories[index];
           return _buildSimpleOperationCard(
-            title: op['title']!,
-            icon: op['icon'] as IconData,
-            color: op['color'] as Color,
+            title: cat['title'] as String,
+            icon: cat['icon'] as IconData,
+            color: cat['color'] as Color,
             onTap: () {
-              if (op.containsKey('page') && op['page'] != null) {
-                if (op['page'] is Widget Function()) {
-                  final pageBuilder = op['page'] as Widget Function();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => pageBuilder()),
-                  );
-                } else if (op['page'] is Function) {
-                  (op['page'] as Function)();
-                }
-              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SubMenuPage(
+                    title: cat['title'] as String,
+                    operations: cat['operations'] as List<Map<String, dynamic>>,
+                  ),
+                ),
+              );
             },
           );
         },
-        childCount: operations.length,
+        childCount: categories.length,
       ),
     );
   }
@@ -1179,3 +1128,118 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 }
 
+class SubMenuPage extends StatelessWidget {
+  final String title;
+  final List<Map<String, dynamic>> operations;
+
+  const SubMenuPage({
+    Key? key,
+    required this.title,
+    required this.operations,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.lightColor2,
+      appBar: AppBar(
+        backgroundColor: AppColors.primaryColor,
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: GridView.builder(
+          itemCount: operations.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.0,
+          ),
+          itemBuilder: (context, index) {
+            final op = operations[index];
+            return _SubMenuCard(
+              title: op['title']!,
+              icon: op['icon'] as IconData,
+              color: op['color'] as Color,
+              onTap: () {
+                if (op.containsKey('page') && op['page'] != null) {
+                  if (op['page'] is Widget Function()) {
+                    final pageBuilder = op['page'] as Widget Function();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => pageBuilder()),
+                    );
+                  } else if (op['page'] is Function) {
+                    (op['page'] as Function)();
+                  }
+                }
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _SubMenuCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SubMenuCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shadowColor: color.withOpacity(0.3),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            border: Border.all(color: color.withOpacity(0.2), width: 1),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 32),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkColor),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

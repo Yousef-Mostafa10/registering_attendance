@@ -1,12 +1,14 @@
 // reset_student_account_page.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:registering_attendance/core/http_interceptor.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../Auth/auth_storage.dart';
+import '../Auth/api_service.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class ResetStudentAccountPage extends StatefulWidget {
-  const ResetStudentAccountPage({Key? key}) : super(key: key);
+  final bool isTab;
+  const ResetStudentAccountPage({Key? key, this.isTab = false}) : super(key: key);
 
   @override
   _ResetStudentAccountPageState createState() => _ResetStudentAccountPageState();
@@ -14,40 +16,29 @@ class ResetStudentAccountPage extends StatefulWidget {
 
 class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _studentCodeController = TextEditingController();
 
   bool _isLoading = false;
   String? _apiResponse;
   bool _isSuccess = false;
-  String? _authToken;
-
-  static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/reset-student-account';
 
   @override
   void initState() {
     super.initState();
-    _loadAuthToken();
   }
 
   @override
   void dispose() {
-    _studentIdController.dispose();
+    _studentCodeController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadAuthToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _authToken = prefs.getString('auth_token');
-    });
-  }
-
-  String? _validateStudentId(String? value) {
+  String? _validateStudentCode(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Student ID is required';
+      return 'Student University Code is required';
     }
-    if (value.length < 3) {
-      return 'Student ID must be at least 3 characters';
+    if (value.trim().length < 3) {
+      return 'Please enter a valid University Code (e.g., ST-20205522)';
     }
     return null;
   }
@@ -57,10 +48,12 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
       return;
     }
 
-    if (_authToken == null) {
+    final token = await AuthStorage.getToken();
+    if (token == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Authentication token not found'),
+        const SnackBar(
+          content: Text('Authentication token not found'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -75,30 +68,35 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
     });
 
     try {
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(_studentIdController.text.trim()),
+      final response = await ApiService.resetStudentAccount(
+        code: _studentCodeController.text.trim(),
+        token: token,
       );
 
-      final responseData = jsonDecode(response.body);
+      final statusCode = response['statusCode'] as int;
+      final responseBody = response['body'] as String;
 
-      if (response.statusCode == 200) {
+      if (statusCode == 200) {
+        String msg = 'Account reset successfully';
+        try {
+          final responseData = jsonDecode(responseBody);
+          if (responseData['message'] != null) {
+            msg = responseData['message'];
+          }
+        } catch (_) {}
+
+        if (!mounted) return;
         setState(() {
-          _apiResponse = responseData['message'];
+          _apiResponse = msg;
           _isSuccess = true;
         });
 
         // Clear the form on success
-        _studentIdController.clear();
+        _studentCodeController.clear();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_apiResponse!),
+            content: Text(msg),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -107,9 +105,17 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
           ),
         );
       } else {
-        throw Exception('Failed to reset account: ${response.statusCode}');
+        String err = 'Failed to reset account: $statusCode';
+        try {
+          final responseData = jsonDecode(responseBody);
+          if (responseData['message'] != null) {
+            err = responseData['message'];
+          }
+        } catch (_) {}
+        throw Exception(err);
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _apiResponse = 'Error: ${e.toString()}';
         _isSuccess = false;
@@ -126,9 +132,11 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -139,7 +147,8 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
       body: CustomScrollView(
         slivers: [
           // App Bar
-          SliverAppBar(
+          if (!widget.isTab)
+            SliverAppBar(
             expandedHeight: 120,
             collapsedHeight: 80,
             pinned: true,
@@ -154,14 +163,7 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
+              title: const Text(
                     'Reset Student Account',
                     style: TextStyle(
                       color: Colors.white,
@@ -169,8 +171,6 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -224,7 +224,7 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Enter the student ID to reset their account. This will allow them to use the "Activate" screen again.',
+                                'Enter the student University Code to reset their account. This will allow them to use the "Activate" screen again.',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: AppColors.darkColor.withOpacity(0.6),
@@ -235,6 +235,17 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  const AppInstructionsCard(
+                    title: 'How to Reset an Account',
+                    instructions: [
+                      'Obtain the student\'s University Code.',
+                      'Enter the exact University Code in the field below.',
+                      'Click "Reset Account".',
+                      'Once successful, the student will be able to activate their account again from their own device.',
+                    ],
                   ),
                   const SizedBox(height: 32),
 
@@ -257,10 +268,10 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                             ],
                           ),
                           child: TextFormField(
-                            controller: _studentIdController,
+                            controller: _studentCodeController,
                             decoration: InputDecoration(
-                              labelText: 'Student ID',
-                              hintText: 'Enter student ID (e.g., 20205522)',
+                              labelText: 'Student University Code',
+                              hintText: 'Enter university code (e.g., ST-20205522)',
                               prefixIcon: Icon(
                                 Icons.badge,
                                 color: AppColors.darkColor.withOpacity(0.5),
@@ -301,7 +312,7 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                               color: AppColors.darkColor,
                               fontSize: 16,
                             ),
-                            validator: _validateStudentId,
+                            validator: _validateStudentCode,
                             keyboardType: TextInputType.text,
                           ),
                         ),

@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/DoctorsListPage.dart';
 import 'package:registering_attendance/Home/TAsListPage.dart';
+import '../Auth/colors.dart';
+import '../Auth/auth_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../widgets/AppInstructionsCard.dart';
+import '../Auth/api_service.dart';
 
 class DeleteUserPage extends StatefulWidget {
   const DeleteUserPage({Key? key}) : super(key: key);
@@ -21,14 +24,10 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
   bool _isLoading = false;
   String? _apiResponse;
   bool _isSuccess = false;
-  String? _authToken;
-
-  static const String _apiBaseUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/delete-user';
 
   @override
   void initState() {
     super.initState();
-    _loadAuthToken();
   }
 
   @override
@@ -36,13 +35,6 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
     _userCodeController.dispose();
     _confirmationController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadAuthToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _authToken = prefs.getString('auth_token');
-    });
   }
 
   String? _validateUserCode(String? value) {
@@ -70,10 +62,12 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
       return;
     }
 
-    if (_authToken == null) {
+    final token = await AuthStorage.getToken();
+    if (token == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Authentication token not found'),
+        const SnackBar(
+          content: Text('Authentication token not found'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -85,6 +79,7 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
     final confirmed = await _showConfirmationDialog();
     if (!confirmed) return;
 
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _apiResponse = null;
@@ -92,41 +87,37 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
     });
 
     try {
-      // الحصول على كود المستخدم
       final userCode = _userCodeController.text.trim();
 
-      // بناء الـ URL مع كود المستخدم
-      final deleteUrl = '$_apiBaseUrl/$userCode';
-
-      print('Deleting user with code: $userCode');
-      print('URL: $deleteUrl');
-
-      // استدعاء الـ API DELETE
-      final response = await http.delete(
-        Uri.parse(deleteUrl),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-        },
+      final response = await ApiService.deleteUser(
+        userCode: userCode,
+        token: token,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      final statusCode = response['statusCode'] as int;
+      final responseBody = response['body'] as String;
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
+      if (statusCode == 200) {
+        String msg = 'User deleted successfully!';
+        try {
+          final responseData = jsonDecode(responseBody);
+          if (responseData['message'] != null) {
+            msg = responseData['message'];
+          }
+        } catch (_) {}
+
+        if (!mounted) return;
         setState(() {
-          _apiResponse = responseData['message'] ?? 'User deleted successfully!';
+          _apiResponse = msg;
           _isSuccess = true;
         });
 
-        // تنظيف الحقول بعد النجاح
         _userCodeController.clear();
         _confirmationController.clear();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_apiResponse!),
+            content: Text(msg),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -134,17 +125,26 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
             ),
           ),
         );
-      } else if (response.statusCode == 404) {
+      } else if (statusCode == 404) {
         throw Exception('User not found - Code may be incorrect');
-      } else if (response.statusCode == 401) {
+      } else if (statusCode == 401) {
         throw Exception('Unauthorized - Token may be expired');
-      } else if (response.statusCode == 400) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Bad request: ${response.statusCode}');
+      } else if (statusCode == 400) {
+        String err = 'Bad request: $statusCode';
+        try {
+          final errorData = jsonDecode(responseBody);
+          if (errorData['message'] != null) {
+            err = errorData['message'];
+          }
+        } catch (_) {}
+        throw Exception(err);
+      } else if (statusCode == 500) {
+        throw Exception('Cannot delete this user because they are currently assigned to one or more courses. Please unassign them from all courses first before deleting.');
       } else {
-        throw Exception('Failed to delete user: ${response.statusCode}');
+        throw Exception('Failed to delete user: $statusCode');
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _apiResponse = 'Error: ${e.toString()}';
         _isSuccess = false;
@@ -161,9 +161,11 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
         ),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -238,14 +240,7 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
+              title: const Text(
                     'Delete User',
                     style: TextStyle(
                       color: Colors.white,
@@ -253,8 +248,6 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -321,6 +314,18 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  const AppInstructionsCard(
+                    title: 'How to Delete a User',
+                    instructions: [
+                      'Obtain the exact University Code of the user (e.g. TA-2482 or ST-20205522).',
+                      'Enter the code carefully in the first field below.',
+                      'Type the word "DELETE" in uppercase in the confirmation field to prove this is intentional.',
+                      'Click the "Delete User" button to finalize.',
+                      'Warning: This action will permanently remove the user and all their associated data.',
+                    ],
                   ),
                   const SizedBox(height: 32),
 

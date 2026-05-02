@@ -344,12 +344,12 @@ class _SessionAttendeesPageState extends State<SessionAttendeesPage> {
                                               ),
                                             );
                                             if (confirm == true) {
-                                              dynamic sid = student['studentId'] ?? student['universityCode'] ?? student['code'] ?? student['userId'] ?? student['id'];
-                                              if (sid != null) {
-                                                _deleteAttendance(sid);
+                                              final universityCode = student['universityCode'] ?? student['code'];
+                                              if (universityCode != null) {
+                                                _deleteAttendance(universityCode);
                                               } else {
                                                 ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Error: Student ID not found in record'), backgroundColor: Colors.red),
+                                                  const SnackBar(content: Text('Error: Student University Code not found'), backgroundColor: Colors.red),
                                                 );
                                               }
                                             }

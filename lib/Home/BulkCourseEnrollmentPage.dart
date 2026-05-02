@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:excel/excel.dart' as excel;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class BulkCourseEnrollmentPage extends StatefulWidget {
   const BulkCourseEnrollmentPage({Key? key}) : super(key: key);
@@ -14,9 +18,14 @@ class BulkCourseEnrollmentPage extends StatefulWidget {
 class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _courseIdController = TextEditingController();
-  final TextEditingController _studentCodesController = TextEditingController();
+  final TextEditingController _manualCodeController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isImporting = false;
+  String? _importMessage;
+  List<String> _importErrors = [];
+  List<String> _codesList = [];
+  
   String? _authToken;
 
   static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Course/enroll-bulk';
@@ -30,7 +39,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
   @override
   void dispose() {
     _courseIdController.dispose();
-    _studentCodesController.dispose();
+    _manualCodeController.dispose();
     super.dispose();
   }
 
@@ -52,21 +61,91 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
     return null;
   }
 
-  String? _validateStudentCodes(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Student codes are required';
-    }
+  // ── Helpers ───────────────────────────────────────────────────
+  String _normalizeHeader(dynamic v) =>
+      v?.toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '') ?? '';
 
-    final codes = value.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    if (codes.isEmpty) {
-      return 'Please enter at least one student code';
+  int? _findHeaderIndex(Map<String, int> h, List<String> c) {
+    for (final k in c) {
+      final n = _normalizeHeader(k);
+      if (h.containsKey(n)) return h[n];
     }
-
-    if (codes.any((code) => code.length < 3)) {
-      return 'Each code must be at least 3 characters';
-    }
-
     return null;
+  }
+
+  String _cellValue(List<excel.Data?> row, int? idx) {
+    if (idx == null || idx >= row.length) return '';
+    return row[idx]?.value?.toString().trim() ?? '';
+  }
+
+  // ── Manual add ────────────────────────────────────────────────
+  void _addManualCode() {
+    final code = _manualCodeController.text.trim();
+    if (code.isEmpty) return;
+    if (_codesList.contains(code)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Code "$code" already in list'), backgroundColor: Colors.orange));
+      return;
+    }
+    setState(() {
+      _codesList.add(code);
+      _manualCodeController.clear();
+    });
+  }
+
+  // ── Excel import ──────────────────────────────────────────────
+  Future<void> _importFromExcel() async {
+    if (_isImporting) return;
+    setState(() { _isImporting = true; _importMessage = null; _importErrors = []; });
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom, allowedExtensions: ['xlsx']);
+      if (result == null) { setState(() => _isImporting = false); return; }
+
+      final path = result.files.single.path;
+      if (path == null) throw Exception('File not available.');
+
+      final bytes = File(path).readAsBytesSync();
+      final workbook = excel.Excel.decodeBytes(bytes);
+      if (workbook.tables.isEmpty) throw Exception('No sheets found.');
+
+      final sheet = workbook.tables.values.first;
+      if (sheet.rows.isEmpty) throw Exception('Sheet is empty.');
+
+      final headerRow = sheet.rows.first;
+      final headerMap = <String, int>{};
+      for (int i = 0; i < headerRow.length; i++) {
+        final k = _normalizeHeader(headerRow[i]?.value);
+        if (k.isNotEmpty) headerMap[k] = i;
+      }
+
+      final codeIdx = _findHeaderIndex(headerMap,
+          ['university code', 'universitycode', 'code', 'student code', 'studentcode']);
+      if (codeIdx == null) throw Exception('Column "university code" or "code" not found.');
+
+      int added = 0, skipped = 0;
+      final errors = <String>[];
+      for (int i = 1; i < sheet.rows.length; i++) {
+        final code = _cellValue(sheet.rows[i], codeIdx);
+        if (code.isEmpty) continue;
+        if (_codesList.contains(code)) {
+          skipped++; errors.add('Row ${i+1}: duplicate "$code" skipped'); continue;
+        }
+        _codesList.add(code); added++;
+      }
+      setState(() {
+        _importMessage = 'Imported $added codes, skipped $skipped rows.';
+        _importErrors = errors;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('✅ Imported $added codes'), backgroundColor: AppColors.successColor));
+    } catch (e) {
+      setState(() { _importMessage = 'Import failed: $e'; _importErrors = []; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Import failed: $e'), backgroundColor: AppColors.errorColor));
+    } finally {
+      if (mounted) setState(() => _isImporting = false);
+    }
   }
 
   Future<void> _enrollStudentsBulk() async {
@@ -85,6 +164,13 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
       return;
     }
 
+    if (_codesList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one student code'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -93,17 +179,10 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
       // تحويل الـ courseId إلى integer
       final courseId = int.parse(_courseIdController.text.trim());
 
-      // تحويل الـ student codes إلى List
-      final studentCodes = _studentCodesController.text
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-
       // إعداد البيانات المطلوبة
       final enrollmentData = {
         "courseId": courseId,
-        "studentCodes": studentCodes,
+        "studentCodes": _codesList,
       };
 
       // استدعاء الـ API
@@ -120,7 +199,11 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
       if (response.statusCode == 200 || response.statusCode == 207) {
         final responseData = jsonDecode(response.body);
 
-        _studentCodesController.clear();
+        setState(() {
+          _codesList.clear();
+          _importMessage = null;
+          _importErrors = [];
+        });
 
         // Show the Result Dialog
         _showResultDialog(
@@ -296,6 +379,19 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  
+                  const AppInstructionsCard(
+                    title: 'How to Bulk Enroll Students',
+                    instructions: [
+                      'Option 1: Use "Import from Excel" to upload a .xlsx file with a "University Code" column.',
+                      'Option 2: Manually enter university codes one by one in the "Add Manually" section.',
+                      'Review the compiled list of students below.',
+                      'Enter the Course ID in the top field.',
+                      'Click "Enroll Students" to finalize the registration.',
+                      'A report will show which students were added, skipped, or not found.',
+                    ],
+                  ),
                   const SizedBox(height: 32),
 
                   // Form
@@ -313,60 +409,58 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
                           validator: _validateCourseId,
                         ),
                         const SizedBox(height: 24),
-
-                        // Student Codes Field
-                        _buildTextAreaField(
-                          controller: _studentCodesController,
-                          label: 'Student University Codes',
-                          hint: 'Enter student codes separated by commas',
-                          validator: _validateStudentCodes,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildCharCounter(),
-                        const SizedBox(height: 12),
-                        _buildFormatInfo(),
-                        const SizedBox(height: 32),
-
-                        // Submit Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _enrollStudentsBulk,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
-                              shadowColor: Colors.transparent,
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                                : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.group_add, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Enroll Students',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        
+                        _buildImportCard(),
+                        const SizedBox(height: 16),
+                        
+                        _buildManualCard(),
+                        const SizedBox(height: 16),
+                        
+                        if (_codesList.isNotEmpty) ...[
+                          _buildCodesListCard(),
+                          const SizedBox(height: 24),
+                          
+                          // Submit Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _enrollStudentsBulk,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ],
+                                elevation: 0,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.group_add, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Enroll ${_codesList.length} Student${_codesList.length != 1 ? 's' : ''}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -466,155 +560,175 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
     );
   }
 
-  Widget _buildTextAreaField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.darkColor,
+  Widget _buildImportCard() => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Import From Excel',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+      const SizedBox(height: 8),
+      Text('Upload an Excel file with a column named "university code" or "code"',
+          style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.6))),
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _isImporting ? null : _importFromExcel,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: _isImporting
+                ? const SizedBox(width: 16, height: 16,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Icon(Icons.upload_file),
+            label: Text(_isImporting ? 'Importing...' : 'Upload Excel',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
+        const SizedBox(width: 12),
+        OutlinedButton(
+          onPressed: _isImporting ? null : () => setState(() {
+            _codesList.clear(); _importMessage = null; _importErrors = [];
+          }),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            side: BorderSide(color: Colors.grey.shade300),
+          ),
+          child: const Text('Clear'),
+        ),
+      ]),
+      if (_importMessage != null) ...[
+        const SizedBox(height: 12),
+        Row(children: [
+          Icon(_importErrors.isEmpty ? Icons.check_circle : Icons.warning_amber,
+              color: _importErrors.isEmpty ? AppColors.successColor : AppColors.warningColor, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(_importMessage!,
+              style: TextStyle(fontSize: 13, color: AppColors.darkColor, fontWeight: FontWeight.w600))),
+        ]),
+      ],
+      if (_importErrors.isNotEmpty) ...[
         const SizedBox(height: 8),
         Container(
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: AppColors.errorColor.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.errorColor.withOpacity(0.3)),
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _importErrors.take(5).map((e) =>
+              Padding(padding: const EdgeInsets.only(bottom: 4),
+                child: Text(e, style: TextStyle(fontSize: 12, color: AppColors.errorColor)))).toList(),
+          ),
+        ),
+        if (_importErrors.length > 5)
+          Text('...and ${_importErrors.length - 5} more errors',
+              style: TextStyle(fontSize: 12, color: AppColors.errorColor)),
+      ],
+    ]),
+  );
+
+  Widget _buildManualCard() => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Add Manually',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+      const SizedBox(height: 8),
+      Text('Enter a university code and press Add',
+          style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.6))),
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(
           child: TextFormField(
-            controller: controller,
-            maxLines: 5,
-            minLines: 3,
+            controller: _manualCodeController,
+            onFieldSubmitted: (_) => _addManualCode(),
             decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: AppColors.darkColor.withOpacity(0.4),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppColors.primaryColor,
-                  width: 1.5,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppColors.errorColor,
-                  width: 1.5,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppColors.errorColor,
-                  width: 1.5,
-                ),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              alignLabelWithHint: true,
-              contentPadding: const EdgeInsets.all(16),
+              hintText: 'e.g. ST-20205522',
+              hintStyle: TextStyle(color: AppColors.darkColor.withOpacity(0.35)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primaryColor, width: 1.5)),
+              filled: true, fillColor: AppColors.lightColor2,
+              prefixIcon: Icon(Icons.badge_outlined, color: AppColors.darkColor.withOpacity(0.4)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
-            style: TextStyle(
-              color: AppColors.darkColor,
-              fontSize: 16,
-            ),
-            validator: validator,
-            onChanged: (value) {
-              setState(() {});
-            },
+            style: TextStyle(color: AppColors.darkColor, fontSize: 15),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildCharCounter() {
-    final codes = _studentCodesController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          '${codes.length} student(s)',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.darkColor.withOpacity(0.7),
+        const SizedBox(width: 10),
+        ElevatedButton(
+          onPressed: _addManualCode,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
+          child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
-        if (codes.isNotEmpty)
-          Text(
-            '${_studentCodesController.text.length} characters',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.darkColor.withOpacity(0.7),
-            ),
-          ),
-      ],
-    );
-  }
+      ]),
+    ]),
+  );
 
-  Widget _buildFormatInfo() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.lightColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppColors.primaryColor.withOpacity(0.1),
+  Widget _buildCodesListCard() => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('Students to Enroll (${_codesList.length})',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primaryColor),
+          ),
+          child: Text('Ready', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryColor)),
+        ),
+      ]),
+      const SizedBox(height: 16),
+      ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _codesList.length,
+        itemBuilder: (_, i) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.lightColor2,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Row(children: [
+            Container(width: 32, height: 32,
+              decoration: BoxDecoration(color: AppColors.primaryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              child: Center(child: Text('${i+1}',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryColor, fontSize: 12)))),
+            const SizedBox(width: 12),
+            Expanded(child: Text(_codesList[i],
+                style: TextStyle(color: AppColors.darkColor, fontWeight: FontWeight.w500))),
+            GestureDetector(
+              onTap: () => setState(() => _codesList.removeAt(i)),
+              child: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20)),
+          ]),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              Icons.info_outline,
-              size: 18,
-              color: AppColors.primaryColor,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Separate student codes with commas (e.g., 20205522, 20210001, 20210002)',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.darkColor.withOpacity(0.7),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    ]),
+  );
 }
 

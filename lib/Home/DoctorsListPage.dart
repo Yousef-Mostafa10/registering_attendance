@@ -109,6 +109,101 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
     }
   }
 
+  Future<void> _deleteDoctorDirectly(String universityCode, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Confirm Deletion', style: TextStyle(color: Colors.red)),
+          ],
+        ),
+        content: Text('Are you sure you want to delete Dr. $name?\n\nThis will permanently remove their account and access.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('http://msngroup-001-site1.ktempurl.com/api/Admin/delete-user/$universityCode'),
+        headers: {
+          'accept': '*/*',
+          'Authorization': 'Bearer $_authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Doctor deleted successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _fetchAllData();
+      } else if (response.statusCode == 500) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot delete this doctor because they are currently assigned to one or more courses. Please unassign them first.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      } else {
+        var errorMsg = 'Failed to delete doctor (Status: ${response.statusCode})';
+        try {
+          final data = jsonDecode(response.body);
+          if (data['message'] != null) {
+            errorMsg = data['message'];
+          } else {
+            errorMsg += ' | Body: ${response.body}';
+          }
+        } catch (_) {
+          errorMsg += ' | Raw: ${response.body}';
+        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   List<Map<String, dynamic>> _processDoctorsData(List<dynamic> doctorsData) {
     List<Map<String, dynamic>> doctors = [];
 
@@ -183,14 +278,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
+              title: const Text(
                     'Doctors List',
                     style: TextStyle(
                       color: Colors.white,
@@ -198,8 +286,6 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               centerTitle: false,
               expandedHeight: 120,
               flexibleSpace: FlexibleSpaceBar(
@@ -813,28 +899,29 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Edit ${doctor['name']}'),
-                                  backgroundColor: AppColors.primaryColor,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
+                              Navigator.pop(context); // close bottom sheet
+                              _deleteDoctorDirectly(doctor['universityCode'], doctor['name']);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryColor,
+                              backgroundColor: AppColors.errorColor,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              'Edit',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.white, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

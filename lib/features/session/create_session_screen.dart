@@ -396,14 +396,7 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
+              title: const Text(
                     'Create New Session',
                     style: TextStyle(
                       color: Colors.white,
@@ -411,8 +404,6 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(

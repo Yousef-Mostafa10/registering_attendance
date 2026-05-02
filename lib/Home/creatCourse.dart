@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class CreateCoursePage extends StatefulWidget {
   const CreateCoursePage({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _doctorIdController = TextEditingController();
+  final TextEditingController _doctorCodeController = TextEditingController();
 
   bool _isLoading = false;
   String? _apiResponse;
@@ -36,7 +37,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     _nameController.dispose();
     _codeController.dispose();
     _descriptionController.dispose();
-    _doctorIdController.dispose();
+    _doctorCodeController.dispose();
     super.dispose();
   }
 
@@ -77,13 +78,12 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     return null;
   }
 
-  String? _validateDoctorId(String? value) {
+  String? _validateDoctorCode(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Doctor ID is required';
+      return 'Doctor University Code is required';
     }
-    final doctorId = int.tryParse(value);
-    if (doctorId == null || doctorId <= 0) {
-      return 'Please enter a valid Doctor ID number';
+    if (value.trim().length < 2) {
+      return 'Please enter a valid University Code (e.g., DR-1234)';
     }
     return null;
   }
@@ -111,15 +111,14 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     });
 
     try {
-      // تحويل الـ doctorId إلى integer
-      final doctorId = int.parse(_doctorIdController.text);
+      // استخدام University Code بدل الـ Integer ID
 
-      // إعداد البيانات المطلوبة (doctorId كـ int في الـ JSON)
+      // إعداد البيانات المطلوبة (doctorUniversityCode كـ string في الـ JSON)
       final courseData = {
         "name": _nameController.text.trim(),
         "description": _descriptionController.text.trim(),
         "courseCode": _codeController.text.trim(),
-        "doctorId": doctorId,  // int وليس string
+        "doctorUniversityCode": _doctorCodeController.text.trim(),
       };
 
       print('Sending data: $courseData');
@@ -149,7 +148,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
         _nameController.clear();
         _codeController.clear();
         _descriptionController.clear();
-        _doctorIdController.clear();
+        _doctorCodeController.clear();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -218,14 +217,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
+              title: const Text(
                     'Create New Course',
                     style: TextStyle(
                       color: Colors.white,
@@ -233,8 +225,6 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -301,6 +291,18 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  
+                  const AppInstructionsCard(
+                    title: 'Course Creation Steps',
+                    instructions: [
+                      'Enter a clear, descriptive name for the course.',
+                      'Provide a unique Course Code (e.g., CS4710).',
+                      'Enter the exact University Code of the Doctor assigned to this course.',
+                      'Provide a brief description of the course contents.',
+                      'Click "Create Course" to finalize.',
+                    ],
+                  ),
                   const SizedBox(height: 32),
 
                   // Form
@@ -328,14 +330,14 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Doctor ID Field
+                        // Doctor University Code Field
                         _buildTextField(
-                          controller: _doctorIdController,
-                          label: 'Doctor ID',
-                          hint: 'Enter doctor ID number',
-                          prefixIcon: Icons.person,
-                          keyboardType: TextInputType.number,
-                          validator: _validateDoctorId,
+                          controller: _doctorCodeController,
+                          label: 'Doctor University Code',
+                          hint: 'Enter doctor university code (e.g., DR-1234)',
+                          prefixIcon: Icons.badge,
+                          keyboardType: TextInputType.text,
+                          validator: _validateDoctorCode,
                         ),
                         const SizedBox(height: 24),
 

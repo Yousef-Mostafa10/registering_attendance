@@ -203,5 +203,94 @@ class ApiService {
     );
     return {'statusCode': response.statusCode, 'body': response.body};
   }
+
+  // ─── Admin Operations ──────────────────────────────────────────────────────
+
+  static Future<Map<String, dynamic>> resetStudentAccount({
+    required String code,
+    required String token,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/Admin/reset-student-account'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(code),
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
+
+  static Future<Map<String, dynamic>> deleteUser({
+    required String userCode,
+    required String token,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/Admin/delete-user/$userCode'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
+
+  static Future<Map<String, dynamic>> deleteCourse({
+    required int courseId,
+    required String token,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/Admin/delete-course/$courseId'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
+
+  static Future<Map<String, dynamic>> bulkDeleteStudents({
+    required List<String> codes,
+    required String token,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/Admin/bulk-delete-students'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(codes),
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
+
+  static Future<Map<String, dynamic>> resetSystemForNewYear({
+    required String token,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/Admin/reset-system-for-new-year'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
+
+  static Future<Map<String, dynamic>> getAdminStatistic({
+    required String endpoint,
+    required String token,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/Admin/$endpoint'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
 }
 
