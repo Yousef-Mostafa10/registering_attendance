@@ -207,6 +207,10 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
             collapsedHeight: 80,
             pinned: true,
             floating: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
             backgroundColor: AppColors.primaryColor,
             elevation: 8,
             shape: const ContinuousRectangleBorder(

@@ -227,6 +227,10 @@ class _DeleteCoursePageState extends State<DeleteCoursePage> {
             collapsedHeight: 80,
             pinned: true,
             floating: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
             backgroundColor: Colors.red,
             elevation: 8,
             shape: const ContinuousRectangleBorder(

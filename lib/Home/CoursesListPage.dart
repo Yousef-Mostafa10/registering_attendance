@@ -346,6 +346,10 @@ class _CoursesListPageState extends State<CoursesListPage> {
               ),
             ),
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
             title: Row(
               children: [
                 const CircleAvatar(

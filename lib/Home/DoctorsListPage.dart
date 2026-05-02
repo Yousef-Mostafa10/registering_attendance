@@ -270,6 +270,10 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
             SliverAppBar(
               floating: true,
               snap: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
               backgroundColor: AppColors.primaryColor,
               elevation: 4,
               shape: const ContinuousRectangleBorder(
