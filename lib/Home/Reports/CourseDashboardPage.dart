@@ -145,61 +145,62 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ═══ Reports Section (مشترك للكل) ══════════════════════════
-                  const Text(
-                    'Reports & Analytics',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkColor,
+                  // ═══ Reports Section (Doctor/TA only) ══════════════════════════
+                  if (!isAdmin) ...[
+                    const Text(
+                      'Reports & Analytics',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkColor,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 1.1,
-                    children: [
-                      _reportCard(
-                        title: 'Lecture Report',
-                        subtitle: 'Attendance insights',
-                        icon: Icons.menu_book,
-                        color: AppColors.primaryColor,
-                        onTap: () =>
-                            _goto(LectureReportPage(courseId: courseId)),
-                      ),
-                      _reportCard(
-                        title: 'Section Report',
-                        subtitle: 'Labs & Exercises',
-                        icon: Icons.science,
-                        color: const Color(0xFF2E7D32),
-                        onTap: () =>
-                            _goto(SectionReportPage(courseId: courseId)),
-                      ),
-                      _reportCard(
-                        title: 'Session History',
-                        subtitle: 'Past sessions',
-                        icon: Icons.history_edu,
-                        color: Colors.indigo,
-                        onTap: () => _goto(
-                          CourseSessionsHistoryPage(courseId: courseId),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 1.1,
+                      children: [
+                        _reportCard(
+                          title: 'Lecture Report',
+                          subtitle: 'Attendance insights',
+                          icon: Icons.menu_book,
+                          color: AppColors.primaryColor,
+                          onTap: () =>
+                              _goto(LectureReportPage(courseId: courseId)),
                         ),
-                      ),
-                      _reportCard(
-                        title: 'Absence Warnings',
-                        subtitle: 'At-risk students',
-                        icon: Icons.warning_amber_rounded,
-                        color: AppColors.errorColor,
-                        onTap: () =>
-                            _goto(AbsenceWarningsPage(courseId: courseId)),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
+                        _reportCard(
+                          title: 'Section Report',
+                          subtitle: 'Labs & Exercises',
+                          icon: Icons.science,
+                          color: const Color(0xFF2E7D32),
+                          onTap: () =>
+                              _goto(SectionReportPage(courseId: courseId)),
+                        ),
+                        _reportCard(
+                          title: 'Session History',
+                          subtitle: 'Past sessions',
+                          icon: Icons.history_edu,
+                          color: Colors.indigo,
+                          onTap: () => _goto(
+                            CourseSessionsHistoryPage(courseId: courseId),
+                          ),
+                        ),
+                        _reportCard(
+                          title: 'Absence Warnings',
+                          subtitle: 'At-risk students',
+                          icon: Icons.warning_amber_rounded,
+                          color: AppColors.errorColor,
+                          onTap: () =>
+                              _goto(AbsenceWarningsPage(courseId: courseId)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   // ═══ Doctor/TA — Session Management ═════════════════════════
                   if (isDoctor) ...[

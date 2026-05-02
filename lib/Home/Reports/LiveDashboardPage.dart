@@ -86,6 +86,24 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
               _currentPin = decoded['newPin'] ?? _currentPin;
             });
           }
+        } else if (response.statusCode == 400) {
+          timer.cancel();
+          if (mounted) {
+            setState(() => _isSessionActive = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Session is already closed.')),
+            );
+          }
+        } else if (response.statusCode == 403) {
+          timer.cancel();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Unauthorized: You cannot manage this session.'),
+                backgroundColor: AppColors.errorColor,
+              ),
+            );
+          }
         }
       } catch (e) {
         // Silently ignore if QR rotation fails temporarily
@@ -189,7 +207,11 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
     }
   }
 
+  bool _isToggling = false;
+
   Future<void> _toggleSessionState() async {
+    if (_isToggling) return;
+    setState(() => _isToggling = true);
     final token = await AuthStorage.getToken() ?? '';
     final isStopping = _isSessionActive;
 
@@ -212,6 +234,22 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
           _startQrRotation();
           _startSseStream();
         }
+      } else if (response.statusCode == 400 && isStopping) {
+        // Silently catch if already closed
+        if (mounted) {
+          setState(() => _isSessionActive = false);
+          _qrTimer?.cancel();
+          _sseClient?.close();
+        }
+      } else if (response.statusCode == 403) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unauthorized: You cannot manage this session.'),
+              backgroundColor: AppColors.errorColor,
+            ),
+          );
+        }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -224,6 +262,10 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Network error')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isToggling = false);
       }
     }
   }
@@ -305,6 +347,13 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
                           const SnackBar(
                             content: Text('Radius updated successfully!'),
                             backgroundColor: AppColors.successColor,
+                          ),
+                        );
+                      } else if (response.statusCode == 403 && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Unauthorized: You cannot manage this session.'),
+                            backgroundColor: AppColors.errorColor,
                           ),
                         );
                       } else if (mounted) {
@@ -587,11 +636,11 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
                         border: Border.all(color: Colors.amber),
                       ),
                       child: Text(
-                        _currentPin,
-                        style: const TextStyle(
+                        _currentPin == "0000" ? "Ended" : _currentPin,
+                        style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 8,
+                          letterSpacing: _currentPin == "0000" ? 2.0 : 8.0,
                           color: Colors.amber,
                         ),
                       ),
@@ -743,7 +792,7 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton.icon(
-                  onPressed: _toggleSessionState,
+                  onPressed: _isToggling ? null : _toggleSessionState,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _isSessionActive
                         ? AppColors.errorColor
@@ -824,12 +873,12 @@ class _ProjectorModePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    pinCode,
-                    style: const TextStyle(
+                    pinCode == "0000" ? "Ended" : pinCode,
+                    style: TextStyle(
                       color: Colors.amber,
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 10,
+                      letterSpacing: pinCode == "0000" ? 2.0 : 10.0,
                     ),
                   ),
                 ],

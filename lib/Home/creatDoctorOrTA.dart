@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({Key? key}) : super(key: key);
@@ -216,14 +217,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
+              title: Text(
                     _isDoctor ? 'Create Doctor Account' : 'Create TA Account',
                     style: const TextStyle(
                       color: Colors.white,
@@ -231,8 +225,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -273,6 +265,18 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         fontSize: 14,
                         color: AppColors.darkColor.withOpacity(0.6),
                       ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    const AppInstructionsCard(
+                      title: 'Account Creation Steps',
+                      instructions: [
+                        'Select the Account Type (Doctor or Teaching Assistant).',
+                        'Enter the full name of the staff member.',
+                        'Provide a valid email address.',
+                        'Set a secure password (minimum 6 characters).',
+                        'Click the Create button to finalize.',
+                      ],
                     ),
                     const SizedBox(height: 32),
 
@@ -397,91 +401,96 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Doctor Option
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isDoctor = true;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: _isDoctor ? AppColors.primaryColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _isDoctor ? Colors.transparent : Colors.grey.withOpacity(0.3),
-                    width: 1,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Doctor Option
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isDoctor = true;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: _isDoctor ? AppColors.primaryColor : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _isDoctor ? Colors.transparent : Colors.grey.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.medical_services,
-                      color: _isDoctor ? Colors.white : AppColors.darkColor.withOpacity(0.5),
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Doctor',
-                      style: TextStyle(
-                        color: _isDoctor ? Colors.white : AppColors.darkColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.medical_services,
+                        color: _isDoctor ? Colors.white : AppColors.darkColor.withOpacity(0.5),
+                        size: 28,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'Doctor',
+                        style: TextStyle(
+                          color: _isDoctor ? Colors.white : AppColors.darkColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Teaching Assistant Option
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isDoctor = false;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: !_isDoctor ? Colors.orange : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: !_isDoctor ? Colors.transparent : Colors.grey.withOpacity(0.3),
-                    width: 1,
+            // Teaching Assistant Option
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isDoctor = false;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: !_isDoctor ? Colors.orange : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: !_isDoctor ? Colors.transparent : Colors.grey.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.school,
-                      color: !_isDoctor ? Colors.white : AppColors.darkColor.withOpacity(0.5),
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Teaching\nAssistant',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: !_isDoctor ? Colors.white : AppColors.darkColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.school,
+                        color: !_isDoctor ? Colors.white : AppColors.darkColor.withOpacity(0.5),
+                        size: 28,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'Teaching\nAssistant',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: !_isDoctor ? Colors.white : AppColors.darkColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

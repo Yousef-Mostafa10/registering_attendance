@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class CourseEnrollmentPage extends StatefulWidget {
   const CourseEnrollmentPage({Key? key}) : super(key: key);
@@ -254,6 +255,17 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  const AppInstructionsCard(
+                    title: 'How to Enroll a Student',
+                    instructions: [
+                      'Find the internal Course ID number of the target course.',
+                      'Obtain the student\'s exact University Code.',
+                      'Enter both details into the fields below.',
+                      'Click "Enroll Student" to finalize the registration.',
+                    ],
                   ),
                   const SizedBox(height: 32),
 

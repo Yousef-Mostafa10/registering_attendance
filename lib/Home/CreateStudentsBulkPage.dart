@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class CreateStudentsBulkPage extends StatefulWidget {
   const CreateStudentsBulkPage({Key? key}) : super(key: key);
@@ -82,9 +83,6 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
   String? _validateCode(String? value) {
     if (value == null || value.isEmpty) {
       return 'University code is required';
-    }
-    if (!RegExp(r'^\d+$').hasMatch(value)) {
-      return 'Code must contain only numbers';
     }
     return null;
   }
@@ -421,14 +419,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
             ),
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
+              title: const Text(
                     'Bulk Create Students',
                     style: TextStyle(
                       color: Colors.white,
@@ -436,8 +427,6 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -502,6 +491,18 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  
+                  const AppInstructionsCard(
+                    title: 'How to create students',
+                    instructions: [
+                      'Option 1: Use "Import from Excel" to upload a .xlsx file with "Name", "University Email", and "University Code" columns.',
+                      'Option 2: Use the manual "Add Student" form to add students one by one to the list below.',
+                      'Review the "Students to Add" list below to ensure accuracy.',
+                      'Click "Create Students" to finalize and send to the server.',
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
                   _buildImportCard(),
                   const SizedBox(height: 16),
 
@@ -615,9 +616,9 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
           _buildFormField(
             controller: _codeController,
             label: 'University Code',
-            hint: 'Enter university code (numbers only)',
-            prefixIcon: Icons.numbers,
-            keyboardType: TextInputType.number,
+            hint: 'Enter university code',
+            prefixIcon: Icons.badge,
+            keyboardType: TextInputType.text,
             validator: _validateCode,
           ),
           const SizedBox(height: 24),

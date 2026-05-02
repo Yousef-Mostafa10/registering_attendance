@@ -1,682 +1,483 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:excel/excel.dart' as excel;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:registering_attendance/core/http_interceptor.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../Auth/auth_storage.dart';
+import '../Auth/api_service.dart';
+import '../widgets/AppInstructionsCard.dart';
 
 class DeleteStudentsBulkPage extends StatefulWidget {
-  const DeleteStudentsBulkPage({Key? key}) : super(key: key);
-
+  final bool isTab;
+  const DeleteStudentsBulkPage({Key? key, this.isTab = false}) : super(key: key);
   @override
   _DeleteStudentsBulkPageState createState() => _DeleteStudentsBulkPageState();
 }
 
 class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
-  final TextEditingController _studentIdsController = TextEditingController();
-  final TextEditingController _confirmationController = TextEditingController();
+  final TextEditingController _manualCodeController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isImporting = false;
   String? _apiResponse;
   bool _isSuccess = false;
-  String? _authToken;
-
-  static const String _apiUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/bulk-delete-students';
+  String? _importMessage;
+  List<String> _importErrors = [];
+  List<String> _codesList = [];
 
   @override
   void initState() {
     super.initState();
-    _loadAuthToken();
   }
 
   @override
   void dispose() {
-    _studentIdsController.dispose();
-    _confirmationController.dispose();
+    _manualCodeController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadAuthToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _authToken = prefs.getString('auth_token');
-    });
-  }
+  // ── Helpers ───────────────────────────────────────────────────
+  String _normalizeHeader(dynamic v) =>
+      v?.toString().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '') ?? '';
 
-  String? _validateIds(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please enter student IDs';
-    }
-
-    final ids = value
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty);
-
-    for (var id in ids) {
-      final parsedId = int.tryParse(id);
-      if (parsedId == null) {
-        return '"$id" is not a valid number';
-      }
-      if (parsedId <= 0) {
-        return 'ID must be positive: $id';
-      }
-    }
-
-    return null;
-  }
-
-  String? _validateConfirmation(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Confirmation is required';
-    }
-    if (value.toLowerCase() != 'delete') {
-      return 'Please type "DELETE" to confirm';
+  int? _findHeaderIndex(Map<String, int> h, List<String> c) {
+    for (final k in c) {
+      final n = _normalizeHeader(k);
+      if (h.containsKey(n)) return h[n];
     }
     return null;
   }
 
-  Future<void> _deleteStudents() async {
-    if (_studentIdsController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please enter student IDs'),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+  String _cellValue(List<excel.Data?> row, int? idx) {
+    if (idx == null || idx >= row.length) return '';
+    return row[idx]?.value?.toString().trim() ?? '';
+  }
+
+  // ── Manual add ────────────────────────────────────────────────
+  void _addManualCode() {
+    final code = _manualCodeController.text.trim();
+    if (code.isEmpty) return;
+    if (_codesList.contains(code)) {
+      _snack('Code "$code" already in list', Colors.orange);
       return;
     }
-
-    if (_confirmationController.text.toLowerCase() != 'delete') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please type "DELETE" to confirm'),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    if (_authToken == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Authentication token not found'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    final confirmed = await _showConfirmationDialog();
-    if (!confirmed) return;
-
     setState(() {
-      _isLoading = true;
-      _apiResponse = null;
-      _isSuccess = false;
+      _codesList.add(code);
+      _manualCodeController.clear();
     });
+  }
 
+  // ── Excel import ──────────────────────────────────────────────
+  Future<void> _importFromExcel() async {
+    if (_isImporting) return;
+    setState(() { _isImporting = true; _importMessage = null; _importErrors = []; });
     try {
-      // تحويل الـ IDs من النص إلى قائمة أرقام
-      final ids = _studentIdsController.text
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .map(int.parse)
-          .toList();
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom, allowedExtensions: ['xlsx']);
+      if (result == null) { setState(() => _isImporting = false); return; }
 
-      print('Deleting student IDs: $ids');
+      final path = result.files.single.path;
+      if (path == null) throw Exception('File not available.');
 
-      // استدعاء الـ API
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {
-          'accept': '*/*',
-          'Authorization': 'Bearer $_authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(ids),
+      final bytes = File(path).readAsBytesSync();
+      final workbook = excel.Excel.decodeBytes(bytes);
+      if (workbook.tables.isEmpty) throw Exception('No sheets found.');
+
+      final sheet = workbook.tables.values.first;
+      if (sheet.rows.isEmpty) throw Exception('Sheet is empty.');
+
+      final headerRow = sheet.rows.first;
+      final headerMap = <String, int>{};
+      for (int i = 0; i < headerRow.length; i++) {
+        final k = _normalizeHeader(headerRow[i]?.value);
+        if (k.isNotEmpty) headerMap[k] = i;
+      }
+
+      final codeIdx = _findHeaderIndex(headerMap,
+          ['university code', 'universitycode', 'code', 'student code', 'studentcode']);
+      if (codeIdx == null) throw Exception('Column "university code" or "code" not found.');
+
+      int added = 0, skipped = 0;
+      final errors = <String>[];
+      for (int i = 1; i < sheet.rows.length; i++) {
+        final code = _cellValue(sheet.rows[i], codeIdx);
+        if (code.isEmpty) continue;
+        if (_codesList.contains(code)) {
+          skipped++; errors.add('Row ${i+1}: duplicate "$code" skipped'); continue;
+        }
+        _codesList.add(code); added++;
+      }
+      setState(() {
+        _importMessage = 'Imported $added codes, skipped $skipped rows.';
+        _importErrors = errors;
+      });
+      _snack('✅ Imported $added codes', AppColors.successColor);
+    } catch (e) {
+      setState(() { _importMessage = 'Import failed: $e'; _importErrors = []; });
+      _snack('Import failed: $e', AppColors.errorColor);
+    } finally {
+      if (mounted) setState(() => _isImporting = false);
+    }
+  }
+
+  // ── Delete ────────────────────────────────────────────────────
+  Future<void> _deleteStudents() async {
+    if (_codesList.isEmpty) { _snack('Add codes first', Colors.orange); return; }
+    
+    final token = await AuthStorage.getToken();
+    if (token == null) {
+      if (!mounted) return;
+      _snack('Authentication token not found', Colors.red);
+      return;
+    }
+
+    final ok = await _showConfirm(
+        'Delete ${_codesList.length} students?',
+        'This permanently removes their accounts.\n⚠️ Cannot be undone!',
+        'Delete ${_codesList.length} Students');
+    if (!ok) return;
+
+    if (!mounted) return;
+    setState(() { _isLoading = true; _apiResponse = null; _isSuccess = false; });
+    try {
+      final response = await ApiService.bulkDeleteStudents(
+        codes: _codesList,
+        token: token,
       );
+      
+      final statusCode = response['statusCode'] as int;
+      final responseBody = response['body'] as String;
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        setState(() {
-          _apiResponse = responseData['message'] ?? 'Students deleted successfully!';
-          _isSuccess = true;
-        });
-
-        // تنظيف الحقول بعد النجاح
-        _studentIdsController.clear();
-        _confirmationController.clear();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_apiResponse!),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      } else if (response.statusCode == 400) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Bad request: ${response.statusCode}');
-      } else if (response.statusCode == 401) {
-        throw Exception('Unauthorized - Token may be expired');
+      if (statusCode == 200) {
+        final count = _codesList.length;
+        String msg = '✅ $count student(s) deleted successfully!';
+        try { final d = jsonDecode(responseBody); if (d['message'] != null) msg = '✅ ${d['message']}'; } catch (_) {}
+        
+        if (!mounted) return;
+        setState(() { _apiResponse = msg; _isSuccess = true; });
+        _codesList.clear();
+        _importMessage = null; _importErrors = [];
+        _snack('✅ $count student(s) deleted!', Colors.green);
       } else {
-        throw Exception('Failed to delete students: ${response.statusCode}');
+        String err = 'Failed ($statusCode)';
+        try { err = jsonDecode(responseBody)['message'] ?? err; } catch (_) {}
+        throw Exception(err);
       }
     } catch (e) {
-      setState(() {
-        _apiResponse = 'Error: ${e.toString()}';
-        _isSuccess = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      if (!mounted) return;
+      setState(() { _apiResponse = 'Error: $e'; _isSuccess = false; });
+      _snack('Error: $e', Colors.red);
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<bool> _showConfirmationDialog() async {
-    final ids = _studentIdsController.text
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+  void _snack(String msg, Color color) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg), backgroundColor: color,
+      behavior: SnackBarBehavior.floating));
+  }
 
-    final result = await showDialog<bool>(
+  Future<bool> _showConfirm(String title, String body, String label) async {
+    final r = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.warning, color: Colors.red),
-            SizedBox(width: 12),
-            Text('Confirm Deletion'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to delete ${ids.length} student(s)?',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '⚠️ This action cannot be undone!',
-              style: TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (ids.length <= 10)
-              Text(
-                'Student IDs: ${ids.join(', ')}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.darkColor.withOpacity(0.7),
-                ),
-              ),
-          ],
-        ),
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 26),
+          const SizedBox(width: 8),
+          Expanded(child: Text(title, style: const TextStyle(fontSize: 16, color: Colors.red))),
+        ]),
+        content: Text(body, style: const TextStyle(fontSize: 14)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Delete'),
+                backgroundColor: Colors.red, foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            child: Text(label),
           ),
         ],
       ),
     );
-
-    return result ?? false;
+    return r ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
+      body: CustomScrollView(slivers: [
+        if (!widget.isTab)
           SliverAppBar(
-            expandedHeight: 120,
-            collapsedHeight: 80,
-            pinned: true,
-            floating: true,
-            backgroundColor: AppColors.errorColor,
-            elevation: 8,
-            shape: const ContinuousRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Bulk Delete Students',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+          expandedHeight: 120, collapsedHeight: 80,
+          pinned: true, floating: true,
+          backgroundColor: AppColors.errorColor, elevation: 8,
+          shape: const ContinuousRectangleBorder(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40))),
+          flexibleSpace: FlexibleSpaceBar(
+            titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+            title: const Text('Bulk Delete Students',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                  colors: [AppColors.errorColor, const Color(0xFFD65F51)]))),
+          ),
+        ),
+
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            
+              const AppInstructionsCard(
+                title: 'How to delete students',
+                instructions: [
+                  'Option 1: Use "Import from Excel" to upload a .xlsx file containing a "University Code" column.',
+                  'Option 2: Manually enter university codes one by one in the "Add Manually" section.',
+                  'Review the compiled list of students below.',
+                  'Click "Delete Students" to permanently remove them from the system.',
+                  'Warning: This action cannot be undone.',
                 ],
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.errorColor,
-                      Color(0xFFD65F51),
-                    ],
+              const SizedBox(height: 16),
+
+              // ── API Response ──
+              if (_apiResponse != null) ...[
+                _buildResponseCard(), const SizedBox(height: 16),
+              ],
+
+              // ── Import from Excel Card ──
+              _buildImportCard(),
+              const SizedBox(height: 16),
+
+              // ── Manual Entry Card ──
+              _buildManualCard(),
+              const SizedBox(height: 16),
+
+              // ── Codes List ──
+              if (_codesList.isNotEmpty) ...[
+                _buildCodesListCard(),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _deleteStudents,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red, foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(width: 24, height: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text('Delete ${_codesList.length} Student${_codesList.length != 1 ? 's' : ''}',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
-              ),
-            ),
+                const SizedBox(height: 30),
+              ],
+            ]),
           ),
+        ),
+      ]),
+    );
+  }
 
-          // Warning Card
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.warning,
-                          color: AppColors.errorColor,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Warning: This action cannot be undone',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.errorColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Deleting students will permanently remove their accounts, '
-                          'attendance records, and all associated data from the system.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.darkColor.withOpacity(0.7),
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  Widget _buildResponseCard() => AnimatedContainer(
+    duration: const Duration(milliseconds: 300),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: _isSuccess ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: _isSuccess ? Colors.green : Colors.red),
+    ),
+    child: Row(children: [
+      Icon(_isSuccess ? Icons.check_circle : Icons.error,
+          color: _isSuccess ? Colors.green : Colors.red, size: 20),
+      const SizedBox(width: 12),
+      Expanded(child: Text(_apiResponse!, style: TextStyle(color: AppColors.darkColor, fontSize: 14))),
+      GestureDetector(onTap: () => setState(() => _apiResponse = null),
+          child: const Icon(Icons.close, size: 14, color: Colors.grey)),
+    ]),
+  );
+
+  Widget _buildImportCard() => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Import From Excel',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+      const SizedBox(height: 8),
+      Text('Upload an Excel file with a column named "university code" or "code"',
+          style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.6))),
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _isImporting ? null : _importFromExcel,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorColor, foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
+            icon: _isImporting
+                ? const SizedBox(width: 16, height: 16,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Icon(Icons.upload_file),
+            label: Text(_isImporting ? 'Importing...' : 'Upload Excel',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
-
-          // API Response
-          if (_apiResponse != null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: _isSuccess
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _isSuccess ? Colors.green : Colors.red,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _isSuccess ? Icons.check_circle : Icons.error,
-                        color: _isSuccess ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _apiResponse!,
-                          style: TextStyle(
-                            color: AppColors.darkColor,
-                            fontSize: 14,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (!_isSuccess)
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _apiResponse = null;
-                            });
-                          },
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            margin: const EdgeInsets.only(left: 8),
-                            child: const Icon(
-                              Icons.close,
-                              size: 14,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          // Form Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Student IDs Field
-                  _buildTextField(
-                    controller: _studentIdsController,
-                    label: 'Student IDs',
-                    hint: 'Enter student IDs separated by commas (e.g., 1, 3, 5, 7)',
-                    prefixIcon: Icons.numbers,
-                    keyboardType: TextInputType.number,
-                    maxLines: 3,
-                    minLines: 1,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Confirmation Field
-                  _buildConfirmationField(),
-                  const SizedBox(height: 32),
-
-
-
-                  // Delete Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _deleteStudents,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.errorColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                          : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.delete_forever, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Delete Students',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        ),
+        const SizedBox(width: 12),
+        OutlinedButton(
+          onPressed: _isImporting ? null : () => setState(() {
+            _codesList.clear(); _importMessage = null; _importErrors = [];
+          }),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            side: BorderSide(color: Colors.grey.shade300),
           ),
-        ],
+          child: const Text('Clear'),
+        ),
+      ]),
+      if (_importMessage != null) ...[
+        const SizedBox(height: 12),
+        Row(children: [
+          Icon(_importErrors.isEmpty ? Icons.check_circle : Icons.warning_amber,
+              color: _importErrors.isEmpty ? AppColors.successColor : AppColors.warningColor, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(_importMessage!,
+              style: TextStyle(fontSize: 13, color: AppColors.darkColor, fontWeight: FontWeight.w600))),
+        ]),
+      ],
+      if (_importErrors.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.errorColor.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.errorColor.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _importErrors.take(5).map((e) =>
+              Padding(padding: const EdgeInsets.only(bottom: 4),
+                child: Text(e, style: TextStyle(fontSize: 12, color: AppColors.errorColor)))).toList(),
+          ),
+        ),
+        if (_importErrors.length > 5)
+          Text('...and ${_importErrors.length - 5} more errors',
+              style: TextStyle(fontSize: 12, color: AppColors.errorColor)),
+      ],
+    ]),
+  );
+
+  Widget _buildManualCard() => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Add Manually',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+      const SizedBox(height: 8),
+      Text('Enter a university code and press Add',
+          style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.6))),
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(
+          child: TextFormField(
+            controller: _manualCodeController,
+            onFieldSubmitted: (_) => _addManualCode(),
+            decoration: InputDecoration(
+              hintText: 'e.g. ST-20205522',
+              hintStyle: TextStyle(color: AppColors.darkColor.withOpacity(0.35)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 1.5)),
+              filled: true, fillColor: AppColors.lightColor2,
+              prefixIcon: Icon(Icons.badge_outlined, color: AppColors.darkColor.withOpacity(0.4)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+            style: TextStyle(color: AppColors.darkColor, fontSize: 15),
+          ),
+        ),
+        const SizedBox(width: 10),
+        ElevatedButton(
+          onPressed: _addManualCode,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor, foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ]),
+    ]),
+  );
+
+  Widget _buildCodesListCard() => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('Students to Delete (${_codesList.length})',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.red),
+          ),
+          child: const Text('Ready', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red)),
+        ),
+      ]),
+      const SizedBox(height: 16),
+      ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _codesList.length,
+        itemBuilder: (_, i) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.lightColor2,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Row(children: [
+            Container(width: 32, height: 32,
+              decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              child: Center(child: Text('${i+1}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 12)))),
+            const SizedBox(width: 12),
+            Expanded(child: Text(_codesList[i],
+                style: TextStyle(color: AppColors.darkColor, fontWeight: FontWeight.w500))),
+            GestureDetector(
+              onTap: () => setState(() => _codesList.removeAt(i)),
+              child: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20)),
+          ]),
+        ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData prefixIcon,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    int minLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.darkColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            maxLines: maxLines,
-            minLines: minLines,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: AppColors.darkColor.withOpacity(0.4),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              prefixIcon: Icon(
-                prefixIcon,
-                color: AppColors.darkColor.withOpacity(0.5),
-              ),
-              contentPadding: const EdgeInsets.all(16),
-            ),
-            style: TextStyle(
-              color: AppColors.darkColor,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConfirmationField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Type "DELETE" to confirm',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.red[700],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextFormField(
-            controller: _confirmationController,
-            decoration: InputDecoration(
-              hintText: 'Type "DELETE" (case insensitive)',
-              hintStyle: TextStyle(
-                color: AppColors.darkColor.withOpacity(0.4),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.5,
-                ),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              prefixIcon: Icon(
-                Icons.verified_user,
-                color: Colors.red.withOpacity(0.7),
-              ),
-              suffixIcon: _confirmationController.text.toLowerCase() == 'delete'
-                  ? Icon(
-                Icons.check_circle,
-                color: Colors.green,
-              )
-                  : null,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            style: TextStyle(
-              color: AppColors.darkColor,
-              fontSize: 16,
-            ),
-            onChanged: (value) {
-              setState(() {});
-            },
-          ),
-        ),
-      ],
-    );
-  }
+    ]),
+  );
 }
-

@@ -181,6 +181,98 @@ class _CoursesListPageState extends State<CoursesListPage> {
     }
   }
 
+  Future<void> _deleteCourseDirectly(String courseId, String courseName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Confirm Deletion', style: TextStyle(color: Colors.red)),
+          ],
+        ),
+        content: Text('Are you sure you want to delete the course "$courseName"?\n\nThis action cannot be undone and will permanently remove all related data.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final deleteUrl = 'http://msngroup-001-site1.ktempurl.com/api/Admin/delete-course/$courseId';
+      final response = await http.delete(
+        Uri.parse(deleteUrl),
+        headers: {
+          'accept': '*/*',
+          'Authorization': 'Bearer $_authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Course deleted successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _fetchCourses();
+      } else {
+        var errorMsg = 'Failed to delete course';
+        try {
+          final data = jsonDecode(response.body);
+          if (data['message'] != null) errorMsg = data['message'];
+        } catch (_) {}
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   /// جلب عدد الطلاب لكل كورس للدكتور/TA من /Course/number-of-enrolled-students/{id}
   Future<void> _fetchEnrolledCountsForCourses(
     List<Map<String, dynamic>> courses,
@@ -762,11 +854,18 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: AppColors.darkColor.withOpacity(0.3),
-                ),
+                if (_userRole == 'Admin')
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: () => _deleteCourseDirectly(course['id'].toString(), course['name'].toString()),
+                    tooltip: 'Delete Course',
+                  )
+                else
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppColors.darkColor.withOpacity(0.3),
+                  ),
               ],
             ),
           ),

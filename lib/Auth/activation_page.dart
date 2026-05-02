@@ -109,12 +109,31 @@ class _ActivationPageState extends State<ActivationPage> {
 
       } else {
         String errorMessage = 'Activation failed. Please try again';
-        if (response['statusCode'] == 400) {
-          errorMessage = 'Invalid data. Please check your information';
-        } else if (response['statusCode'] == 404) {
-          errorMessage = 'Account not found. Please check your email';
-        } else if (response['statusCode'] == 409) {
-          errorMessage = 'Account already activated';
+        
+        try {
+          // Try to get the actual error message from the backend
+          final errorData = jsonDecode(response['body']);
+          if (errorData['message'] != null && errorData['message'].toString().isNotEmpty) {
+            errorMessage = errorData['message'];
+          } else {
+            // Fallbacks if no message provided
+            if (response['statusCode'] == 400) {
+              errorMessage = 'Invalid data. Please check your information';
+            } else if (response['statusCode'] == 404) {
+              errorMessage = 'Account not found. Please check your email';
+            } else if (response['statusCode'] == 409) {
+              errorMessage = 'Account already activated';
+            }
+          }
+        } catch (e) {
+          // Fallbacks if body is not valid JSON
+          if (response['statusCode'] == 400) {
+            errorMessage = 'Invalid data. Please check your information';
+          } else if (response['statusCode'] == 404) {
+            errorMessage = 'Account not found. Please check your email';
+          } else if (response['statusCode'] == 409) {
+            errorMessage = 'Account already activated';
+          }
         }
 
         AuthWidgets.showErrorSnackBar(context, errorMessage);
