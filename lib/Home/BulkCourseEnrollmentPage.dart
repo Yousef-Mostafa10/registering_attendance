@@ -98,7 +98,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
     if (_isImporting) return;
     setState(() { _isImporting = true; _importMessage = null; _importErrors = []; });
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom, allowedExtensions: ['xlsx']);
       if (result == null) { setState(() => _isImporting = false); return; }
 

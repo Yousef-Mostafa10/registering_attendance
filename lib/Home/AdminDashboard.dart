@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../core/responsive.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/BulkCourseEnrollmentPage.dart';
 import 'package:registering_attendance/Home/CourseEnrollmentPage.dart';
@@ -340,7 +341,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
-      body: CustomScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
         slivers: [
           // App Bar مع تأثير زجاجي (بدون زر refresh)
           SliverAppBar(
@@ -357,7 +362,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              centerTitle: Responsive.isDesktop(context),
+              titlePadding: Responsive.isDesktop(context) 
+                  ? const EdgeInsets.only(bottom: 16) 
+                  : const EdgeInsets.only(left: 20, bottom: 16),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -430,10 +438,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
           // Welcome Card
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Container(
-                padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: Responsive.isDesktop(context) ? 1000 : 1200),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -455,6 +466,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
                 child: Row(
+                  mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
                   children: [
                     Container(
                       width: 60,
@@ -559,6 +571,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
             ),
           ),
+        ),
+      ),
 
           // Statistics Cards Grid
           SliverToBoxAdapter(
@@ -645,6 +659,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
               child: Text(
                 'Dashboard Menu',
+                textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.start,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -666,25 +681,27 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ],
       ),
+        ),
+      ),
     );
   }
 
   Widget _buildLoadingStatsGrid() {
     return Column(
       children: [
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 4,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.7,
-          children: List.generate(4, (index) => _buildCompactStatCard(
-            icon: Icons.hourglass_empty,
-            title: 'Loading...',
-            count: '...',
-            color: Colors.grey[400]!,
-            isLoading: true,
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          children: List.generate(4, (index) => SizedBox(
+            width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+            child: _buildCompactStatCard(
+              icon: Icons.hourglass_empty,
+              title: 'Loading...',
+              count: '...',
+              color: Colors.grey[400]!,
+              isLoading: true,
+            ),
           )),
         ),
         const SizedBox(height: 8),
@@ -705,18 +722,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }) {
     return Column(
       children: [
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 4,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.7,
-          children: List.generate(4, (index) => _buildCompactStatCard(
-            icon: Icons.error_outline,
-            title: 'Error',
-            count: '!',
-            color: AppColors.errorColor,
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          children: List.generate(4, (index) => SizedBox(
+            width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+            child: _buildCompactStatCard(
+              icon: Icons.error_outline,
+              title: 'Error',
+              count: '!',
+              color: AppColors.errorColor,
+            ),
           )),
         ),
         const SizedBox(height: 12),
@@ -757,18 +774,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _buildForbiddenStatsGrid({required String message}) {
     return Column(
       children: [
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 4,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.7,
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
           children: [
-            _buildCompactStatCard(icon: Icons.groups, title: 'Doctors', count: '-', color: Colors.grey),
-            _buildCompactStatCard(icon: Icons.school, title: 'TAs', count: '-', color: Colors.grey),
-            _buildCompactStatCard(icon: Icons.people, title: 'Students', count: '-', color: Colors.grey),
-            _buildCompactStatCard(icon: Icons.book_online, title: 'Courses', count: '-', color: Colors.grey),
+            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.groups, title: 'Doctors', count: '-', color: Colors.grey)),
+            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.school, title: 'TAs', count: '-', color: Colors.grey)),
+            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.people, title: 'Students', count: '-', color: Colors.grey)),
+            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.book_online, title: 'Courses', count: '-', color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 12),
@@ -801,37 +815,46 @@ class _AdminDashboardState extends State<AdminDashboard> {
     required int students,
     required int courses,
   }) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 4,
-      crossAxisSpacing: 8,
-      mainAxisSpacing: 8,
-      childAspectRatio: 0.7,
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
       children: [
-        _buildCompactStatCard(
-          icon: Icons.groups,
-          title: 'Doctors',
-          count: doctors.toString(),
-          color: AppColors.primaryColor,
+        SizedBox(
+          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          child: _buildCompactStatCard(
+            icon: Icons.groups,
+            title: 'Doctors',
+            count: doctors.toString(),
+            color: AppColors.primaryColor,
+          ),
         ),
-        _buildCompactStatCard(
-          icon: Icons.school,
-          title: 'TAs',
-          count: tas.toString(),
-          color: Colors.blueGrey,
+        SizedBox(
+          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          child: _buildCompactStatCard(
+            icon: Icons.school,
+            title: 'TAs',
+            count: tas.toString(),
+            color: Colors.blueGrey,
+          ),
         ),
-        _buildCompactStatCard(
-          icon: Icons.people,
-          title: 'Students',
-          count: students.toString(),
-          color: AppColors.successColor,
+        SizedBox(
+          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          child: _buildCompactStatCard(
+            icon: Icons.people,
+            title: 'Students',
+            count: students.toString(),
+            color: AppColors.successColor,
+          ),
         ),
-        _buildCompactStatCard(
-          icon: Icons.book_online,
-          title: 'Courses',
-          count: courses.toString(),
-          color: AppColors.accentColor,
+        SizedBox(
+          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          child: _buildCompactStatCard(
+            icon: Icons.book_online,
+            title: 'Courses',
+            count: courses.toString(),
+            color: AppColors.accentColor,
+          ),
         ),
       ],
     );
@@ -859,14 +882,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -916,7 +939,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  SliverGrid _buildCategoriesGrid(BuildContext context) {
+  Widget _buildCategoriesGrid(BuildContext context) {
     final List<Map<String, dynamic>> categories = [];
     
     if (widget.role == 'Admin') {
@@ -1021,34 +1044,35 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ],
     });
 
-    return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.0,
-      ),
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final cat = categories[index];
-          return _buildSimpleOperationCard(
-            title: cat['title'] as String,
-            icon: cat['icon'] as IconData,
-            color: cat['color'] as Color,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SubMenuPage(
-                    title: cat['title'] as String,
-                    operations: cat['operations'] as List<Map<String, dynamic>>,
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        childCount: categories.length,
+    return SliverToBoxAdapter(
+      child: Center(
+        child: Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          children: List.generate(categories.length, (index) {
+            final cat = categories[index];
+            return SizedBox(
+              width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 40) / 2 : 320,
+              child: _buildSimpleOperationCard(
+                title: cat['title'] as String,
+                icon: cat['icon'] as IconData,
+                color: cat['color'] as Color,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SubMenuPage(
+                        title: cat['title'] as String,
+                        operations: cat['operations'] as List<Map<String, dynamic>>,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -1152,37 +1176,43 @@ class SubMenuPage extends StatelessWidget {
         ),
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: GridView.builder(
-          itemCount: operations.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.0,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                alignment: WrapAlignment.center,
+                children: List.generate(operations.length, (index) {
+                  final op = operations[index];
+                  return SizedBox(
+                    width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 2 : 400,
+                    child: _SubMenuCard(
+                      title: op['title']!,
+                      icon: op['icon'] as IconData,
+                      color: op['color'] as Color,
+                      onTap: () {
+                        if (op.containsKey('page') && op['page'] != null) {
+                          if (op['page'] is Widget Function()) {
+                            final pageBuilder = op['page'] as Widget Function();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => pageBuilder()),
+                            );
+                          } else if (op['page'] is Function) {
+                            (op['page'] as Function)();
+                          }
+                        }
+                      },
+                    ),
+                  );
+                }),
+              ),
+            ),
           ),
-          itemBuilder: (context, index) {
-            final op = operations[index];
-            return _SubMenuCard(
-              title: op['title']!,
-              icon: op['icon'] as IconData,
-              color: op['color'] as Color,
-              onTap: () {
-                if (op.containsKey('page') && op['page'] != null) {
-                  if (op['page'] is Widget Function()) {
-                    final pageBuilder = op['page'] as Widget Function();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => pageBuilder()),
-                    );
-                  } else if (op['page'] is Function) {
-                    (op['page'] as Function)();
-                  }
-                }
-              },
-            );
-          },
         ),
       ),
     );

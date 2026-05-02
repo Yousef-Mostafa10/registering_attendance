@@ -173,7 +173,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
     });
 
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
       );
@@ -401,7 +401,10 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
-      body: CustomScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: CustomScrollView(
         slivers: [
           // App Bar
           SliverAppBar(
@@ -564,6 +567,8 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

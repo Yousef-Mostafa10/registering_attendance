@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
+import '../core/responsive.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
 import '../Auth/api_service.dart';
@@ -232,7 +233,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
-      body: CustomScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: CustomScrollView(
         slivers: [
 
           // ── 1. Header (نفس شكل AdminDashboard) ────────────────────────────
@@ -251,7 +255,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              centerTitle: Responsive.isDesktop(context),
+              titlePadding: Responsive.isDesktop(context) 
+                  ? const EdgeInsets.only(bottom: 16) 
+                  : const EdgeInsets.only(left: 20, bottom: 16),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -309,46 +316,50 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
 
           // ── 2. Welcome Card (نفس شكل AdminDashboard) ──────────────────────
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 20, spreadRadius: 2, offset: const Offset(0, 4))],
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.lightColor, Colors.white],
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: Responsive.isDesktop(context) ? 1000 : 1200),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 20, spreadRadius: 2, offset: const Offset(0, 4))],
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.lightColor, Colors.white],
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 60, height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(colors: [AppColors.secondaryColor, AppColors.accentColor]),
+                            boxShadow: [BoxShadow(color: AppColors.secondaryColor.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
+                          ),
+                          child: const Icon(Icons.verified_user, color: Colors.white, size: 30),
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                          children: [
+                            Text('Welcome ${widget.role},',
+                                style: TextStyle(fontSize: 16, color: AppColors.darkColor.withOpacity(0.7))),
+                            Text(widget.userName,
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+                            Text(widget.email,
+                                style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.5))),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60, height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(colors: [AppColors.secondaryColor, AppColors.accentColor]),
-                        boxShadow: [BoxShadow(color: AppColors.secondaryColor.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
-                      ),
-                      child: const Icon(Icons.verified_user, color: Colors.white, size: 30),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Welcome ${widget.role},',
-                              style: TextStyle(fontSize: 16, color: AppColors.darkColor.withOpacity(0.7))),
-                          Text(widget.userName,
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
-                          Text(widget.email,
-                              style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.5))),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -400,11 +411,19 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Row(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
                 children: [
-                  _statCard(Icons.book, 'Total Courses', _isLoading ? '...' : _allCourses.length.toString(), AppColors.primaryColor),
-                  const SizedBox(width: 12),
-                  _statCard(Icons.people, 'Total Students', _isLoading ? '...' : _totalStudents.toString(), AppColors.successColor),
+                  SizedBox(
+                    width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 52) / 2 : 400,
+                    child: _statCard(Icons.book, 'Total Courses', _isLoading ? '...' : _allCourses.length.toString(), AppColors.primaryColor),
+                  ),
+                  SizedBox(
+                    width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 52) / 2 : 400,
+                    child: _statCard(Icons.people, 'Total Students', _isLoading ? '...' : _totalStudents.toString(), AppColors.successColor),
+                  ),
                 ],
               ),
             ),
@@ -415,6 +434,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
               child: Text('My Courses',
+                  textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.start,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
             ),
           ),
@@ -427,41 +447,65 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           else if (_filtered.isEmpty)
             SliverFillRemaining(child: _buildEmpty())
           else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (_, i) => Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: _courseCard(_filtered[i]),
+            Responsive.isDesktop(context)
+            ? SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 2.5,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) => _courseCard(_filtered[i]),
+                    childCount: _filtered.length,
+                  ),
                 ),
-                childCount: _filtered.length,
+              )
+            : SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    child: _courseCard(_filtered[i]),
+                  ),
+                  childCount: _filtered.length,
+                ),
               ),
-            ),
         ],
+      ),
+        ),
       ),
     );
   }
 
 
-  Widget _statCard(IconData icon, String title, String value, Color color) => Expanded(
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Row(children: [
+  Widget _statCard(IconData icon, String title, String value, Color color) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+    ),
+    child: Row(
+      children: [
         Container(
-          width: 48, height: 48,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
           child: Icon(icon, color: color, size: 24),
         ),
         const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
-          Text(title, style: TextStyle(fontSize: 12, color: AppColors.darkColor.withOpacity(0.6))),
-        ])),
-      ]),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+              Text(title, style: TextStyle(fontSize: 12, color: AppColors.darkColor.withOpacity(0.6))),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 
