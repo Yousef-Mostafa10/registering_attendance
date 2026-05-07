@@ -208,8 +208,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
 
     if (confirm == true && mounted) {
-      await AuthStorage.clearUserData();
-      if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      await _handleAutoLogout();
+    }
+  }
+
+  Future<void> _handleAutoLogout() async {
+    if (!mounted) return;
+    await AuthStorage.clearUserData();
+    if (mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     }
   }
 
@@ -270,6 +277,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         
         if (hasUnauthorized) {
           stats['error'] = 'unauthorized';
+          // إعادة توجيه المستخدم لتسجيل الدخول إذا انتهت الجلسة
+          _handleAutoLogout();
+          return;
         } else if (has403) {
           stats['error'] = 'api_403';
         } else {
@@ -343,7 +353,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       backgroundColor: AppColors.lightColor2,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
+          constraints: const BoxConstraints(maxWidth: 1400),
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
         slivers: [
@@ -686,6 +696,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  double _statCardWidth(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final available = w > 1400 ? 1400.0 : w;
+    if (w >= 1100) return (available - 80) / 4; // 4 per row, filling space
+    if (w >= 850) return (available - 60) / 3;  // 3 per row
+    return (w - 56) / 2 - 6;  // mobile: 2 per row
+  }
+
   Widget _buildLoadingStatsGrid() {
     return Column(
       children: [
@@ -694,7 +712,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           runSpacing: 12,
           alignment: WrapAlignment.center,
           children: List.generate(4, (index) => SizedBox(
-            width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+            width: _statCardWidth(context),
             child: _buildCompactStatCard(
               icon: Icons.hourglass_empty,
               title: 'Loading...',
@@ -727,7 +745,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           runSpacing: 12,
           alignment: WrapAlignment.center,
           children: List.generate(4, (index) => SizedBox(
-            width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+            width: _statCardWidth(context),
             child: _buildCompactStatCard(
               icon: Icons.error_outline,
               title: 'Error',
@@ -779,10 +797,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
           runSpacing: 12,
           alignment: WrapAlignment.center,
           children: [
-            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.groups, title: 'Doctors', count: '-', color: Colors.grey)),
-            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.school, title: 'TAs', count: '-', color: Colors.grey)),
-            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.people, title: 'Students', count: '-', color: Colors.grey)),
-            SizedBox(width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320, child: _buildCompactStatCard(icon: Icons.book_online, title: 'Courses', count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.groups, title: 'Doctors', count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.school, title: 'TAs', count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.people, title: 'Students', count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.book_online, title: 'Courses', count: '-', color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 12),
@@ -821,7 +839,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       alignment: WrapAlignment.center,
       children: [
         SizedBox(
-          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.groups,
             title: 'Doctors',
@@ -830,7 +848,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ),
         SizedBox(
-          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.school,
             title: 'TAs',
@@ -839,7 +857,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ),
         SizedBox(
-          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.people,
             title: 'Students',
@@ -848,7 +866,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ),
         SizedBox(
-          width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 4 : 320,
+          width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.book_online,
             title: 'Courses',
@@ -940,6 +958,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildCategoriesGrid(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
     final List<Map<String, dynamic>> categories = [];
     
     if (widget.role == 'Admin') {
@@ -1052,8 +1071,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
           alignment: WrapAlignment.center,
           children: List.generate(categories.length, (index) {
             final cat = categories[index];
+            final available = w > 1400 ? 1400.0 : w;
+            final cardW = w >= 1100 ? (available - 80) / 4 : w >= 850 ? (available - 60) / 2 : (w - 56) / 2 - 6;
             return SizedBox(
-              width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 40) / 2 : 320,
+              width: cardW,
               child: _buildSimpleOperationCard(
                 title: cat['title'] as String,
                 icon: cat['icon'] as IconData,
@@ -1093,49 +1114,51 @@ class _AdminDashboardState extends State<AdminDashboard> {
             borderRadius: BorderRadius.circular(16),
           ),
           shadowColor: color.withOpacity(0.3),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.white,
-              border: Border.all(
-                color: color.withOpacity(0.2),
-                width: 1,
+            child: Container(
+              height: 160, // Increased height to prevent overflow
+              padding: const EdgeInsets.symmetric(vertical: 20), // Added padding
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                border: Border.all(
+                  color: color.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 60, // Increased icon container size
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 32, // Increased icon size
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16, // Increased font size
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkColor,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -1168,10 +1191,15 @@ class SubMenuPage extends StatelessWidget {
       backgroundColor: AppColors.lightColor2,
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        toolbarHeight: Responsive.isDesktop(context) ? 100 : 70,
+        title: Text(title, style: TextStyle(
+          fontWeight: FontWeight.bold, 
+          color: Colors.white,
+          fontSize: Responsive.isDesktop(context) ? 26 : 20,
+        )),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: Responsive.isDesktop(context) ? 28 : 20),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
@@ -1188,8 +1216,11 @@ class SubMenuPage extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 children: List.generate(operations.length, (index) {
                   final op = operations[index];
+                  final w = MediaQuery.of(context).size.width;
+                  final available = w > 1200 ? 1200.0 : w;
+                  final cardW = w >= 1100 ? (available - 80) / 3 : w >= 850 ? (available - 60) / 2 : (w - 56) / 2 - 8;
                   return SizedBox(
-                    width: Responsive.isMobile(context) ? (MediaQuery.of(context).size.width - 60) / 2 : 400,
+                    width: cardW,
                     child: _SubMenuCard(
                       title: op['title']!,
                       icon: op['icon'] as IconData,
@@ -1241,6 +1272,8 @@ class _SubMenuCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         shadowColor: color.withOpacity(0.3),
         child: Container(
+          height: Responsive.isDesktop(context) ? 180 : 140,
+          padding: EdgeInsets.symmetric(vertical: Responsive.isDesktop(context) ? 24 : 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: Colors.white,
@@ -1250,18 +1283,22 @@ class _SubMenuCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: Responsive.isDesktop(context) ? 72 : 56,
+                height: Responsive.isDesktop(context) ? 72 : 56,
                 decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icon, color: color, size: 32),
+                child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 36 : 32),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: Responsive.isDesktop(context) ? 16 : 12),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkColor),
+                  style: TextStyle(
+                    fontSize: Responsive.isDesktop(context) ? 18 : 15, 
+                    fontWeight: FontWeight.bold, 
+                    color: AppColors.darkColor,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

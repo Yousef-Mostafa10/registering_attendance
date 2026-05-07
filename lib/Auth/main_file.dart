@@ -12,6 +12,8 @@ import 'colors.dart';
 import 'login_page.dart';
 import 'auth_storage.dart';
 import 'auth_widgets.dart';
+import '../core/http_interceptor.dart' as http;
+import 'api_service.dart';
 class ActivationLoginPage extends StatefulWidget {
   final bool showLogin;
   const ActivationLoginPage({Key? key, this.showLogin = false})
@@ -67,13 +69,36 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
     await Future.wait([_checkLoginStatus(), _getDeviceId()]);
   }
 
-  // فحص هل المستخدم مسجل دخول مسبقاً
+  // فحص هل المستخدم مسجل دخول مسبقاً مع التحقق من صحة التوكن
   Future<void> _checkLoginStatus() async {
     try {
       final userData = await AuthStorage.getUserData();
-      if (userData != null && userData['token']!.isNotEmpty) {
-        // إذا وجدنا بيانات، ننتقل مباشرة للتطبيق
-        if (mounted) {
+      if (userData != null && userData['token'] != null && userData['token']!.isNotEmpty) {
+        
+        // التحقق من صحة التوكن عبر نداء بسيط للـ API
+        final token = userData['token']!;
+        final role = userData['role']!;
+        
+        // محاولة جلب بيانات بسيطة للتأكد من أن الجلسة ما زالت تعمل
+        bool isTokenValid = false;
+        try {
+           final response = await http.get(
+            Uri.parse('${ApiService.baseUrl}/Auth/verify-session'),
+            headers: {'Authorization': 'Bearer $token', 'accept': '*/*'},
+          ).timeout(const Duration(seconds: 5));
+          
+          if (response.statusCode == 200) {
+            isTokenValid = true;
+          } else {
+            // الـ Interceptor سيحاول التحديث تلقائياً، فإذا ظل الرد 401 فالتوكن غير صالح
+            isTokenValid = response.statusCode != 401;
+          }
+        } catch (_) {
+          // في حال فشل الاتصال، نفترض أن التوكن صالح مؤقتاً لنسمح بالدخول في وضع الأوفلاين
+          isTokenValid = true; 
+        }
+
+        if (isTokenValid && mounted) {
           _navigateToMainApp(
             token: userData['token']!,
             role: userData['role']!,
@@ -81,13 +106,17 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
             email: userData['email']!,
             deviceId: userData['deviceId']!,
           );
+          return;
+        } else {
+          // التوكن غير صالح، امسح البيانات وابقَ في صفحة الدخول
+          await AuthStorage.clearUserData();
         }
-      } else {
-        if (mounted) {
-          setState(() {
-            _isCheckingLogin = false;
-          });
-        }
+      }
+      
+      if (mounted) {
+        setState(() {
+          _isCheckingLogin = false;
+        });
       }
     } catch (e) {
       if (mounted) {

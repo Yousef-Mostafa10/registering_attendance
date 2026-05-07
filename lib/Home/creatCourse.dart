@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../core/responsive.dart';
 import '../widgets/AppInstructionsCard.dart';
 
 class CreateCoursePage extends StatefulWidget {
@@ -220,12 +221,15 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: const Text(
+              centerTitle: Responsive.isDesktop(context),
+              titlePadding: Responsive.isDesktop(context) 
+                  ? const EdgeInsets.only(bottom: 20) 
+                  : const EdgeInsets.only(left: 20, bottom: 16),
+              title: Text(
                     'Create New Course',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: Responsive.isDesktop(context) ? 22 : 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -246,7 +250,10 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
 
           // Form Content
           SliverToBoxAdapter(
-            child: Padding(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: Responsive.isDesktop(context) ? 850 : 700),
+                child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,9 +304,9 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                   ),
                   const SizedBox(height: 24),
                   
-                  const AppInstructionsCard(
+                  AppInstructionsCard(
                     title: 'Course Creation Steps',
-                    instructions: [
+                    instructions: const [
                       'Enter a clear, descriptive name for the course.',
                       'Provide a unique Course Code (e.g., CS4710).',
                       'Enter the exact University Code of the Doctor assigned to this course.',
@@ -455,6 +462,8 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
                 ],
               ),
             ),
+              ),
+            ),
           ),
         ],
       ),
@@ -475,7 +484,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: Responsive.isDesktop(context) ? 16 : 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkColor,
           ),
@@ -539,7 +548,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
             ),
             style: TextStyle(
               color: AppColors.darkColor,
-              fontSize: 16,
+              fontSize: Responsive.isDesktop(context) ? 18 : 16,
             ),
             validator: validator,
           ),
@@ -555,7 +564,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
         Text(
           'Course Description',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: Responsive.isDesktop(context) ? 16 : 14,
             fontWeight: FontWeight.w600,
             color: AppColors.darkColor,
           ),
@@ -614,7 +623,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
             ),
             style: TextStyle(
               color: AppColors.darkColor,
-              fontSize: 16,
+              fontSize: Responsive.isDesktop(context) ? 18 : 16,
             ),
             validator: _validateDescription,
           ),

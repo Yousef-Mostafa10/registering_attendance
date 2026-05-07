@@ -163,7 +163,10 @@ class _LectureReportPageState extends State<LectureReportPage> {
           ),
         ],
       ),
-      body: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
         children: [
           // ─ Marks Input ─────────────────────────────────────────────────────
           Container(
@@ -247,6 +250,8 @@ class _LectureReportPageState extends State<LectureReportPage> {
           Expanded(child: _buildBody()),
         ],
       ),
+        ),
+      ),
     );
   }
 
@@ -257,11 +262,29 @@ class _LectureReportPageState extends State<LectureReportPage> {
       );
     if (_errorMessage.isNotEmpty) return _errorState();
     if (_students.isEmpty) return _emptyState();
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _students.length,
-      itemBuilder: (_, i) => _studentCard(_students[i]),
-    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      if (cols > 1) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: cols == 3 ? 1.6 : 1.8,
+          ),
+          itemCount: _students.length,
+          itemBuilder: (_, i) => _studentCard(_students[i]),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _students.length,
+        itemBuilder: (_, i) => _studentCard(_students[i]),
+      );
+    });
   }
 
   Widget _studentCard(Map<String, dynamic> s) {

@@ -429,395 +429,460 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Stats
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.lightColor2,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    widget.courseName,
-                    style: const TextStyle(color: Colors.grey, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Session ID: #${widget.sessionId}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                          color: AppColors.darkColor,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      if (_isSessionActive)
-                        IconButton(
-                          onPressed: _showUpdateRadiusDialog,
-                          icon: const Icon(
-                            Icons.architecture,
-                            color: Colors.indigo,
-                          ),
-                          tooltip: 'Update Radius',
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  ScaleTransition(
-                    scale: _pulseAnimation,
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.people,
-                            size: 32,
-                            color: AppColors.primaryColor,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$_attendeeCount',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Live Attendees Count',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: SingleChildScrollView(
+        child: Builder(builder: (context) {
+          final w = MediaQuery.of(context).size.width;
+          final isWide = w >= 1100;
+
+          // Main content widgets
+          Widget headerStats = Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.lightColor2,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // Dynamic QR Section
-            if (_isSessionActive) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Scan using Student App',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  const SizedBox(width: 8),
-                  DropdownButton<int>(
-                    value: _qrInterval,
-                    icon: const Icon(
-                      Icons.timer,
-                      size: 18,
-                      color: Colors.indigo,
-                    ),
-                    underline: const SizedBox(),
-                    items: [10, 20, 30, 60].map((int val) {
-                      return DropdownMenuItem<int>(
-                        value: val,
-                        child: Text(
-                          '${val}s',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newVal) {
-                      if (newVal != null) {
-                        setState(() {
-                          _qrInterval = newVal;
-                        });
-                        _startQrRotation();
-                        ScaffoldMessenger.of(context).clearSnackBars();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'QR Code interval changed to $newVal seconds',
-                            ),
-                            backgroundColor: Colors.indigo,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.indigo.withOpacity(0.2)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            child: Column(
+              children: [
+                Text(
+                  widget.courseName,
+                  style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                child: Column(
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.indigo.withOpacity(0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: QrImageView(
-                            data: jsonEncode({
-                              "sessionId": widget.sessionId,
-                              "qrContent": _currentQr,
-                            }),
-                            version: QrVersions.auto,
-                            size: 250.0,
-                            gapless: false,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'OR ENTER PIN',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber),
-                      ),
-                      child: Text(
-                        _currentPin == "0000" ? "Ended" : _currentPin,
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: _currentPin == "0000" ? 2.0 : 8.0,
-                          color: Colors.amber,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     Text(
-                      'PIN and QR automatically change every $_qrInterval seconds',
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => _ProjectorModePage(
-                            sessionId: widget.sessionId,
-                            qrContent: _currentQr,
-                            pinCode: _currentPin,
-                          ),
-                        ),
-                      ),
-                      icon: const Icon(Icons.fullscreen),
-                      label: const Text('Full Screen'),
-                    ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              // Closed State UI
-              const Icon(Icons.lock, size: 80, color: Colors.grey),
-              const SizedBox(height: 16),
-              const Text(
-                'Attendance is Closed',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-
-            // Live Attendees
-            if (_attendees.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Live Check-ins',
-                      style: TextStyle(
-                        fontSize: 16,
+                      'Session ID: #${widget.sessionId}',
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 24,
                         color: AppColors.darkColor,
                       ),
                     ),
-                    Text(
-                      '${_attendees.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.darkColor.withOpacity(0.6),
+                    const SizedBox(width: 8),
+                    if (_isSessionActive)
+                      IconButton(
+                        onPressed: _showUpdateRadiusDialog,
+                        icon: const Icon(
+                          Icons.architecture,
+                          color: Colors.indigo,
+                        ),
+                        tooltip: 'Update Radius',
                       ),
-                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                itemCount: _attendees.length,
-                itemBuilder: (_, i) {
-                  final attendee = _attendees[i];
-                  final name =
-                      attendee['studentName']?.toString() ??
-                      attendee['name']?.toString() ??
-                      'Unknown';
-                  final time =
-                      attendee['timestamp']?.toString() ??
-                      attendee['time']?.toString() ??
-                      '';
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
+                const SizedBox(height: 24),
+                ScaleTransition(
+                  scale: _pulseAnimation,
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppColors.primaryColor.withOpacity(
-                            0.1,
-                          ),
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : '?',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (time.isNotEmpty)
-                                Text(
-                                  time,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.darkColor.withOpacity(0.6),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.check_circle,
-                          color: AppColors.successColor,
-                          size: 18,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            const SizedBox(height: 48),
-
-            // Control Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: _isToggling ? null : _toggleSessionState,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isSessionActive
-                        ? AppColors.errorColor
-                        : AppColors.successColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  icon: Icon(
-                    _isSessionActive ? Icons.stop_circle : Icons.play_circle,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    _isSessionActive ? 'Stop Session' : 'Resume Session',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.people,
+                          size: 32,
+                          color: AppColors.primaryColor,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$_attendeeCount',
+                          style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Live Attendees Count',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          if (isWide) {
+            // Desktop: two-column layout
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                headerStats,
+                const SizedBox(height: 24),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left column: QR section
+                      Expanded(
+                        flex: 5,
+                        child: _buildQrSection(),
+                      ),
+                      const SizedBox(width: 24),
+                      // Right column: Attendees + buttons
+                      Expanded(
+                        flex: 5,
+                        child: Column(
+                          children: [
+                            _buildAttendeesSection(),
+                            const SizedBox(height: 24),
+                            _buildControlButton(),
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Mobile/Tablet: single column
+          return Column(
+            children: [
+              headerStats,
+              const SizedBox(height: 32),
+              _buildQrSection(),
+              _buildAttendeesSection(),
+              const SizedBox(height: 48),
+              _buildControlButton(),
+              const SizedBox(height: 32),
+            ],
+          );
+        }),
+      ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQrSection() {
+    if (!_isSessionActive) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Column(
+          children: const [
+            Icon(Icons.lock, size: 80, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Attendance is Closed',
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 32),
           ],
+        ),
+      );
+    }
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Scan using Student App',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(width: 8),
+            DropdownButton<int>(
+              value: _qrInterval,
+              icon: const Icon(
+                Icons.timer,
+                size: 18,
+                color: Colors.indigo,
+              ),
+              underline: const SizedBox(),
+              items: [10, 20, 30, 60].map((int val) {
+                return DropdownMenuItem<int>(
+                  value: val,
+                  child: Text(
+                    '${val}s',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (newVal) {
+                if (newVal != null) {
+                  setState(() {
+                    _qrInterval = newVal;
+                  });
+                  _startQrRotation();
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'QR Code interval changed to $newVal seconds',
+                      ),
+                      backgroundColor: Colors.indigo,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.indigo.withOpacity(0.2)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.indigo.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: QrImageView(
+                      data: jsonEncode({
+                        "sessionId": widget.sessionId,
+                        "qrContent": _currentQr,
+                      }),
+                      version: QrVersions.auto,
+                      size: 220.0,
+                      gapless: false,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'OR ENTER PIN',
+                style: TextStyle(
+                  color: Colors.grey,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber),
+                ),
+                child: Text(
+                  _currentPin == "0000" ? "Ended" : _currentPin,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: _currentPin == "0000" ? 2.0 : 8.0,
+                    color: Colors.amber,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'PIN and QR automatically change every $_qrInterval seconds',
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => _ProjectorModePage(
+                      sessionId: widget.sessionId,
+                      qrContent: _currentQr,
+                      pinCode: _currentPin,
+                    ),
+                  ),
+                ),
+                icon: const Icon(Icons.fullscreen),
+                label: const Text('Full Screen'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAttendeesSection() {
+    if (_attendees.isEmpty) return const SizedBox();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Live Check-ins',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkColor,
+                ),
+              ),
+              Text(
+                '${_attendees.length}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.darkColor.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          itemCount: _attendees.length,
+          itemBuilder: (_, i) {
+            final attendee = _attendees[i];
+            final name =
+                attendee['studentName']?.toString() ??
+                attendee['name']?.toString() ??
+                'Unknown';
+            final time =
+                attendee['timestamp']?.toString() ??
+                attendee['time']?.toString() ??
+                '';
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.primaryColor.withOpacity(
+                      0.1,
+                    ),
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (time.isNotEmpty)
+                          Text(
+                            time,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkColor.withOpacity(0.6),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.successColor,
+                    size: 18,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControlButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: ElevatedButton.icon(
+          onPressed: _isToggling ? null : _toggleSessionState,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _isSessionActive
+                ? AppColors.errorColor
+                : AppColors.successColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          icon: Icon(
+            _isSessionActive ? Icons.stop_circle : Icons.play_circle,
+            color: Colors.white,
+          ),
+          label: Text(
+            _isSessionActive ? 'Stop Session' : 'Resume Session',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );

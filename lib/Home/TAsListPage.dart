@@ -369,7 +369,10 @@ class _TAsListPageState extends State<TAsListPage> {
             ),
           ];
         },
-        body: Column(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1400),
+            child: Column(
           children: [
             // Search Bar
             Padding(
@@ -437,20 +440,36 @@ class _TAsListPageState extends State<TAsListPage> {
               stream: _statsStreamController.stream,
               builder: (context, statsSnapshot) {
                 final stats = statsSnapshot.data ?? {'tas': 0};
-
+                final w = MediaQuery.of(context).size.width;
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Row(
-                    children: [
-                      _buildStatCard(
-                        icon: Icons.school,
-                        title: 'Teaching Assistants',
-                        value: stats['tas']?.toString() ?? '0',
-                        color: AppColors.primaryColor,
-                        isLoading: !statsSnapshot.hasData,
-                      ),
-                    ],
-                  ),
+                  child: w >= 850
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 280,
+                              child: _buildStatCard(
+                                icon: Icons.school,
+                                title: 'Teaching Assistants',
+                                value: stats['tas']?.toString() ?? '0',
+                                color: AppColors.primaryColor,
+                                isLoading: !statsSnapshot.hasData,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.school,
+                              title: 'Teaching Assistants',
+                              value: stats['tas']?.toString() ?? '0',
+                              color: AppColors.primaryColor,
+                              isLoading: !statsSnapshot.hasData,
+                            ),
+                          ],
+                        ),
                 );
               },
             ),
@@ -471,9 +490,26 @@ class _TAsListPageState extends State<TAsListPage> {
                     return _buildEmptyState();
                   }
 
-                  return filteredTAs.isEmpty
-                      ? _buildNoResultsState()
-                      : ListView.builder(
+                  if (filteredTAs.isEmpty) return _buildNoResultsState();
+
+                  final w = MediaQuery.of(context).size.width;
+                  final cols = w >= 1100 ? 3 : w >= 850 ? 2 : 1;
+
+                  if (cols > 1) {
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: cols == 3 ? 2.0 : 2.2,
+                      ),
+                      itemCount: filteredTAs.length,
+                      itemBuilder: (context, index) => _buildTACard(filteredTAs[index]),
+                    );
+                  }
+
+                  return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     itemCount: filteredTAs.length,
                     itemBuilder: (context, index) {
@@ -486,16 +522,17 @@ class _TAsListPageState extends State<TAsListPage> {
             ),
           ],
         ),
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const CreateAccountPage(), // إذا كان هناك باراميتر للتمييز
+              builder: (context) => const CreateAccountPage(),
             ),
           ).then((value) {
-            // تحديث جميع البيانات بعد إضافة معيد جديد
             if (value == true) {
               _fetchAllData();
             }

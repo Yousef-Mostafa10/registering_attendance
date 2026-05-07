@@ -345,7 +345,10 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
             ),
           ];
         },
-        body: Column(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1400),
+            child: Column(
           children: [
             // Search Bar
             Padding(
@@ -413,20 +416,36 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
               stream: _statsStreamController.stream,
               builder: (context, statsSnapshot) {
                 final doctorsCount = statsSnapshot.data ?? 0;
-
+                final w = MediaQuery.of(context).size.width;
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Row(
-                    children: [
-                      _buildStatCard(
-                        icon: Icons.person,
-                        title: 'Doctors',
-                        value: doctorsCount.toString(),
-                        color: AppColors.primaryColor,
-                        isLoading: !statsSnapshot.hasData,
-                      ),
-                    ],
-                  ),
+                  child: w >= 850
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 280,
+                              child: _buildStatCard(
+                                icon: Icons.person,
+                                title: 'Doctors',
+                                value: doctorsCount.toString(),
+                                color: AppColors.primaryColor,
+                                isLoading: !statsSnapshot.hasData,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.person,
+                              title: 'Doctors',
+                              value: doctorsCount.toString(),
+                              color: AppColors.primaryColor,
+                              isLoading: !statsSnapshot.hasData,
+                            ),
+                          ],
+                        ),
                 );
               },
             ),
@@ -447,9 +466,26 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                     return _buildEmptyState();
                   }
 
-                  return filteredDoctors.isEmpty
-                      ? _buildNoResultsState()
-                      : ListView.builder(
+                  if (filteredDoctors.isEmpty) return _buildNoResultsState();
+
+                  final w = MediaQuery.of(context).size.width;
+                  final cols = w >= 1100 ? 3 : w >= 850 ? 2 : 1;
+
+                  if (cols > 1) {
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: cols == 3 ? 2.0 : 2.2,
+                      ),
+                      itemCount: filteredDoctors.length,
+                      itemBuilder: (context, index) => _buildDoctorCard(filteredDoctors[index]),
+                    );
+                  }
+
+                  return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     itemCount: filteredDoctors.length,
                     itemBuilder: (context, index) {
@@ -461,6 +497,8 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(

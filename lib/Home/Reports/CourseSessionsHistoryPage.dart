@@ -163,66 +163,91 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: sessions.length,
-      itemBuilder: (context, index) {
-        final session = sessions[index];
-        final sessionId = session['id']?.toString() ?? session['sessionId']?.toString() ?? '0';
-        final title = session['title'] ?? '$type #$sessionId';
-        
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SessionAttendeesPage(
-                    sessionId: sessionId,
-                    sessionTitle: title,
-                  ),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.indigo.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.class_, color: Colors.indigo),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.darkColor),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'ID: #$sessionId',
-                          style: TextStyle(color: AppColors.darkColor.withOpacity(0.5), fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+          if (cols > 1) {
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: cols == 3 ? 2.5 : 3.0,
+              ),
+              itemCount: sessions.length,
+              itemBuilder: (context, index) => _buildSessionCard(sessions[index], type),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: sessions.length,
+            itemBuilder: (context, index) => _buildSessionCard(sessions[index], type),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildSessionCard(dynamic session, String type) {
+    final sessionId = session['id']?.toString() ?? session['sessionId']?.toString() ?? '0';
+    final title = session['title'] ?? '$type #$sessionId';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SessionAttendeesPage(
+                sessionId: sessionId,
+                sessionTitle: title,
               ),
             ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.class_, color: Colors.indigo),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.darkColor),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'ID: #$sessionId',
+                      style: TextStyle(color: AppColors.darkColor.withOpacity(0.5), fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
