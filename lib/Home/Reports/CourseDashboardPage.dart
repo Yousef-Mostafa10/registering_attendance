@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/responsive.dart';
 import '../../Auth/colors.dart';
 import 'LectureReportPage.dart';
 import 'SectionReportPage.dart';
@@ -48,166 +49,195 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
 
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
-      body: CustomScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: CustomScrollView(
         slivers: [
           // ── AppBar ─────────────────────────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 190,
+            expandedHeight: Responsive.isDesktop(context) ? 160 : 140,
             pinned: true,
             backgroundColor: color,
-            elevation: 0,
+            elevation: 2,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
             shape: const ContinuousRectangleBorder(
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(36),
-                bottomRight: Radius.circular(36),
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Colors.white.withOpacity(0.25),
-                    child: const Icon(
-                      Icons.class_,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
+            flexibleSpace: LayoutBuilder(
+              builder: (context, constraints) {
+                final top = constraints.biggest.height;
+                final isCollapsed = top <= (MediaQuery.of(context).padding.top + kToolbarHeight + 5);
+                
+                return FlexibleSpaceBar(
+                  centerTitle: true,
+                  title: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: isCollapsed ? 1.0 : 0.0,
                     child: Text(
                       courseName,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [color, AppColors.darkColor],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24, top: 70, right: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Course ID: ${widget.course['id']}',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
-                          fontSize: 13,
-                        ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [color, AppColors.darkColor],
                       ),
-                      if (doctorName.isNotEmpty)
-                        Text(
-                          'Dr. $doctorName',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 13,
+                    ),
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            16, 
+                            MediaQuery.of(context).padding.top + 5, 
+                            16, 
+                            5
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: Responsive.isDesktop(context) 
+                                ? CrossAxisAlignment.center 
+                                : CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ID: ${widget.course['id']} • $courseCode',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                courseName,
+                                textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.left,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: Responsive.isDesktop(context) ? 28 : 22,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              if (doctorName.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Dr. $doctorName',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: Responsive.isDesktop(context) ? 14 : 12,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: Responsive.isDesktop(context) 
+                                    ? MainAxisAlignment.center 
+                                    : MainAxisAlignment.start,
+                                children: [
+                                  _infoPill(
+                                    Icons.people_outline,
+                                    '$studentCountLabel Students',
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _infoPill(
-                            Icons.people,
-                            '$studentCountLabel students',
-                          ),
-                          if (courseCode.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            _infoPill(Icons.tag, courseCode),
-                          ],
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
 
           // ── Content ────────────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ═══ Reports Section (Doctor/TA only) ══════════════════════════
                   if (!isAdmin) ...[
-                    const Text(
-                      'Reports & Analytics',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkColor,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        'Reports & Analytics',
+                        style: TextStyle(
+                          fontSize: Responsive.isDesktop(context) ? 18 : 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkColor,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 1.1,
-                      children: [
-                        _reportCard(
-                          title: 'Lecture Report',
-                          subtitle: 'Attendance insights',
-                          icon: Icons.menu_book,
-                          color: AppColors.primaryColor,
-                          onTap: () =>
-                              _goto(LectureReportPage(courseId: courseId)),
-                        ),
-                        _reportCard(
-                          title: 'Section Report',
-                          subtitle: 'Labs & Exercises',
-                          icon: Icons.science,
-                          color: const Color(0xFF2E7D32),
-                          onTap: () =>
-                              _goto(SectionReportPage(courseId: courseId)),
-                        ),
-                        _reportCard(
-                          title: 'Session History',
-                          subtitle: 'Past sessions',
-                          icon: Icons.history_edu,
-                          color: Colors.indigo,
-                          onTap: () => _goto(
-                            CourseSessionsHistoryPage(courseId: courseId),
+                    Builder(builder: (context) {
+                      final w = MediaQuery.of(context).size.width;
+                      final cols = w >= 1100 ? 4 : w >= 850 ? 3 : 2;
+                      return GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: cols,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        childAspectRatio: Responsive.isDesktop(context) ? 1.8 : 1.3,
+                        children: [
+                          _reportCard(
+                            title: 'Lecture Report',
+                            subtitle: 'Attendance insights',
+                            icon: Icons.menu_book,
+                            color: AppColors.primaryColor,
+                            onTap: () =>
+                                _goto(LectureReportPage(courseId: courseId)),
                           ),
-                        ),
-                        _reportCard(
-                          title: 'Absence Warnings',
-                          subtitle: 'At-risk students',
-                          icon: Icons.warning_amber_rounded,
-                          color: AppColors.errorColor,
-                          onTap: () =>
-                              _goto(AbsenceWarningsPage(courseId: courseId)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+                          _reportCard(
+                            title: 'Section Report',
+                            subtitle: 'Labs & Exercises',
+                            icon: Icons.science,
+                            color: const Color(0xFF2E7D32),
+                            onTap: () =>
+                                _goto(SectionReportPage(courseId: courseId)),
+                          ),
+                          _reportCard(
+                            title: 'Session History',
+                            subtitle: 'Past sessions',
+                            icon: Icons.history_edu,
+                            color: Colors.indigo,
+                            onTap: () => _goto(
+                              CourseSessionsHistoryPage(courseId: courseId),
+                            ),
+                          ),
+                          _reportCard(
+                            title: 'Absence Warnings',
+                            subtitle: 'At-risk students',
+                            icon: Icons.warning_amber_rounded,
+                            color: AppColors.errorColor,
+                            onTap: () =>
+                                _goto(AbsenceWarningsPage(courseId: courseId)),
+                          ),
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 32),
                   ],
 
                   // ═══ Doctor/TA — Session Management ═════════════════════════
                   if (isDoctor) ...[
-                    const Text(
+                    Text(
                       'Session Management',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: Responsive.isDesktop(context) ? 22 : 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkColor,
                       ),
@@ -247,10 +277,10 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
 
                   // ═══ Admin — Course Management ═══════════════════════════════
                   if (isAdmin) ...[
-                    const Text(
+                    Text(
                       'Course Management',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: Responsive.isDesktop(context) ? 22 : 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkColor,
                       ),
@@ -274,6 +304,8 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
           ),
         ],
       ),
+        ),
+      ),
     );
   }
 
@@ -281,17 +313,28 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
   Widget _infoPill(IconData icon, String label) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    padding: EdgeInsets.symmetric(
+      horizontal: Responsive.isDesktop(context) ? 16 : 12, 
+      vertical: Responsive.isDesktop(context) ? 8 : 6
+    ),
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(20),
+      color: Colors.white.withOpacity(0.15),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13, color: Colors.white),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+        Icon(icon, size: Responsive.isDesktop(context) ? 18 : 14, color: Colors.white),
+        const SizedBox(width: 8),
+        Text(
+          label, 
+          style: TextStyle(
+            color: Colors.white, 
+            fontSize: Responsive.isDesktop(context) ? 14 : 12,
+            fontWeight: FontWeight.w500,
+          )
+        ),
       ],
     ),
   );
@@ -302,53 +345,59 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
-  }) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(18),
-    child: Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+  }) => Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.04),
+          blurRadius: 20,
+          offset: const Offset(0, 10),
+        ),
+      ],
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(Responsive.isDesktop(context) ? 20 : 12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(icon, size: Responsive.isDesktop(context) ? 44 : 28, color: color),
+              ),
+              SizedBox(height: Responsive.isDesktop(context) ? 20 : 14),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: Responsive.isDesktop(context) ? 18 : 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: Responsive.isDesktop(context) ? 13 : 10,
+                  color: AppColors.darkColor.withOpacity(0.5),
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 26, color: color),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkColor,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              color: AppColors.darkColor.withOpacity(0.5),
-            ),
-          ),
-        ],
+        ),
       ),
     ),
   );
@@ -359,61 +408,67 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
-  }) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(16),
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.07),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 26, color: color),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
+  }) => Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.03),
+          blurRadius: 15,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 18),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(Responsive.isDesktop(context) ? 20 : 14),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.darkColor.withOpacity(0.5),
-                  ),
+                child: Icon(icon, size: Responsive.isDesktop(context) ? 36 : 24, color: color),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: Responsive.isDesktop(context) ? 20 : 16,
+                        color: AppColors.darkColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: Responsive.isDesktop(context) ? 15 : 12,
+                        color: AppColors.darkColor.withOpacity(0.5),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: Responsive.isDesktop(context) ? 20 : 14,
+                color: AppColors.darkColor.withOpacity(0.2),
+              ),
+            ],
           ),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: AppColors.darkColor.withOpacity(0.3),
-          ),
-        ],
+        ),
       ),
     ),
   );

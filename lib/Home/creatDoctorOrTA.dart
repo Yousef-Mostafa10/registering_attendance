@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../core/responsive.dart';
 import '../widgets/AppInstructionsCard.dart';
 
 class CreateAccountPage extends StatefulWidget {
@@ -207,6 +208,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             collapsedHeight: 80,
             pinned: true,
             floating: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
             backgroundColor: _isDoctor ? AppColors.primaryColor : Colors.orange,
             elevation: 8,
             shape: const ContinuousRectangleBorder(
@@ -216,12 +221,15 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              centerTitle: Responsive.isDesktop(context),
+              titlePadding: Responsive.isDesktop(context) 
+                  ? const EdgeInsets.only(bottom: 20) 
+                  : const EdgeInsets.only(left: 20, bottom: 16),
               title: Text(
                     _isDoctor ? 'Create Doctor Account' : 'Create TA Account',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: Responsive.isDesktop(context) ? 20 : 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -242,7 +250,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
           // Form Content
           SliverToBoxAdapter(
-            child: Padding(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: Responsive.isDesktop(context) ? 850 : 700),
+                child: Padding(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
@@ -253,7 +264,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     Text(
                       'Create New Account',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: Responsive.isDesktop(context) ? 32 : 24,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkColor,
                       ),
@@ -262,15 +273,15 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     Text(
                       'Fill in the details to create a new account',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: Responsive.isDesktop(context) ? 16 : 14,
                         color: AppColors.darkColor.withOpacity(0.6),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     
-                    const AppInstructionsCard(
+                    AppInstructionsCard(
                       title: 'Account Creation Steps',
-                      instructions: [
+                      instructions: const [
                         'Select the Account Type (Doctor or Teaching Assistant).',
                         'Enter the full name of the staff member.',
                         'Provide a valid email address.',
@@ -379,6 +390,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
               ),
             ),
           ),
@@ -510,7 +523,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: Responsive.isDesktop(context) ? 16 : 14,
             fontWeight: FontWeight.w500,
             color: AppColors.darkColor,
           ),
@@ -575,7 +588,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ),
             style: TextStyle(
               color: AppColors.darkColor,
-              fontSize: 16,
+              fontSize: Responsive.isDesktop(context) ? 18 : 16,
             ),
             validator: validator,
           ),
@@ -598,7 +611,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: Responsive.isDesktop(context) ? 16 : 14,
             fontWeight: FontWeight.w500,
             color: AppColors.darkColor,
           ),
@@ -669,7 +682,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ),
             style: TextStyle(
               color: AppColors.darkColor,
-              fontSize: 16,
+              fontSize: Responsive.isDesktop(context) ? 18 : 16,
             ),
             validator: validator,
           ),

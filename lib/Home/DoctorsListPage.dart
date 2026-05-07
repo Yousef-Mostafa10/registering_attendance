@@ -5,6 +5,7 @@ import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../Auth/colors.dart';
+import '../core/responsive.dart';
 
 class DoctorsListPage extends StatefulWidget {
   const DoctorsListPage({Key? key}) : super(key: key);
@@ -270,6 +271,10 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
             SliverAppBar(
               floating: true,
               snap: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
               backgroundColor: AppColors.primaryColor,
               elevation: 4,
               shape: const ContinuousRectangleBorder(
@@ -341,7 +346,10 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
             ),
           ];
         },
-        body: Column(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1400),
+            child: Column(
           children: [
             // Search Bar
             Padding(
@@ -409,20 +417,36 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
               stream: _statsStreamController.stream,
               builder: (context, statsSnapshot) {
                 final doctorsCount = statsSnapshot.data ?? 0;
-
+                final w = MediaQuery.of(context).size.width;
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Row(
-                    children: [
-                      _buildStatCard(
-                        icon: Icons.person,
-                        title: 'Doctors',
-                        value: doctorsCount.toString(),
-                        color: AppColors.primaryColor,
-                        isLoading: !statsSnapshot.hasData,
-                      ),
-                    ],
-                  ),
+                  child: w >= 850
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 280,
+                              child: _buildStatCard(
+                                icon: Icons.person,
+                                title: 'Doctors',
+                                value: doctorsCount.toString(),
+                                color: AppColors.primaryColor,
+                                isLoading: !statsSnapshot.hasData,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.person,
+                              title: 'Doctors',
+                              value: doctorsCount.toString(),
+                              color: AppColors.primaryColor,
+                              isLoading: !statsSnapshot.hasData,
+                            ),
+                          ],
+                        ),
                 );
               },
             ),
@@ -443,9 +467,26 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                     return _buildEmptyState();
                   }
 
-                  return filteredDoctors.isEmpty
-                      ? _buildNoResultsState()
-                      : ListView.builder(
+                  if (filteredDoctors.isEmpty) return _buildNoResultsState();
+
+                  final w = MediaQuery.of(context).size.width;
+                  final cols = w >= 1100 ? 3 : w >= 850 ? 2 : 1;
+
+                  if (cols > 1) {
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: cols == 3 ? 2.0 : 2.2,
+                      ),
+                      itemCount: filteredDoctors.length,
+                      itemBuilder: (context, index) => _buildDoctorCard(filteredDoctors[index]),
+                    );
+                  }
+
+                  return ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     itemCount: filteredDoctors.length,
                     itemBuilder: (context, index) {
@@ -457,6 +498,8 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -756,22 +799,28 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
+      builder: (context) => Center(
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.isDesktop(context) ? 600 : double.infinity,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              spreadRadius: 5,
-            ),
-          ],
-        ),
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: Responsive.isDesktop(context)
+                ? BorderRadius.circular(32)
+                : const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
         child: Column(
           children: [
             // Handle
@@ -934,6 +983,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
           ],
         ),
       ),
+    ),
     );
   }
 

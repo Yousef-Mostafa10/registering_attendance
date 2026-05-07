@@ -73,6 +73,10 @@ class _AssignStaffPageState extends State<AssignStaffPage> {
         backgroundColor: AppColors.primaryColor,
         elevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(

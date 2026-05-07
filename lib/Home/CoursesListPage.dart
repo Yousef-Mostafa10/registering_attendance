@@ -349,12 +349,16 @@ class _CoursesListPageState extends State<CoursesListPage> {
               ),
             ),
             automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
             title: Row(
               children: [
-                const CircleAvatar(
-                  radius: 16,
+                CircleAvatar(
+                  radius: Responsive.isDesktop(context) ? 20 : 16,
                   backgroundColor: Colors.white24,
-                  child: Icon(Icons.school, color: Colors.white, size: 18),
+                  child: Icon(Icons.school, color: Colors.white, size: Responsive.isDesktop(context) ? 22 : 18),
                 ),
                 const SizedBox(width: 12),
                 Flexible(
@@ -431,28 +435,63 @@ class _CoursesListPageState extends State<CoursesListPage> {
             ),
           ),
         ],
-        body: Column(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1400),
+            child: Column(
           children: [
             if (_userRole != 'Student')
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    _buildStatCard(
-                      icon: Icons.book,
-                      title: 'Total Courses',
-                      value: _isLoading ? '...' : _totalCourses.toString(),
-                      color: AppColors.primaryColor,
-                    ),
-                    const SizedBox(width: 12),
-                    _buildStatCard(
-                      icon: Icons.people,
-                      title: 'Total Students',
-                      value: _isLoading ? '...' : _totalStudents.toString(),
-                      color: AppColors.successColor,
-                    ),
-                  ],
-                ),
+                child: Builder(builder: (context) {
+                  final w = MediaQuery.of(context).size.width;
+                  if (w >= 850) {
+                    final available = w > 1400 ? 1400.0 : w;
+                    final cardW = (available - 80) / 2;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: cardW,
+                          child: _buildStatCard(
+                            icon: Icons.book,
+                            title: 'Total Courses',
+                            value: _isLoading ? '...' : _totalCourses.toString(),
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        SizedBox(
+                          width: cardW,
+                          child: _buildStatCard(
+                            icon: Icons.people,
+                            title: 'Total Students',
+                            value: _isLoading ? '...' : _totalStudents.toString(),
+                            color: AppColors.successColor,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  // mobile: full-width side by side
+                  return Row(
+                    children: [
+                      _buildStatCard(
+                        icon: Icons.book,
+                        title: 'Total Courses',
+                        value: _isLoading ? '...' : _totalCourses.toString(),
+                        color: AppColors.primaryColor,
+                      ),
+                      const SizedBox(width: 12),
+                      _buildStatCard(
+                        icon: Icons.people,
+                        title: 'Total Students',
+                        value: _isLoading ? '...' : _totalStudents.toString(),
+                        color: AppColors.successColor,
+                      ),
+                    ],
+                  );
+                }),
               ),
 
             // Content
@@ -483,15 +522,34 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   : RefreshIndicator(
                       onRefresh: _fetchCourses,
                       color: AppColors.primaryColor,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _filteredCourses.length,
-                        itemBuilder: (_, i) =>
-                            _buildCourseCard(_filteredCourses[i]),
-                      ),
+                      child: Builder(builder: (context) {
+                        final w = MediaQuery.of(context).size.width;
+                        final cols = w >= 1100 ? 3 : w >= 850 ? 2 : 1;
+                        if (cols > 1) {
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: cols,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: cols == 3 ? 1.6 : 1.9,
+                            ),
+                            itemCount: _filteredCourses.length,
+                            itemBuilder: (_, i) => _buildCourseCard(_filteredCourses[i]),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: _filteredCourses.length,
+                          itemBuilder: (_, i) =>
+                              _buildCourseCard(_filteredCourses[i]),
+                        );
+                      }),
                     ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );
@@ -505,7 +563,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -520,23 +578,23 @@ class _CoursesListPageState extends State<CoursesListPage> {
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: Responsive.isDesktop(context) ? 64 : 48,
+              height: Responsive.isDesktop(context) ? 64 : 48,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 32 : 24),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: Responsive.isDesktop(context) ? 20 : 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     value,
-                    style: const TextStyle(
-                      fontSize: 20,
+                    style: TextStyle(
+                      fontSize: Responsive.isDesktop(context) ? 28 : 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkColor,
                     ),
@@ -544,7 +602,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: Responsive.isDesktop(context) ? 14 : 12,
                       color: AppColors.darkColor.withOpacity(0.6),
                     ),
                   ),

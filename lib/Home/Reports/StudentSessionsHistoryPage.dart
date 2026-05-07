@@ -7,6 +7,7 @@ import '../../Auth/api_service.dart';
 import '../../Auth/auth_storage.dart';
 import '../../Auth/colors.dart';
 import '../QRScannerPage.dart';
+import '../../core/responsive.dart';
 
 class StudentSessionsHistoryPage extends StatefulWidget {
   final String courseId;
@@ -160,24 +161,35 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
       appBar: AppBar(
+        centerTitle: Responsive.isDesktop(context),
         title: Text(
           widget.courseName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: Responsive.isDesktop(context) ? 22 : 18,
+          ),
         ),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(Responsive.isDesktop(context) ? 70 : 60),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              labelStyle: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: Responsive.isDesktop(context) ? 18 : 16,
+              ),
+              tabs: const [
+                Tab(text: 'Lectures', icon: Icon(Icons.school)),
+                Tab(text: 'Sections', icon: Icon(Icons.science)),
+              ],
+            ),
           ),
-          tabs: const [
-            Tab(text: 'Lectures', icon: Icon(Icons.school)),
-            Tab(text: 'Sections', icon: Icon(Icons.science)),
-          ],
         ),
       ),
       body: _isLoading
@@ -248,103 +260,130 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: sessions.length,
-      itemBuilder: (context, index) {
-        final session = Map<String, dynamic>.from(sessions[index]);
-        final sessionId =
-            session['id']?.toString() ??
-            session['sessionId']?.toString() ??
-            '0';
-        final title = session['title'] ?? 'Session #$sessionId';
-        final isActive = session['isActive'] == true;
-
-        return _ActiveGlowCard(
-          isActive: isActive,
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => isActive ? _openActiveSession(session) : null,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? AppColors.successColor.withOpacity(0.15)
-                            : AppColors.primaryColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isActive ? Icons.play_circle_fill : Icons.class_,
-                        color: isActive
-                            ? AppColors.successColor
-                            : AppColors.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: AppColors.darkColor,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'ID: #$sessionId',
-                            style: TextStyle(
-                              color: AppColors.darkColor.withOpacity(0.5),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (isActive)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.successColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Active',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                    else
-                      const Icon(
-                        Icons.lock_outline,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                  ],
-                ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+          if (cols > 1) {
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 20,
+                childAspectRatio: cols == 3 ? 2.5 : 3.0,
               ),
+              itemCount: sessions.length,
+              itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: sessions.length,
+            itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildSessionCard(dynamic sessionData) {
+    final session = Map<String, dynamic>.from(sessionData);
+    final sessionId =
+        session['id']?.toString() ??
+        session['sessionId']?.toString() ??
+        '0';
+    final title = session['title'] ?? 'Session #$sessionId';
+    final isActive = session['isActive'] == true;
+
+    return _ActiveGlowCard(
+      isActive: isActive,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => isActive ? _openActiveSession(session) : null,
+          child: Padding(
+            padding: EdgeInsets.all(MediaQuery.of(context).size.width >= 850 ? 24 : 16.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(MediaQuery.of(context).size.width >= 850 ? 16 : 12),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? AppColors.successColor.withOpacity(0.15)
+                        : AppColors.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isActive ? Icons.play_circle_fill : Icons.class_,
+                    color: isActive
+                        ? AppColors.successColor
+                        : AppColors.primaryColor,
+                    size: MediaQuery.of(context).size.width >= 850 ? 32 : 24,
+                  ),
+                ),
+                SizedBox(width: MediaQuery.of(context).size.width >= 850 ? 20 : 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: MediaQuery.of(context).size.width >= 850 ? 18 : 16,
+                          color: AppColors.darkColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'ID: #$sessionId',
+                        style: TextStyle(
+                          color: AppColors.darkColor.withOpacity(0.5),
+                          fontSize: MediaQuery.of(context).size.width >= 850 ? 15 : 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isActive)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(context).size.width >= 850 ? 14 : 10,
+                      vertical: MediaQuery.of(context).size.width >= 850 ? 8 : 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.successColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Active',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: MediaQuery.of(context).size.width >= 850 ? 14 : 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                else
+                  Icon(
+                    Icons.lock_outline,
+                    size: MediaQuery.of(context).size.width >= 850 ? 20 : 16,
+                    color: Colors.grey,
+                  ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -531,7 +570,10 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Padding(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,58 +629,60 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Enter PIN',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _pinController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: 'PIN Code',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Enter PIN',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submitPin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _pinController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: 'PIN Code',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Submit PIN',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _submitPin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                    ),
+                          ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Submit PIN',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

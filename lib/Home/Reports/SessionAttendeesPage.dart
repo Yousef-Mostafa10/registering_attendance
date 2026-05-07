@@ -248,7 +248,10 @@ class _SessionAttendeesPageState extends State<SessionAttendeesPage> {
               label: const Text('Manual Add', style: TextStyle(color: Colors.white)),
             )
           : null,
-      body: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
         children: [
           Container(
             color: Colors.indigo,
@@ -311,57 +314,111 @@ class _SessionAttendeesPageState extends State<SessionAttendeesPage> {
                               ],
                             ),
                           )
-                        : ListView.separated(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _attendees.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final student = _attendees[index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.indigo.withOpacity(0.1),
-                                    child: const Icon(Icons.person, color: Colors.indigo),
-                                  ),
-                                  title: Text(student['studentName'] ?? student['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  subtitle: Text(student['universityCode'] ?? student['code'] ?? ''),
-                                  trailing: canManage
-                                      ? IconButton(
-                                          icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                          onPressed: () async {
-                                            bool? confirm = await showDialog(
-                                              context: context,
-                                              builder: (ctx) => AlertDialog(
-                                                title: const Text('Delete Attendance'),
-                                                content: const Text('Are you sure you want to remove this student?'),
-                                                actions: [
-                                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                                                  TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
-                                                ],
-                                              ),
-                                            );
-                                            if (confirm == true) {
-                                              final universityCode = student['universityCode'] ?? student['code'];
-                                              if (universityCode != null) {
-                                                _deleteAttendance(universityCode);
-                                              } else {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Error: Student University Code not found'), backgroundColor: Colors.red),
-                                                );
-                                              }
-                                            }
-                                          },
-                                        )
-                                      : null,
+                        : LayoutBuilder(builder: (context, constraints) {
+                            final cols = constraints.maxWidth >= 900 ? 3 : constraints.maxWidth >= 600 ? 2 : 1;
+                            if (cols > 1) {
+                              return GridView.builder(
+                                padding: const EdgeInsets.all(16),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 8,
+                                  childAspectRatio: cols == 3 ? 3.5 : 4.0,
                                 ),
+                                itemCount: _attendees.length,
+                                itemBuilder: (context, index) {
+                                  final student = _attendees[index];
+                                  return Card(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                      leading: CircleAvatar(
+                                        backgroundColor: Colors.indigo.withOpacity(0.1),
+                                        child: const Icon(Icons.person, color: Colors.indigo),
+                                      ),
+                                      title: Text(student['studentName'] ?? student['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      subtitle: Text(student['universityCode'] ?? student['code'] ?? ''),
+                                      trailing: canManage
+                                          ? IconButton(
+                                              icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
+                                              onPressed: () async {
+                                                bool? confirm = await showDialog(
+                                                  context: context,
+                                                  builder: (ctx) => AlertDialog(
+                                                    title: const Text('Delete Attendance'),
+                                                    content: const Text('Remove this student?'),
+                                                    actions: [
+                                                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                                      TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirm == true) {
+                                                  final code = student['universityCode'] ?? student['code'];
+                                                  if (code != null) _deleteAttendance(code);
+                                                }
+                                              },
+                                            )
+                                          : null,
+                                    ),
+                                  );
+                                },
                               );
-                            },
-                          ),
+                            }
+                            return ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _attendees.length,
+                              separatorBuilder: (context, index) => const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final student = _attendees[index];
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    leading: CircleAvatar(
+                                      backgroundColor: Colors.indigo.withOpacity(0.1),
+                                      child: const Icon(Icons.person, color: Colors.indigo),
+                                    ),
+                                    title: Text(student['studentName'] ?? student['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    subtitle: Text(student['universityCode'] ?? student['code'] ?? ''),
+                                    trailing: canManage
+                                        ? IconButton(
+                                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                            onPressed: () async {
+                                              bool? confirm = await showDialog(
+                                                context: context,
+                                                builder: (ctx) => AlertDialog(
+                                                  title: const Text('Delete Attendance'),
+                                                  content: const Text('Are you sure you want to remove this student?'),
+                                                  actions: [
+                                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                                                  ],
+                                                ),
+                                              );
+                                              if (confirm == true) {
+                                                final universityCode = student['universityCode'] ?? student['code'];
+                                                if (universityCode != null) {
+                                                  _deleteAttendance(universityCode);
+                                                } else {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('Error: Student University Code not found'), backgroundColor: Colors.red),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                          )
+                                        : null,
+                                  ),
+                                );
+                              },
+                            );
+                          }),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

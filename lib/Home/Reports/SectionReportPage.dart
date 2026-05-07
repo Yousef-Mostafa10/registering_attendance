@@ -165,81 +165,86 @@ class _SectionReportPageState extends State<SectionReportPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _marksCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Total Marks (optional)',
-                      hintText: 'e.g. 10',
-                      prefixIcon: const Icon(Icons.grade, color: _accent),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () => _fetch(
-                          totalMarks: _marksCtrl.text.isNotEmpty
-                              ? _marksCtrl.text
-                              : null,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            children: [
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _marksCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
                         ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondaryColor,
-                    foregroundColor: AppColors.darkColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
+                        decoration: InputDecoration(
+                          labelText: 'Total Marks (optional)',
+                          hintText: 'e.g. 10',
+                          prefixIcon: const Icon(Icons.grade, color: _accent),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Apply'),
-                ),
-              ],
-            ),
-          ),
-          if (!_isLoading && _errorMessage.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  _pill(
-                    Icons.science,
-                    'Total Sections: $_totalSections',
-                    _accent,
-                  ),
-                  if (_marksAssigned != null) ...[
-                    const SizedBox(width: 10),
-                    _pill(
-                      Icons.star,
-                      'Marks: ${_marksAssigned!.toStringAsFixed(1)}',
-                      AppColors.warningColor,
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () => _fetch(
+                              totalMarks: _marksCtrl.text.isNotEmpty
+                                  ? _marksCtrl.text
+                                  : null,
+                            ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondaryColor,
+                        foregroundColor: AppColors.darkColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Apply'),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-          Expanded(child: _buildBody()),
-        ],
+              if (!_isLoading && _errorMessage.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(
+                    children: [
+                      _pill(
+                        Icons.science,
+                        'Total Sections: $_totalSections',
+                        _accent,
+                      ),
+                      if (_marksAssigned != null) ...[
+                        const SizedBox(width: 10),
+                        _pill(
+                          Icons.star,
+                          'Marks: ${_marksAssigned!.toStringAsFixed(1)}',
+                          AppColors.warningColor,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              Expanded(child: _buildBody()),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -249,11 +254,29 @@ class _SectionReportPageState extends State<SectionReportPage> {
       return const Center(child: CircularProgressIndicator(color: _accent));
     if (_errorMessage.isNotEmpty) return _errorState();
     if (_students.isEmpty) return _emptyState();
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _students.length,
-      itemBuilder: (_, i) => _studentCard(_students[i]),
-    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      if (cols > 1) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: cols == 3 ? 1.3 : 1.5,
+          ),
+          itemCount: _students.length,
+          itemBuilder: (_, i) => _studentCard(_students[i]),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _students.length,
+        itemBuilder: (_, i) => _studentCard(_students[i]),
+      );
+    });
   }
 
   Widget _studentCard(Map<String, dynamic> s) {

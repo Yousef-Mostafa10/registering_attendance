@@ -100,7 +100,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
     if (_isImporting) return;
     setState(() { _isImporting = true; _importMessage = null; _importErrors = []; });
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom, allowedExtensions: ['xlsx']);
       if (result == null) { setState(() => _isImporting = false); return; }
 
@@ -293,6 +293,10 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
             collapsedHeight: 80,
             pinned: true,
             floating: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
             backgroundColor: AppColors.primaryColor,
             elevation: 8,
             shape: const ContinuousRectangleBorder(

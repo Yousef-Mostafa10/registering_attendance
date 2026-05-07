@@ -126,7 +126,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -264,6 +267,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

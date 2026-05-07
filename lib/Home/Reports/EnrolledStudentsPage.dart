@@ -131,7 +131,10 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
           ),
         ),
       ),
-      body: Column(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
         children: [
           if (!_isLoading && _errorMessage.isEmpty)
             Container(
@@ -151,13 +154,32 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
                     ? _buildError()
                     : _students.isEmpty
                         ? _buildEmpty()
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _students.length,
-                            itemBuilder: (_, i) => _studentCard(_students[i], i + 1),
-                          ),
+                        : LayoutBuilder(builder: (context, constraints) {
+                            final w = constraints.maxWidth;
+                            final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+                            if (cols > 1) {
+                              return GridView.builder(
+                                padding: const EdgeInsets.all(16),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: cols == 3 ? 1.8 : 2.2,
+                                ),
+                                itemCount: _students.length,
+                                itemBuilder: (_, i) => _studentCard(_students[i], i + 1),
+                              );
+                            }
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _students.length,
+                              itemBuilder: (_, i) => _studentCard(_students[i], i + 1),
+                            );
+                          }),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
