@@ -11,6 +11,9 @@ import '../Auth/colors.dart';
 import '../Auth/api_service.dart';
 import 'Reports/CourseDashboardPage.dart';
 import 'Reports/StudentSessionsHistoryPage.dart';
+import 'package:registering_attendance/Home/CourseEnrollmentPage.dart';
+import 'package:registering_attendance/Home/BulkCourseEnrollmentPage.dart';
+import '../core/responsive.dart';
 
 class CoursesListPage extends StatefulWidget {
   const CoursesListPage({Key? key}) : super(key: key);
@@ -353,17 +356,20 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   backgroundColor: Colors.white24,
                   child: Icon(Icons.school, color: Colors.white, size: 18),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  _userRole == 'Doctor' || _userRole == 'TA'
-                      ? 'My Courses'
-                      : _userRole == 'Student'
-                      ? 'Registered Courses'
-                      : 'Courses List',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    _userRole == 'Doctor' || _userRole == 'TA'
+                        ? 'My Courses'
+                        : _userRole == 'Student'
+                        ? 'Registered Courses'
+                        : 'Courses List',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: Responsive.isDesktop(context) ? 24 : 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -380,141 +386,6 @@ class _CoursesListPageState extends State<CoursesListPage> {
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.white),
                 onPressed: _fetchCourses,
-              ),
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.logout,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                ),
-                onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      titlePadding: EdgeInsets.zero,
-                      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                      title: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: const BoxDecoration(
-                          color: AppColors.errorColor,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(24),
-                            topRight: Radius.circular(24),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.logout,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Logout',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'Are you sure you want to logout from your account?',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: AppColors.darkColor,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    side: BorderSide(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Cancel',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.errorColor,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: const Text(
-                                    'Logout',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                  if (confirm == true && context.mounted) {
-                    await AuthStorage.clearUserData();
-                    if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/',
-                        (route) => false,
-                      );
-                    }
-                  }
-                },
               ),
               const SizedBox(width: 4),
             ],
@@ -703,12 +574,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
             if (_userRole == 'Admin' ||
                 _userRole == 'Doctor' ||
                 _userRole == 'TA') {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CourseDashboardPage(course: course),
-                ),
-              );
+              _showCourseOptions(course);
             } else {
               Navigator.push(
                 context,
@@ -870,6 +736,132 @@ class _CoursesListPageState extends State<CoursesListPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showCourseOptions(Map<String, dynamic> course) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                course['name'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: AppColors.darkColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Course ID: ${course['id']}',
+                style: TextStyle(
+                  color: AppColors.darkColor.withOpacity(0.5),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildOptionTile(
+                icon: Icons.dashboard_outlined,
+                title: 'View Dashboard',
+                subtitle: 'Analytics and session management',
+                color: AppColors.primaryColor,
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => CourseDashboardPage(course: course)),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildOptionTile(
+                icon: Icons.person_add_alt_1_outlined,
+                title: 'Enroll Student',
+                subtitle: 'Single student manual registration',
+                color: Colors.blue,
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CourseEnrollmentPage(initialCourseId: course['id'].toString()),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildOptionTile(
+                icon: Icons.group_add_outlined,
+                title: 'Bulk Enroll',
+                subtitle: 'Excel import or multiple codes',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BulkCourseEnrollmentPage(initialCourseId: course['id'].toString()),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOptionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkColor),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: 12, color: AppColors.darkColor.withOpacity(0.5)),
+      ),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey[100]!),
       ),
     );
   }
