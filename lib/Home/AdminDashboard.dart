@@ -1016,26 +1016,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
 
     categories.add({
-      'title': 'Course Enrollment',
-      'icon': Icons.how_to_reg,
-      'color': Colors.teal,
-      'operations': [
-        {
-          'title': 'Enroll Student',
-          'icon': Icons.person_add_alt,
-          'color': Colors.blue,
-          'page': () => CourseEnrollmentPage(),
-        },
-        {
-          'title': 'Bulk Enroll',
-          'icon': Icons.group_add,
-          'color': Colors.teal,
-          'page': () => BulkCourseEnrollmentPage(),
-        },
-      ],
-    });
-
-    categories.add({
       'title': 'Course Management',
       'icon': Icons.library_books,
       'color': Colors.deepPurple,

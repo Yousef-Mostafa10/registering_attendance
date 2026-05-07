@@ -9,7 +9,8 @@ import '../Auth/colors.dart';
 import '../widgets/AppInstructionsCard.dart';
 
 class BulkCourseEnrollmentPage extends StatefulWidget {
-  const BulkCourseEnrollmentPage({Key? key}) : super(key: key);
+  final String? initialCourseId;
+  const BulkCourseEnrollmentPage({Key? key, this.initialCourseId}) : super(key: key);
 
   @override
   _BulkCourseEnrollmentPageState createState() => _BulkCourseEnrollmentPageState();
@@ -17,7 +18,7 @@ class BulkCourseEnrollmentPage extends StatefulWidget {
 
 class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _courseIdController = TextEditingController();
+  late final TextEditingController _courseIdController;
   final TextEditingController _manualCodeController = TextEditingController();
 
   bool _isLoading = false;
@@ -33,6 +34,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
   @override
   void initState() {
     super.initState();
+    _courseIdController = TextEditingController(text: widget.initialCourseId);
     _loadAuthToken();
   }
 
