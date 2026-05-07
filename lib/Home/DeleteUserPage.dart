@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 import '../widgets/AppInstructionsCard.dart';
 import '../Auth/api_service.dart';
+import '../core/responsive.dart';
 
 class DeleteUserPage extends StatefulWidget {
   const DeleteUserPage({Key? key}) : super(key: key);
@@ -243,7 +244,10 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              centerTitle: Responsive.isDesktop(context),
+              titlePadding: Responsive.isDesktop(context)
+                  ? const EdgeInsets.only(bottom: 20)
+                  : const EdgeInsets.only(left: 20, bottom: 16),
               title: const Text(
                     'Delete User',
                     style: TextStyle(
@@ -269,8 +273,11 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
 
           // Form Content
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: Responsive.isDesktop(context) ? 800 : double.infinity),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -586,6 +593,8 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
                 ],
               ),
             ),
+          ),
+        ),
           ),
         ],
       ),

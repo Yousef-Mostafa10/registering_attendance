@@ -56,7 +56,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
         slivers: [
           // ── AppBar ─────────────────────────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 190,
+            expandedHeight: Responsive.isDesktop(context) ? 240 : 190,
             pinned: true,
             backgroundColor: color,
             elevation: 0,
@@ -106,26 +106,35 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                   ),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.only(left: 24, top: Responsive.isDesktop(context) ? 60 : 70, right: 24),
+                  padding: EdgeInsets.only(
+                    left: 24, 
+                    top: Responsive.isDesktop(context) ? 80 : 70, 
+                    right: 24,
+                    bottom: Responsive.isDesktop(context) ? 40 : 0,
+                  ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Course ID: ${widget.course['id']}',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.85),
-                          fontSize: Responsive.isDesktop(context) ? 15 : 13,
+                          fontSize: Responsive.isDesktop(context) ? 16 : 13,
                         ),
                       ),
-                      if (doctorName.isNotEmpty)
+                      if (doctorName.isNotEmpty) ...[
+                        const SizedBox(height: 4),
                         Text(
                           'Dr. $doctorName',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.9),
-                            fontSize: Responsive.isDesktop(context) ? 15 : 13,
+                            fontSize: Responsive.isDesktop(context) ? 16 : 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      const SizedBox(height: 12),
+                      ],
+                      const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
                         children: [
@@ -171,9 +180,9 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: cols,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 1.1,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: Responsive.isDesktop(context) ? 1.4 : 1.1,
                         children: [
                           _reportCard(
                             title: 'Lecture Report',

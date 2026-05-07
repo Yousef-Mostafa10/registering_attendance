@@ -5,6 +5,7 @@ import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../Auth/colors.dart';
+import '../core/responsive.dart';
 
 class TAsListPage extends StatefulWidget {
   const TAsListPage({Key? key}) : super(key: key);
@@ -818,22 +819,28 @@ class _TAsListPageState extends State<TAsListPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
+      builder: (context) => Center(
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.isDesktop(context) ? 600 : double.infinity,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              spreadRadius: 5,
-            ),
-          ],
-        ),
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: Responsive.isDesktop(context)
+                ? BorderRadius.circular(32)
+                : const BorderRadius.only(
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
         child: Column(
           children: [
             // Handle
@@ -1026,6 +1033,7 @@ class _TAsListPageState extends State<TAsListPage> {
           ],
         ),
       ),
+    ),
     );
   }
 

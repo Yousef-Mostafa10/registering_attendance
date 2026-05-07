@@ -7,6 +7,7 @@ import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 import '../widgets/AppInstructionsCard.dart';
+import '../core/responsive.dart';
 
 class CreateStudentsBulkPage extends StatefulWidget {
   const CreateStudentsBulkPage({Key? key}) : super(key: key);
@@ -403,7 +404,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
       backgroundColor: AppColors.lightColor2,
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
+          constraints: BoxConstraints(maxWidth: Responsive.isDesktop(context) ? 1400 : 800),
           child: CustomScrollView(
         slivers: [
           // App Bar
@@ -425,7 +426,10 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              centerTitle: Responsive.isDesktop(context),
+              titlePadding: Responsive.isDesktop(context)
+                  ? const EdgeInsets.only(bottom: 20)
+                  : const EdgeInsets.only(left: 20, bottom: 16),
               title: const Text(
                     'Bulk Create Students',
                     style: TextStyle(
@@ -510,14 +514,25 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  _buildImportCard(),
                   const SizedBox(height: 16),
-
+                  
                   // API Response
                   if (_apiResponse != null) _buildApiResponseCard(),
-
-                  // Add Student Form
-                  _buildAddStudentForm(),
+                  
+                  if (Responsive.isDesktop(context))
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _buildImportCard()),
+                        const SizedBox(width: 24),
+                        Expanded(child: _buildAddStudentForm()),
+                      ],
+                    )
+                  else ...[
+                    _buildImportCard(),
+                    const SizedBox(height: 16),
+                    _buildAddStudentForm(),
+                  ],
                   const SizedBox(height: 24),
 
                   // Students List
@@ -528,36 +543,38 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
 
                   // Submit Button
                   if (_studentsList.isNotEmpty) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    Center(
+                      child: SizedBox(
+                        width: Responsive.isDesktop(context) ? 400 : double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _submitForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                            shadowColor: Colors.transparent,
                           ),
-                          elevation: 0,
-                          shadowColor: Colors.transparent,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'Create ${_studentsList.length} Student${_studentsList.length != 1 ? 's' : ''}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                'Create ${_studentsList.length} Student${_studentsList.length != 1 ? 's' : ''}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
