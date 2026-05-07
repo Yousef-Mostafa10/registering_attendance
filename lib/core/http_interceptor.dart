@@ -95,14 +95,14 @@ Future<bool> _attemptRefresh() async {
   _isRefreshing = true;
 
   try {
-    final prefs = await SharedPreferences.getInstance();
-    final currentToken = prefs.getString('auth_token');
-    final currentRefresh = prefs.getString('refresh_token');
-
-    if (currentToken == null || currentRefresh == null) return false;
-
     final userData = await AuthStorage.getUserData();
-    String deviceId = userData?['deviceId'] ?? 'error_device';
+    if (userData == null) return false;
+
+    final currentToken = userData['token'];
+    final currentRefresh = userData['refreshToken'];
+    final deviceId = userData['deviceId'];
+
+    if (currentToken == null || currentRefresh == null || deviceId == null) return false;
 
     final response = await native_http.post(
       Uri.parse('${ApiService.baseUrl}/Auth/refresh-token'),
@@ -120,8 +120,7 @@ Future<bool> _attemptRefresh() async {
       final newRefresh = data['refreshToken'];
 
       if (newToken != null && newRefresh != null) {
-         await prefs.setString('auth_token', newToken);
-         await prefs.setString('refresh_token', newRefresh);
+         await AuthStorage.updateTokens(newToken, newRefresh);
          return true; // refresh success
       }
     }

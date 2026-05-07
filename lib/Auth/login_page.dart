@@ -85,6 +85,7 @@ class _LoginPageState extends State<LoginPage> {
           // Pass user data to parent
           widget.onLoginSuccess({
             'token': data['token'] ?? '',
+            'refreshToken': data['refreshToken'] ?? '',
             'role': data['role'] ?? '',
             'userName': data['userName'] ?? '',
             'email': _emailController.text,

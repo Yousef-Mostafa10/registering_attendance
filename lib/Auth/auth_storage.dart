@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthStorage {
   static const String _keyToken = 'auth_token';
+  static const String _keyRefreshToken = 'refresh_token';
   static const String _keyRole = 'user_role';
   static const String _keyUserName = 'user_name';
   static const String _keyEmail = 'user_email';
@@ -11,6 +12,7 @@ class AuthStorage {
   // حفظ بيانات المستخدم بعد تسجيل الدخول
   static Future<void> saveUserData({
     required String token,
+    required String refreshToken,
     required String role,
     required String userName,
     required String email,
@@ -18,6 +20,7 @@ class AuthStorage {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyToken, token);
+    await prefs.setString(_keyRefreshToken, refreshToken);
     await prefs.setString(_keyRole, role);
     await prefs.setString(_keyUserName, userName);
     await prefs.setString(_keyEmail, email);
@@ -33,6 +36,7 @@ class AuthStorage {
 
     return {
       'token': token,
+      'refreshToken': prefs.getString(_keyRefreshToken) ?? '',
       'role': prefs.getString(_keyRole) ?? '',
       'userName': prefs.getString(_keyUserName) ?? '',
       'email': prefs.getString(_keyEmail) ?? '',
@@ -46,10 +50,22 @@ class AuthStorage {
     return prefs.getString(_keyToken);
   }
 
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRefreshToken);
+  }
+
+  static Future<void> updateTokens(String token, String refreshToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyToken, token);
+    await prefs.setString(_keyRefreshToken, refreshToken);
+  }
+
   // مسح البيانات عند تسجيل الخروج
   static Future<void> clearUserData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyToken);
+    await prefs.remove(_keyRefreshToken);
     await prefs.remove(_keyRole);
     await prefs.remove(_keyUserName);
     await prefs.remove(_keyEmail);

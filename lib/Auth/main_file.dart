@@ -101,6 +101,7 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
         if (isTokenValid && mounted) {
           _navigateToMainApp(
             token: userData['token']!,
+            refreshToken: userData['refreshToken']!,
             role: userData['role']!,
             userName: userData['userName']!,
             email: userData['email']!,
@@ -178,6 +179,7 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
     // حفظ البيانات في SharedPreferences
     await AuthStorage.saveUserData(
       token: userData['token'],
+      refreshToken: userData['refreshToken'],
       role: userData['role'],
       userName: userData['userName'],
       email: userData['email'],
@@ -186,6 +188,7 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
 
     _navigateToMainApp(
       token: userData['token'],
+      refreshToken: userData['refreshToken'],
       role: userData['role'],
       userName: userData['userName'],
       email: userData['email'],
@@ -195,6 +198,7 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
 
   void _navigateToMainApp({
     required String token,
+    required String refreshToken,
     required String role,
     required String userName,
     required String email,
