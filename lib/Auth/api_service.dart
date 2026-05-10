@@ -5,6 +5,160 @@ import 'package:registering_attendance/core/http_interceptor.dart' as http;
 class ApiService {
   static const String baseUrl = 'http://msngroup-001-site1.ktempurl.com/api';
 
+  static const String sessionExpiredMessage =
+      'Your session has expired. Please log in again.';
+  static const String noInternetMessage =
+      'No internet connection. Check your network.';
+  static const String timeoutMessage =
+      'Request timed out. Please try again.';
+  static const String serverErrorMessage =
+      'Server error. Please try again later.';
+
+  static String loginErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Incorrect email or password, or account not activated yet.';
+    }
+    if (statusCode == 404) {
+      return 'Account not found. Check your university code.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode == 429) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String activationErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Invalid or expired activation link.';
+    }
+    if (statusCode == 404) {
+      return 'Activation link is invalid or has expired.';
+    }
+    if (statusCode == 409) {
+      return 'Account already activated.';
+    }
+    if (statusCode == 429) {
+      return 'Too many activation attempts. Please wait.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String createDoctorTaErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Invalid request. Please check your input and try again.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode == 409) {
+      return 'Email already exists.';
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String createCourseErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Invalid request. Please check your input and try again.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String deleteUserErrorMessage(int statusCode) {
+    if (statusCode == 404) {
+      return 'User not found.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    if (statusCode == 400) {
+      return 'Invalid request. Please check your input and try again.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String deleteCourseErrorMessage(int statusCode) {
+    if (statusCode == 404) {
+      return 'Course not found.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    if (statusCode == 400) {
+      return 'Invalid request. Please check your input and try again.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String attendanceSubmitErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Cannot submit attendance — session may be closed or already submitted.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode == 403) {
+      return "You don't have permission to do this.";
+    }
+    if (statusCode == 404) {
+      return 'Session or student not found.';
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  static String sessionActionErrorMessage(
+    int statusCode, {
+    required bool isResume,
+  }) {
+    if (statusCode == 400) {
+      return isResume
+          ? 'This session is already active.'
+          : 'This session is already stopped.';
+    }
+    if (statusCode == 401) {
+      return sessionExpiredMessage;
+    }
+    if (statusCode == 403) {
+      return "You don't have permission to do this.";
+    }
+    if (statusCode == 404) {
+      return 'Session not found.';
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
   // ─── Auth ──────────────────────────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> activateAccount({

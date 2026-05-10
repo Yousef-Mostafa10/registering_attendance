@@ -114,16 +114,21 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
       if (response.statusCode == 200) {
         _showSuccessDialog();
       } else {
-        _showErrorDialog(response.body);
+        _showErrorDialog(ApiService.attendanceSubmitErrorMessage(response.statusCode));
       }
 
     } catch (e) {
-      _showErrorDialog(e.toString());
+      _showErrorDialog(_safeErrorText(e));
     } finally {
       if (mounted) {
         setState(() => _isProcessing = false);
       }
     }
+  }
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
   }
 
   void _showErrorDialog(String message) {

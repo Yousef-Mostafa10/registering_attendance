@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
+import '../../Auth/api_service.dart';
 import '../../Auth/auth_storage.dart';
+import '../../core/network/app_exception.dart';
 import 'session_models.dart';
 
 class SessionService {
@@ -18,8 +20,6 @@ class SessionService {
     try {
       final token = await _getToken();
       final url = Uri.parse('$baseUrl/Session/create');
-      
-      print('POST $url');
 
       final response = await http.post(
         url,
@@ -30,22 +30,17 @@ class SessionService {
         body: jsonEncode(dto.toJson()),
       );
 
-      print('Status Code: ${response.statusCode}');
-      print('=== CREATE SESSION RAW RESPONSE ===');
-      print(response.body);
-      print('===================================');
-
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        print('Decoded keys: ${decoded.keys.toList()}');
-        print('sessionId value: ${decoded['sessionId']}');
-        print('id value: ${decoded['id']}');
         return CreateSessionResponse.fromJson(decoded);
       } else {
-        throw Exception(response.body);
+        throw const AppException(
+          message: 'A conflicting session already exists for this course.',
+        );
       }
     } catch (e) {
-      throw Exception('Failed to create session: $e');
+      if (e is AppException) rethrow;
+      throw const AppException(message: 'Something went wrong. Please try again.');
     }
   }
 
@@ -53,8 +48,6 @@ class SessionService {
     try {
       final token = await _getToken();
       final url = Uri.parse('$baseUrl/Session/rotateqr/$sessionId');
-      
-      print('POST $url');
 
       final response = await http.post(
         url,
@@ -64,15 +57,22 @@ class SessionService {
         },
       );
 
-      print('Status Code: ${response.statusCode}');
-
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return RotateQrResponse.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception(response.body);
+        throw AppException(
+          message: response.statusCode == 400
+              ? 'This session is already stopped.'
+              : response.statusCode == 403
+                  ? "You don't have permission to do this."
+                  : response.statusCode == 401
+                      ? ApiService.sessionExpiredMessage
+                      : ApiService.serverErrorMessage,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to rotate QR: $e');
+      if (e is AppException) rethrow;
+      throw const AppException(message: 'Something went wrong. Please try again.');
     }
   }
 
@@ -80,8 +80,6 @@ class SessionService {
     try {
       final token = await _getToken();
       final url = Uri.parse('$baseUrl/Session/stop/$sessionId');
-      
-      print('PUT $url');
 
       final response = await http.put(
         url,
@@ -91,13 +89,20 @@ class SessionService {
         },
       );
 
-      print('Status Code: ${response.statusCode}');
-
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception(response.body);
+        throw AppException(
+          message: response.statusCode == 400
+              ? 'This session is already stopped.'
+              : response.statusCode == 403
+                  ? "You don't have permission to do this."
+                  : response.statusCode == 401
+                      ? ApiService.sessionExpiredMessage
+                      : ApiService.serverErrorMessage,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to stop session: $e');
+      if (e is AppException) rethrow;
+      throw const AppException(message: 'Something went wrong. Please try again.');
     }
   }
 
@@ -105,8 +110,6 @@ class SessionService {
     try {
       final token = await _getToken();
       final url = Uri.parse('$baseUrl/Session/resume/$sessionId');
-      
-      print('PUT $url');
 
       final response = await http.put(
         url,
@@ -116,20 +119,23 @@ class SessionService {
         },
       );
 
-      print('Status Code: ${response.statusCode}');
-      print('=== RESUME SESSION RAW RESPONSE ===');
-      print(response.body);
-      print('===================================');
-
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        print('Decoded keys: ${decoded.keys.toList()}');
         return CreateSessionResponse.fromJson(decoded);
       } else {
-        throw Exception(response.body);
+        throw AppException(
+          message: response.statusCode == 400
+              ? 'This session is already active.'
+              : response.statusCode == 403
+                  ? "You don't have permission to do this."
+                  : response.statusCode == 401
+                      ? ApiService.sessionExpiredMessage
+                      : ApiService.serverErrorMessage,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to resume session: $e');
+      if (e is AppException) rethrow;
+      throw const AppException(message: 'Something went wrong. Please try again.');
     }
   }
 
@@ -137,8 +143,6 @@ class SessionService {
     try {
       final token = await _getToken();
       final url = Uri.parse('$baseUrl/Session/updateradius/$sessionId');
-      
-      print('PUT $url');
 
       final response = await http.put(
         url,
@@ -149,37 +153,22 @@ class SessionService {
         body: radius.toString(), // Note: body as string "50"
       );
 
-      print('Status Code: ${response.statusCode}');
-
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception(response.body);
+        throw AppException(
+          message: response.statusCode == 403
+              ? "You don't have permission to do this."
+              : response.statusCode == 401
+                  ? ApiService.sessionExpiredMessage
+                  : response.statusCode == 400
+                      ? 'Invalid request. Please check your input and try again.'
+                      : ApiService.serverErrorMessage,
+        );
       }
     } catch (e) {
-      throw Exception('Failed to update radius: $e');
+      if (e is AppException) rethrow;
+      throw const AppException(message: 'Something went wrong. Please try again.');
     }
   }
 }
 
-/*
-void main() async {
-  final service = SessionService();
-  
-  try {
-    final dto = CreateSessionDto(
-      courseId: 1,
-      title: 'Math Lecture 1',
-      sessionType: 'Lecture',
-      latitude: 30.0444,
-      longitude: 31.2357,
-      allowRadius: 50,
-    );
-    
-    final response = await service.createSession(dto);
-    print('Session message: \${response.message}');
-    print('Session ID: \${response.sessionId}');
-  } catch (e) {
-    print('Error: \$e');
-  }
-}
-*/
 

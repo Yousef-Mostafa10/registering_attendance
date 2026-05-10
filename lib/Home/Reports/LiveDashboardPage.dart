@@ -99,7 +99,7 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Unauthorized: You cannot manage this session.'),
+                content: Text("You don't have permission to do this."),
                 backgroundColor: AppColors.errorColor,
               ),
             );
@@ -245,7 +245,7 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Unauthorized: You cannot manage this session.'),
+              content: Text("You don't have permission to do this."),
               backgroundColor: AppColors.errorColor,
             ),
           );
@@ -253,7 +253,13 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Action failed: ${response.body}')),
+            SnackBar(
+              content: Text(
+                response.statusCode == 400
+                    ? 'Invalid request. Please check your input and try again.'
+                    : ApiService.serverErrorMessage,
+              ),
+            ),
           );
         }
       }
@@ -261,7 +267,7 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Network error')));
+        ).showSnackBar(SnackBar(content: Text(_safeErrorText(e))));
       }
     } finally {
       if (mounted) {
@@ -352,14 +358,18 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
                       } else if (response.statusCode == 403 && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Unauthorized: You cannot manage this session.'),
+                            content: Text("You don't have permission to do this."),
                             backgroundColor: AppColors.errorColor,
                           ),
                         );
                       } else if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Failed: ${response.body}'),
+                            content: Text(
+                              response.statusCode == 400
+                                  ? 'Invalid request. Please check your input and try again.'
+                                  : ApiService.serverErrorMessage,
+                            ),
                             backgroundColor: AppColors.errorColor,
                           ),
                         );
@@ -367,8 +377,8 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Network error'),
+                          SnackBar(
+                            content: Text(_safeErrorText(e)),
                             backgroundColor: AppColors.errorColor,
                           ),
                         );
@@ -389,6 +399,11 @@ class _LiveDashboardPageState extends State<LiveDashboardPage>
         );
       },
     );
+  }
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
   }
 
   @override

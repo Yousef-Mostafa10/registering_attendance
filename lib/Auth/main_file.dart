@@ -145,6 +145,10 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         IosDeviceInfo iosInfo = await _deviceInfo.iosInfo;
         id = iosInfo.identifierForVendor ?? 'ios_device';
+      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+        WindowsDeviceInfo windowsInfo = await _deviceInfo.windowsInfo;
+        // استخدام deviceId الفريد للويندوز مع تنظيف الأقواس
+        id = windowsInfo.deviceId.replaceAll('{', '').replaceAll('}', '').trim();
       } else if (kIsWeb) {
         id = 'web_client';
       } else {

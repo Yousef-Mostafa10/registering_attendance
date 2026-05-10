@@ -465,6 +465,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           else
             Builder(builder: (context) {
               final w = MediaQuery.of(context).size.width;
+              // Desktop Layout: 3 cols ≥ 1100 / Tablet Layout: 2 cols ≥ 850 / Mobile Layout: 1 col < 850
               final cols = w >= 1100 ? 3 : w >= 850 ? 2 : 1;
               if (cols > 1) {
                 return SliverPadding(
@@ -472,9 +473,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: cols,
+                      // Desktop Layout: 16px spacing / Mobile Layout: standard
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: cols == 3 ? 1.6 : 1.9,
+                      childAspectRatio: cols == 3 ? 1.6 : 1.9, // Desktop Layout
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => _courseCard(_filtered[i]),
@@ -483,6 +485,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                   ),
                 );
               }
+              // Mobile Layout: single-column list
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, i) => Padding(

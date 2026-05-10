@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 import '../widgets/AppInstructionsCard.dart';
 
 class CourseEnrollmentPage extends StatefulWidget {
@@ -132,18 +133,17 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
           ),
         );
       } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Failed to enroll student: ${response.statusCode}');
+        throw Exception(_enrollmentErrorMessage(response.statusCode));
       }
     } catch (e) {
       setState(() {
-        _apiResponse = 'Error: ${e.toString()}';
+        _apiResponse = _safeErrorText(e);
         _isSuccess = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text(_safeErrorText(e)),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -156,6 +156,33 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
         _isLoading = false;
       });
     }
+  }
+
+  String _enrollmentErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Student is already enrolled in this course.';
+    }
+    if (statusCode == 401) {
+      return ApiService.sessionExpiredMessage;
+    }
+    if (statusCode == 403) {
+      return "You don't have permission to do this.";
+    }
+    if (statusCode == 404) {
+      return 'Course not found.';
+    }
+    if (statusCode == 429) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return ApiService.serverErrorMessage;
+    }
+    return 'Invalid request. Please check your input and try again.';
+  }
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
   }
 
   @override

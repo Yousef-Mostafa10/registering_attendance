@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 import '../core/responsive.dart';
 import '../widgets/AppInstructionsCard.dart';
 
@@ -122,8 +123,6 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
         "doctorUniversityCode": _doctorCodeController.text.trim(),
       };
 
-      print('Sending data: $courseData');
-
       // استدعاء الـ API
       final response = await http.post(
         Uri.parse(_apiUrl),
@@ -134,9 +133,6 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
         },
         body: jsonEncode(courseData),
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -165,23 +161,18 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
         // يمكنك اختيارياً إرجاع true للإشارة إلى أن الكورس تم إنشاؤه بنجاح
         // Navigator.pop(context, true);
 
-      } else if (response.statusCode == 400) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Bad request: ${response.statusCode}');
-      } else if (response.statusCode == 401) {
-        throw Exception('Unauthorized - Token may be expired');
       } else {
-        throw Exception('Failed to create course: ${response.statusCode}');
+        throw Exception(ApiService.createCourseErrorMessage(response.statusCode));
       }
     } catch (e) {
       setState(() {
-        _apiResponse = 'Error: ${e.toString()}';
+        _apiResponse = _safeErrorText(e);
         _isSuccess = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text(_safeErrorText(e)),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -196,6 +187,11 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     }
   }
 
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

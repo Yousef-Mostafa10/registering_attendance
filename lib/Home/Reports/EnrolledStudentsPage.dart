@@ -98,7 +98,10 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          // Desktop Layout: 60px height / Mobile Layout: 52px height
+          preferredSize: Size.fromHeight(
+            MediaQuery.of(context).size.width < 600 ? 52 : 60, // Mobile: 52 / Desktop: 60
+          ),
           child: Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
             child: Container(
@@ -156,24 +159,28 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
                         ? _buildEmpty()
                         : LayoutBuilder(builder: (context, constraints) {
                             final w = constraints.maxWidth;
+                            // Desktop Layout: 3 cols ≥900 / Tablet: 2 cols ≥600 / Mobile Layout: 1 col <600
                             final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+                            final isMobile = w < 600; // Mobile Layout breakpoint
                             if (cols > 1) {
                               return GridView.builder(
-                                padding: const EdgeInsets.all(16),
+                                // Desktop Layout: generous padding / Mobile Layout: compact padding
+                                padding: EdgeInsets.all(isMobile ? 12 : 16),
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: cols,
-                                  mainAxisSpacing: 10,
-                                  crossAxisSpacing: 10,
-                                  childAspectRatio: cols == 3 ? 1.8 : 2.2,
+                                  mainAxisSpacing: isMobile ? 8 : 10,  // Mobile: 8 / Desktop: 10
+                                  crossAxisSpacing: isMobile ? 8 : 10, // Mobile: 8 / Desktop: 10
+                                  childAspectRatio: cols == 3 ? 1.8 : 2.2, // Desktop Layout
                                 ),
                                 itemCount: _students.length,
-                                itemBuilder: (_, i) => _studentCard(_students[i], i + 1),
+                                itemBuilder: (_, i) => _studentCard(_students[i], i + 1, isMobile: isMobile),
                               );
                             }
+                            // Mobile Layout: single-column list
                             return ListView.builder(
-                              padding: const EdgeInsets.all(16),
+                              padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
                               itemCount: _students.length,
-                              itemBuilder: (_, i) => _studentCard(_students[i], i + 1),
+                              itemBuilder: (_, i) => _studentCard(_students[i], i + 1, isMobile: isMobile),
                             );
                           }),
           ),
@@ -184,32 +191,67 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
     );
   }
 
-  Widget _studentCard(Map<String, dynamic> student, int rank) {
+  Widget _studentCard(Map<String, dynamic> student, int rank, {bool isMobile = false}) {
     final String name = student['studentName'] ?? student['name'] ?? 'Unknown';
     final String code = student['universityCode'] ?? student['code'] ?? '—';
     final String email = student['email'] ?? '';
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: EdgeInsets.only(bottom: isMobile ? 8 : 10), // Mobile: 8 / Desktop: 10
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // Mobile Layout: compact padding / Desktop Layout: standard padding
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 16, // Mobile: 12 / Desktop: 16
+          vertical: isMobile ? 6 : 8,    // Mobile: 6 / Desktop: 8
+        ),
         leading: CircleAvatar(
+          // Mobile Layout: smaller avatar / Desktop Layout: standard avatar
+          radius: isMobile ? 18 : 20, // Mobile: 18 / Desktop: 20
           backgroundColor: const Color(0xFF0277BD).withOpacity(0.1),
           child: Text(
             name.isNotEmpty ? name[0].toUpperCase() : '?',
-            style: const TextStyle(color: Color(0xFF0277BD), fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: const Color(0xFF0277BD),
+              fontWeight: FontWeight.bold,
+              fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
+            ),
           ),
         ),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            // Mobile Layout: smaller name / Desktop Layout: standard name
+            fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Code: $code', style: TextStyle(color: AppColors.darkColor.withOpacity(0.5), fontSize: 12)),
+          Text(
+            'Code: $code',
+            style: TextStyle(
+              color: AppColors.darkColor.withOpacity(0.5),
+              fontSize: isMobile ? 11 : 12, // Mobile: 11 / Desktop: 12
+            ),
+          ),
           if (email.isNotEmpty)
-            Text(email, style: TextStyle(color: AppColors.darkColor.withOpacity(0.4), fontSize: 11)),
+            Text(
+              email,
+              style: TextStyle(
+                color: AppColors.darkColor.withOpacity(0.4),
+                fontSize: isMobile ? 10 : 11, // Mobile: 10 / Desktop: 11
+              ),
+            ),
         ]),
         trailing: Text(
           '#$rank',
-          style: TextStyle(color: AppColors.darkColor.withOpacity(0.4), fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.darkColor.withOpacity(0.4),
+            fontWeight: FontWeight.bold,
+            fontSize: isMobile ? 12 : 13, // Mobile: 12 / Desktop: 13
+          ),
         ),
       ),
     );
