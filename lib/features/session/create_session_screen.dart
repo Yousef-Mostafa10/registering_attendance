@@ -5,6 +5,7 @@ import 'session_models.dart';
 import 'session_service.dart';
 import 'qr_display_screen.dart';
 import '../../Auth/colors.dart';
+import '../../core/network/app_exception.dart';
 
 class CreateSessionScreen extends StatefulWidget {
   final int courseId;
@@ -172,8 +173,9 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                       );
                     } catch (e) {
                       if (mounted) {
+                        final errorMsg = e is AppException ? e.message : 'Failed to resume session. Please try again.';
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error resuming session: $e')),
+                          SnackBar(content: Text('Error: $errorMsg')),
                         );
                       }
                     } finally {
@@ -193,9 +195,10 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
         }
       }
 
+      final errorMsg = e is AppException ? e.message : 'An error occurred. Please try again.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text('Error: $errorMsg'),
           backgroundColor: AppColors.errorColor,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 import '../widgets/AppInstructionsCard.dart';
 
 class BulkCourseEnrollmentPage extends StatefulWidget {
@@ -216,14 +217,13 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
         );
 
       } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Failed to enroll students: ${response.statusCode}');
+        throw Exception(_bulkEnrollmentErrorMessage(response.statusCode));
       }
       } catch (e) {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text(_safeErrorText(e)),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -236,6 +236,33 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
         _isLoading = false;
       });
     }
+  }
+
+  String _bulkEnrollmentErrorMessage(int statusCode) {
+    if (statusCode == 400) {
+      return 'Invalid request. Please check your input and try again.';
+    }
+    if (statusCode == 401) {
+      return ApiService.sessionExpiredMessage;
+    }
+    if (statusCode == 403) {
+      return "You don't have permission to do this.";
+    }
+    if (statusCode == 404) {
+      return 'Course not found.';
+    }
+    if (statusCode == 429) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (statusCode >= 500 && statusCode <= 599) {
+      return ApiService.serverErrorMessage;
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
   }
 
   void _showResultDialog(List<String> added, List<String> skipped, List<String> notFound, String message) {

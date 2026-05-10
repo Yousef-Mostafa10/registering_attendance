@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'colors.dart';
 import 'api_service.dart';
 import 'auth_widgets.dart';
+import '../core/network/app_exception.dart';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback onSwitchToActivation;
@@ -92,16 +93,27 @@ class _LoginPageState extends State<LoginPage> {
             'deviceId': widget.deviceId,
           });
         } else {
-          AuthWidgets.showErrorSnackBar(context, data['message'] ?? 'Login failed');
+          AuthWidgets.showErrorSnackBar(
+            context,
+            const AppException(
+              message: 'Incorrect email or password, or account not activated yet.',
+            ),
+          );
         }
       } else {
-        AuthWidgets.showErrorSnackBar(context, 'Login failed. Status code: ${response['statusCode']}');
+        AuthWidgets.showErrorSnackBar(
+          context,
+          AppException(message: ApiService.loginErrorMessage(response['statusCode'] as int)),
+        );
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      AuthWidgets.showErrorSnackBar(context, 'Login error: $e');
+      AuthWidgets.showErrorSnackBar(
+        context,
+        const AppException(message: 'Something went wrong. Please try again.'),
+      );
     }
   }
 

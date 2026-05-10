@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 import '../core/responsive.dart';
 import '../widgets/AppInstructionsCard.dart';
 
@@ -111,11 +112,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       // اختيار الـ URL المناسب بناءً على نوع الحساب
       final apiUrl = _isDoctor ? _doctorApiUrl : _taApiUrl;
 
-      print('Sending data to API:');
-      print('URL: $apiUrl');
-      print('Data: $userData');
-      print('Token: ${_authToken!.substring(0, 20)}...');
-
       // استدعاء الـ API المناسب
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -126,9 +122,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         },
         body: jsonEncode(userData),
       );
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -168,20 +161,14 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           }
         });
 
-      } else if (response.statusCode == 400) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Bad request: ${response.statusCode}');
-      } else if (response.statusCode == 401) {
-        throw Exception('Unauthorized - Token may be expired');
-      } else if (response.statusCode == 409) {
-        throw Exception('Email already exists');
       } else {
-        throw Exception('Failed to create account: ${response.statusCode}');
+        final message = ApiService.createDoctorTaErrorMessage(response.statusCode);
+        throw Exception(message);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}'),
+          content: Text(_safeErrorText(e)),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -196,6 +183,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     }
   }
 
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

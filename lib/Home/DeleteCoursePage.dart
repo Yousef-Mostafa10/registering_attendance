@@ -124,32 +124,19 @@ class _DeleteCoursePageState extends State<DeleteCoursePage> {
             ),
           ),
         );
-      } else if (statusCode == 404) {
-        throw Exception('Course not found - ID may be incorrect');
-      } else if (statusCode == 401) {
-        throw Exception('Unauthorized - Token may be expired');
-      } else if (statusCode == 400) {
-        String err = 'Bad request: $statusCode';
-        try {
-          final errorData = jsonDecode(responseBody);
-          if (errorData['message'] != null) {
-            err = errorData['message'];
-          }
-        } catch (_) {}
-        throw Exception(err);
       } else {
-        throw Exception('Failed to delete course: $statusCode');
+        throw Exception(ApiService.deleteCourseErrorMessage(statusCode));
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _apiResponse = 'Error: ${e.toString()}';
+        _apiResponse = _safeErrorText(e);
         _isSuccess = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text(_safeErrorText(e)),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -164,6 +151,11 @@ class _DeleteCoursePageState extends State<DeleteCoursePage> {
         });
       }
     }
+  }
+
+  String _safeErrorText(Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    return text.isEmpty ? 'Something went wrong. Please try again.' : text;
   }
 
   Future<bool> _showConfirmationDialog() async {

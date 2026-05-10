@@ -1,6 +1,7 @@
 // auth_widgets.dart
 import 'package:flutter/material.dart';
 import 'colors.dart';
+import '../core/network/app_exception.dart';
 
 class AuthWidgets {
   static void showSuccessSnackBar(BuildContext context, String message) {
@@ -28,7 +29,8 @@ class AuthWidgets {
     );
   }
 
-  static void showErrorSnackBar(BuildContext context, String message) {
+  static void showErrorSnackBar(BuildContext context, Object? error) {
+    final message = _messageFromError(error);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -51,6 +53,11 @@ class AuthWidgets {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  static String _messageFromError(Object? error) {
+    if (error is AppException) return error.message;
+    return 'Something went wrong. Please try again.';
   }
 
   static void showWarningSnackBar(BuildContext context, String message) {
