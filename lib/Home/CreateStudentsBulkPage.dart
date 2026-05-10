@@ -519,20 +519,9 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                   // API Response
                   if (_apiResponse != null) _buildApiResponseCard(),
                   
-                  if (Responsive.isDesktop(context))
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _buildImportCard()),
-                        const SizedBox(width: 24),
-                        Expanded(child: _buildAddStudentForm()),
-                      ],
-                    )
-                  else ...[
-                    _buildImportCard(),
-                    const SizedBox(height: 16),
-                    _buildAddStudentForm(),
-                  ],
+                  _buildImportCard(),
+                  const SizedBox(height: 16),
+                  _buildAddStudentForm(),
                   const SizedBox(height: 24),
 
                   // Students List

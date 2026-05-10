@@ -6,6 +6,7 @@ import 'package:http/http.dart' as native_http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/api_service.dart';
+import '../Auth/main_file.dart';
 import 'app_router.dart';
 
 const String _sessionExpiredMessage =
@@ -50,16 +51,19 @@ native_http.Response _normalizeResponse(native_http.Response res) {
 }
 
 Future<native_http.Response> _withAuthRefresh(
-  Future<native_http.Response> Function() request,
+  Future<native_http.Response> Function(Map<String, String>? currentHeaders) request,
   Map<String, String>? headers,
 ) async {
-  final res = await request();
+  final res = await request(headers);
   if (res.statusCode == 401) {
     final refreshed = await _attemptRefresh();
-    if (refreshed && headers != null && headers.containsKey('Authorization')) {
+    if (refreshed) {
       final newToken = await AuthStorage.getToken();
-      headers['Authorization'] = 'Bearer $newToken';
-      return _normalizeResponse(await request());
+      final updatedHeaders = Map<String, String>.from(headers ?? {});
+      updatedHeaders['Authorization'] = 'Bearer $newToken';
+      
+      print('🔄 Retrying request with new token...');
+      return _normalizeResponse(await request(updatedHeaders));
     }
     _handleAuthExpired();
     return _sessionExpiredResponse();
@@ -70,7 +74,7 @@ Future<native_http.Response> _withAuthRefresh(
 Future<native_http.Response> get(Uri url, {Map<String, String>? headers}) async {
   try {
     return await _withAuthRefresh(
-      () => native_http.get(url, headers: headers)
+      (currentHeaders) => native_http.get(url, headers: currentHeaders)
           .timeout(const Duration(seconds: 30)),
       headers,
     );
@@ -86,7 +90,7 @@ Future<native_http.Response> get(Uri url, {Map<String, String>? headers}) async 
 Future<native_http.Response> post(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
   try {
     return await _withAuthRefresh(
-      () => native_http.post(url, headers: headers, body: body, encoding: encoding)
+      (currentHeaders) => native_http.post(url, headers: currentHeaders, body: body, encoding: encoding)
           .timeout(const Duration(seconds: 30)),
       headers,
     );
@@ -102,7 +106,7 @@ Future<native_http.Response> post(Uri url, {Map<String, String>? headers, Object
 Future<native_http.Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
   try {
     return await _withAuthRefresh(
-      () => native_http.put(url, headers: headers, body: body, encoding: encoding)
+      (currentHeaders) => native_http.put(url, headers: currentHeaders, body: body, encoding: encoding)
           .timeout(const Duration(seconds: 30)),
       headers,
     );
@@ -118,7 +122,7 @@ Future<native_http.Response> put(Uri url, {Map<String, String>? headers, Object?
 Future<native_http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
   try {
     return await _withAuthRefresh(
-      () => native_http.delete(url, headers: headers, body: body, encoding: encoding)
+      (currentHeaders) => native_http.delete(url, headers: currentHeaders, body: body, encoding: encoding)
           .timeout(const Duration(seconds: 30)),
       headers,
     );
@@ -131,7 +135,12 @@ Future<native_http.Response> delete(Uri url, {Map<String, String>? headers, Obje
   }
 }
 
+bool _isRedirecting = false;
+
 void _handleAuthExpired() {
+  if (_isRedirecting) return;
+  _isRedirecting = true;
+
   AuthStorage.clearUserData();
   final messenger = AppRouter.messengerKey.currentState;
   if (messenger != null) {
@@ -144,15 +153,27 @@ void _handleAuthExpired() {
   }
   final navigator = AppRouter.navigatorKey.currentState;
   if (navigator == null) return;
-  navigator.pushNamedAndRemoveUntil('/', (route) => false);
+  
+  navigator.pushAndRemoveUntil(
+    MaterialPageRoute(builder: (_) => const ActivationLoginPage(showLogin: true)),
+    (route) => false,
+  );
 }
 
-bool _isRefreshing = false;
+Future<bool>? _refreshFuture;
 
 Future<bool> _attemptRefresh() async {
-  if (_isRefreshing) return false;
-  _isRefreshing = true;
+  if (_refreshFuture != null) {
+    return await _refreshFuture!;
+  }
 
+  _refreshFuture = _performRefresh();
+  final result = await _refreshFuture!;
+  _refreshFuture = null;
+  return result;
+}
+
+Future<bool> _performRefresh() async {
   try {
     final userData = await AuthStorage.getUserData();
     if (userData == null) return false;
@@ -161,7 +182,9 @@ Future<bool> _attemptRefresh() async {
     final currentRefresh = userData['refreshToken'];
     final deviceId = userData['deviceId'];
 
-    if (currentToken == null || currentRefresh == null || deviceId == null) return false;
+    if (currentToken == null || currentRefresh == null || deviceId == null) {
+      return false;
+    }
 
     final response = await native_http.post(
       Uri.parse('${ApiService.baseUrl}/Auth/refresh-token'),
@@ -179,14 +202,16 @@ Future<bool> _attemptRefresh() async {
       final newRefresh = data['refreshToken'];
 
       if (newToken != null && newRefresh != null) {
-         await AuthStorage.updateTokens(newToken, newRefresh);
-         return true; // refresh success
+        await AuthStorage.updateTokens(newToken, newRefresh);
+        return true;
       }
+    } else {
+      print('❌ Refresh Token API failed: ${response.statusCode}');
+      print('❌ Body: ${response.body}');
     }
     return false;
   } catch (e) {
+    print('❌ Exception during refresh: $e');
     return false;
-  } finally {
-    _isRefreshing = false;
   }
 }

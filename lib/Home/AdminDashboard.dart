@@ -277,8 +277,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         
         if (hasUnauthorized) {
           stats['error'] = 'unauthorized';
-          // إعادة توجيه المستخدم لتسجيل الدخول إذا انتهت الجلسة
-          _handleAutoLogout();
+          // ملاحظة: الـ http_interceptor سيقوم بالتحويل لصفحة تسجيل الدخول تلقائياً
           return;
         } else if (has403) {
           stats['error'] = 'api_403';

@@ -462,12 +462,14 @@ class _TAsListPageState extends State<TAsListPage> {
                         )
                       : Row(
                           children: [
-                            _buildStatCard(
-                              icon: Icons.school,
-                              title: 'Teaching Assistants',
-                              value: stats['tas']?.toString() ?? '0',
-                              color: AppColors.primaryColor,
-                              isLoading: !statsSnapshot.hasData,
+                            Expanded(
+                              child: _buildStatCard(
+                                icon: Icons.school,
+                                title: 'Teaching Assistants',
+                                value: stats['tas']?.toString() ?? '0',
+                                color: AppColors.primaryColor,
+                                isLoading: !statsSnapshot.hasData,
+                              ),
                             ),
                           ],
                         ),
@@ -623,67 +625,65 @@ class _TAsListPageState extends State<TAsListPage> {
     required Color color,
     bool isLoading = false,
   }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+            child: isLoading
+                ? Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: color,
+                ),
               ),
-              child: isLoading
-                  ? Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: color,
+            )
+                : Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isLoading ? '...' : value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkColor,
                   ),
                 ),
-              )
-                  : Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isLoading ? '...' : value,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkColor,
-                    ),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkColor.withOpacity(0.6),
                   ),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.darkColor.withOpacity(0.6),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -819,221 +819,231 @@ class _TAsListPageState extends State<TAsListPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Center(
+      builder: (context) => Align(
+        alignment: Alignment.bottomCenter,
         child: Container(
           constraints: BoxConstraints(
-            maxWidth: Responsive.isDesktop(context) ? 600 : double.infinity,
+            maxWidth: Responsive.isDesktop(context) ? 700 : double.infinity,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
-          height: MediaQuery.of(context).size.height * 0.7,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: Responsive.isDesktop(context)
-                ? BorderRadius.circular(32)
-                : const BorderRadius.only(
-                    topLeft: Radius.circular(32),
-                    topRight: Radius.circular(32),
-                  ),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withOpacity(0.15),
                 blurRadius: 20,
                 spreadRadius: 5,
               ),
             ],
           ),
-        child: Column(
-          children: [
-            // Handle
-            Container(
-              width: 60,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                Container(
+                  width: 40,
+                  height: 5,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
 
-            // TA Details
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with Avatar
-                    Center(
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: (ta['color'] as Color).withOpacity(0.1),
-                            radius: 40,
-                            child: Text(
-                              ta['avatar'],
-                              style: TextStyle(
-                                color: ta['color'] as Color,
-                                fontSize: 28,
+                // TA Details
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header with Avatar
+                      Center(
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: (ta['color'] as Color).withOpacity(0.1),
+                              radius: 45,
+                              child: Text(
+                                ta['avatar'],
+                                style: TextStyle(
+                                  color: ta['color'] as Color,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              ta['name'],
+                              style: const TextStyle(
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
+                                color: Color(0xFF1D3557),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            ta['name'],
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: ta['status'] == 'Active'
-                                      ? AppColors.successColor.withOpacity(0.1)
-                                      : AppColors.errorColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: ta['status'] == 'Active'
-                                        ? AppColors.successColor
-                                        : AppColors.errorColor,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  ta['status'],
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: ta['status'] == 'Active'
-                                        ? AppColors.successColor
-                                        : AppColors.errorColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: (ta['color'] as Color).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: ta['color'] as Color,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  'Teaching Assistant',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: ta['color'] as Color,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Details
-                    const Text(
-                      'Details',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildDetailItem(
-                      icon: Icons.person_outline,
-                      label: 'TA ID',
-                      value: '#${ta['id']}',
-                      color: ta['color'] as Color,
-                    ),
-                    _buildDetailItem(
-                      icon: Icons.code,
-                      label: 'University Code',
-                      value: ta['universityCode'],
-                      color: ta['color'] as Color,
-                    ),
-                    _buildDetailItem(
-                      icon: Icons.email,
-                      label: 'Email',
-                      value: ta['email'],
-                      color: ta['color'] as Color,
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Action Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              side: BorderSide(color: AppColors.primaryColor),
-                            ),
-                            child: Text(
-                              'Close',
+                            const SizedBox(height: 4),
+                            Text(
+                              'Teaching Assistant Profile',
                               style: TextStyle(
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                letterSpacing: 0.5,
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context); // close bottom sheet
-                              _deleteTADirectly(ta['universityCode'], ta['name']);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.errorColor,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Row(
+                            const SizedBox(height: 16),
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.delete_outline, color: Colors.white, size: 18),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: ta['status'] == 'Active'
+                                        ? AppColors.successColor.withOpacity(0.1)
+                                        : AppColors.errorColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    ta['status'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: ta['status'] == 'Active'
+                                          ? AppColors.successColor
+                                          : AppColors.errorColor,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: (ta['color'] as Color).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    'ID: ${ta['id']}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: ta['color'] as Color,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Information Section
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(Icons.info_outline, color: AppColors.primaryColor, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'General Information',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1D3557),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      _buildDetailItem(
+                        icon: Icons.badge_outlined,
+                        label: 'University Code',
+                        value: ta['universityCode'],
+                        color: ta['color'] as Color,
+                      ),
+                      _buildDetailItem(
+                        icon: Icons.alternate_email,
+                        label: 'Email Address',
+                        value: ta['email'],
+                        color: ta['color'] as Color,
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                side: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              child: Text(
+                                'Close',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _deleteTADirectly(ta['universityCode'], ta['name']);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFE63946),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.delete_outline, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
     );
   }
 

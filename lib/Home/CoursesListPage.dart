@@ -476,18 +476,22 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   // mobile: full-width side by side
                   return Row(
                     children: [
-                      _buildStatCard(
-                        icon: Icons.book,
-                        title: 'Total Courses',
-                        value: _isLoading ? '...' : _totalCourses.toString(),
-                        color: AppColors.primaryColor,
+                      Expanded(
+                        child: _buildStatCard(
+                          icon: Icons.book,
+                          title: 'Total Courses',
+                          value: _isLoading ? '...' : _totalCourses.toString(),
+                          color: AppColors.primaryColor,
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      _buildStatCard(
-                        icon: Icons.people,
-                        title: 'Total Students',
-                        value: _isLoading ? '...' : _totalStudents.toString(),
-                        color: AppColors.successColor,
+                      Expanded(
+                        child: _buildStatCard(
+                          icon: Icons.people,
+                          title: 'Total Students',
+                          value: _isLoading ? '...' : _totalStudents.toString(),
+                          color: AppColors.successColor,
+                        ),
                       ),
                     ],
                   );
@@ -561,56 +565,54 @@ class _CoursesListPageState extends State<CoursesListPage> {
     required String value,
     required Color color,
   }) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Container(
+      padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: Responsive.isDesktop(context) ? 64 : 48,
+            height: Responsive.isDesktop(context) ? 64 : 48,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: Responsive.isDesktop(context) ? 64 : 48,
-              height: Responsive.isDesktop(context) ? 64 : 48,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 32 : 24),
-            ),
-            SizedBox(width: Responsive.isDesktop(context) ? 20 : 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: Responsive.isDesktop(context) ? 28 : 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkColor,
-                    ),
+            child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 32 : 24),
+          ),
+          SizedBox(width: Responsive.isDesktop(context) ? 20 : 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: Responsive.isDesktop(context) ? 28 : 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkColor,
                   ),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: Responsive.isDesktop(context) ? 14 : 12,
-                      color: AppColors.darkColor.withOpacity(0.6),
-                    ),
+                ),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: Responsive.isDesktop(context) ? 14 : 12,
+                    color: AppColors.darkColor.withOpacity(0.6),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -801,93 +803,122 @@ class _CoursesListPageState extends State<CoursesListPage> {
   void _showCourseOptions(Map<String, dynamic> course) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                course['name'],
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: AppColors.darkColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Course ID: ${course['id']}',
-                style: TextStyle(
-                  color: AppColors.darkColor.withOpacity(0.5),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 24),
-              _buildOptionTile(
-                icon: Icons.dashboard_outlined,
-                title: 'View Dashboard',
-                subtitle: 'Analytics and session management',
-                color: AppColors.primaryColor,
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => CourseDashboardPage(course: course)),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildOptionTile(
-                icon: Icons.person_add_alt_1_outlined,
-                title: 'Enroll Student',
-                subtitle: 'Single student manual registration',
-                color: Colors.blue,
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CourseEnrollmentPage(initialCourseId: course['id'].toString()),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildOptionTile(
-                icon: Icons.group_add_outlined,
-                title: 'Bulk Enroll',
-                subtitle: 'Excel import or multiple codes',
-                color: Colors.teal,
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BulkCourseEnrollmentPage(initialCourseId: course['id'].toString()),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: Responsive.isDesktop(context) ? 600 : double.infinity,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
-        );
-      },
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                Container(
+                  width: 40,
+                  height: 5,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        course['name'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          color: Color(0xFF1D3557),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.lightColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Course ID: ${course['id']}',
+                          style: TextStyle(
+                            color: AppColors.darkColor.withOpacity(0.6),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      _buildOptionTile(
+                        icon: Icons.dashboard_outlined,
+                        title: 'View Dashboard',
+                        subtitle: 'Analytics and session management',
+                        color: AppColors.primaryColor,
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => CourseDashboardPage(course: course)),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildOptionTile(
+                        icon: Icons.person_add_alt_1_outlined,
+                        title: 'Enroll Student',
+                        subtitle: 'Single student manual registration',
+                        color: const Color(0xFF457B9D),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CourseEnrollmentPage(initialCourseId: course['id'].toString()),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildOptionTile(
+                        icon: Icons.group_add_outlined,
+                        title: 'Bulk Enroll',
+                        subtitle: 'Excel import or multiple codes',
+                        color: const Color(0xFF2A9D8F),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BulkCourseEnrollmentPage(initialCourseId: course['id'].toString()),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
