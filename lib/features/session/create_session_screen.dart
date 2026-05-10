@@ -38,6 +38,15 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
   
   Future<void> _initGps() async {
     try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          _isGpsFailed = true;
+        });
+        print('GPS unavailable: Service disabled');
+        return;
+      }
+      
       final status = await Permission.locationWhenInUse.request();
       if (status.isGranted) {
         Position position = await Geolocator.getCurrentPosition(

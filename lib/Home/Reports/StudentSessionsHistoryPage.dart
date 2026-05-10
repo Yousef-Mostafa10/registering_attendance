@@ -24,9 +24,7 @@ class StudentSessionsHistoryPage extends StatefulWidget {
       _StudentSessionsHistoryPageState();
 }
 
-class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage> {
   bool _isLoading = true;
   String? _errorMessage;
   List<dynamic> _lectures = [];
@@ -36,14 +34,12 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _fetchSessions();
   }
 
   @override
   void dispose() {
     _pollTimer?.cancel();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -57,28 +53,20 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
       final token = await AuthStorage.getToken() ?? '';
 
       final lecturesResponseFuture = http.get(
-        Uri.parse(
-          '${ApiService.baseUrl}/Session/course-sessions/${widget.courseId}/Lecture',
-        ),
+        Uri.parse('${ApiService.baseUrl}/Session/course-sessions/${widget.courseId}/Lecture'),
         headers: {'Authorization': 'Bearer $token', 'accept': '*/*'},
       );
 
       final sectionsResponseFuture = http.get(
-        Uri.parse(
-          '${ApiService.baseUrl}/Session/course-sessions/${widget.courseId}/Section',
-        ),
+        Uri.parse('${ApiService.baseUrl}/Session/course-sessions/${widget.courseId}/Section'),
         headers: {'Authorization': 'Bearer $token', 'accept': '*/*'},
       );
 
-      final results = await Future.wait([
-        lecturesResponseFuture,
-        sectionsResponseFuture,
-      ]);
+      final results = await Future.wait([lecturesResponseFuture, sectionsResponseFuture]);
       final lecturesResponse = results[0];
       final sectionsResponse = results[1];
 
-      if (lecturesResponse.statusCode == 200 &&
-          sectionsResponse.statusCode == 200) {
+      if (lecturesResponse.statusCode == 200 && sectionsResponse.statusCode == 200) {
         final parsedLectures = _extractList(jsonDecode(lecturesResponse.body));
         final parsedSections = _extractList(jsonDecode(sectionsResponse.body));
 
@@ -109,13 +97,9 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
   }
 
   void _handlePolling() {
-    final hasActive =
-        _hasActiveSession(_lectures) || _hasActiveSession(_sections);
+    final hasActive = _hasActiveSession(_lectures) || _hasActiveSession(_sections);
     if (hasActive && _pollTimer == null) {
-      _pollTimer = Timer.periodic(
-        const Duration(seconds: 60),
-        (_) => _fetchSessions(),
-      );
+      _pollTimer = Timer.periodic(const Duration(seconds: 60), (_) => _fetchSessions());
     } else if (!hasActive && _pollTimer != null) {
       _pollTimer?.cancel();
       _pollTimer = null;
@@ -141,8 +125,7 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
   }
 
   void _openActiveSession(Map<String, dynamic> session) {
-    final sessionId =
-        session['id']?.toString() ?? session['sessionId']?.toString() ?? '';
+    final sessionId = session['id']?.toString() ?? session['sessionId']?.toString() ?? '';
     if (sessionId.isEmpty) return;
 
     Navigator.push(
@@ -151,60 +134,9 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
         builder: (_) => _ActiveSessionPage(
           sessionId: sessionId,
           sessionTitle: session['title']?.toString() ?? 'Active Session',
+          courseId: widget.courseId,
         ),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.lightColor2,
-      appBar: AppBar(
-        centerTitle: Responsive.isDesktop(context),
-        title: Text(
-          widget.courseName,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: Responsive.isDesktop(context) ? 22 : 18,
-          ),
-        ),
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(Responsive.isDesktop(context) ? 70 : 60),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelStyle: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: Responsive.isDesktop(context) ? 18 : 16,
-              ),
-              tabs: const [
-                Tab(text: 'Lectures', icon: Icon(Icons.school)),
-                Tab(text: 'Sections', icon: Icon(Icons.science)),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor),
-            )
-          : _errorMessage != null
-          ? _buildErrorState()
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildSessionList(_lectures),
-                _buildSessionList(_sections),
-              ],
-            ),
     );
   }
 
@@ -213,22 +145,13 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.errorColor,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.errorColor),
           const SizedBox(height: 16),
-          Text(
-            _errorMessage ?? 'Error',
-            style: const TextStyle(color: AppColors.errorColor),
-          ),
+          Text(_errorMessage ?? 'Error', style: const TextStyle(color: AppColors.errorColor)),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _fetchSessions,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
             child: const Text('Retry'),
           ),
         ],
@@ -236,154 +159,135 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
     );
   }
 
-  Widget _buildSessionList(List<dynamic> sessions) {
-    if (sessions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history_toggle_off,
-              size: 60,
-              color: AppColors.primaryColor.withOpacity(0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No sessions found.',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.darkColor.withOpacity(0.5),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+  @override
+  Widget build(BuildContext context) {
+    final activeSessions = [..._lectures, ..._sections].where((s) => s['isActive'] == true).toList();
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: LayoutBuilder(builder: (context, constraints) {
-          final w = constraints.maxWidth;
-          final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
-          if (cols > 1) {
-            return GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: cols,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                childAspectRatio: cols == 3 ? 2.5 : 3.0,
-              ),
-              itemCount: sessions.length,
-              itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: sessions.length,
-            itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
-          );
-        }),
+    return Scaffold(
+      backgroundColor: AppColors.lightColor2,
+      appBar: AppBar(
+        centerTitle: Responsive.isDesktop(context),
+        title: Text(
+          widget.courseName,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: Responsive.isDesktop(context) ? 22 : 18),
+        ),
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
-    );
-  }
-
-  Widget _buildSessionCard(dynamic sessionData) {
-    final session = Map<String, dynamic>.from(sessionData);
-    final sessionId =
-        session['id']?.toString() ??
-        session['sessionId']?.toString() ??
-        '0';
-    final title = session['title'] ?? 'Session #$sessionId';
-    final isActive = session['isActive'] == true;
-
-    return _ActiveGlowCard(
-      isActive: isActive,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => isActive ? _openActiveSession(session) : null,
-          child: Padding(
-            padding: EdgeInsets.all(MediaQuery.of(context).size.width >= 850 ? 24 : 16.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(MediaQuery.of(context).size.width >= 850 ? 16 : 12),
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? AppColors.successColor.withOpacity(0.15)
-                        : AppColors.primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isActive ? Icons.play_circle_fill : Icons.class_,
-                    color: isActive
-                        ? AppColors.successColor
-                        : AppColors.primaryColor,
-                    size: MediaQuery.of(context).size.width >= 850 ? 32 : 24,
-                  ),
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width >= 850 ? 20 : 16),
-                Expanded(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryColor))
+          : _errorMessage != null
+          ? _buildErrorState()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: MediaQuery.of(context).size.width >= 850 ? 18 : 16,
-                          color: AppColors.darkColor,
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => StudentAttendanceReportPage(
+                                courseName: widget.courseName,
+                                lectures: _lectures,
+                                sections: _sections,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.analytics, size: 28),
+                        label: const Text('Attendance Reports'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primaryColor,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'ID: #$sessionId',
-                        style: TextStyle(
-                          color: AppColors.darkColor.withOpacity(0.5),
-                          fontSize: MediaQuery.of(context).size.width >= 850 ? 15 : 13,
+                      const SizedBox(height: 48),
+                      const Text(
+                        'Register Attendance',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkColor),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const QRScannerPage()),
+                          );
+                        },
+                        icon: const Icon(Icons.qr_code_scanner, size: 24),
+                        label: const Text('Scan QR Code'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: AppColors.darkColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => _ActiveSessionPage(
+                                sessionId: activeSessions.isNotEmpty ? (activeSessions.first['id']?.toString() ?? activeSessions.first['sessionId']?.toString() ?? '0') : '0',
+                                sessionTitle: activeSessions.isNotEmpty ? (activeSessions.first['title']?.toString() ?? 'Register Attendance') : 'Register Attendance',
+                                courseId: widget.courseId,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.pin, size: 24),
+                        label: const Text('Enter PIN Code'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: AppColors.primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (activeSessions.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.successColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.info_outline, size: 20, color: AppColors.successColor),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'An active session is open!',
+                                  style: TextStyle(color: AppColors.successColor, fontSize: 14, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ]
                     ],
                   ),
                 ),
-                if (isActive)
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: MediaQuery.of(context).size.width >= 850 ? 14 : 10,
-                      vertical: MediaQuery.of(context).size.width >= 850 ? 8 : 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.successColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Active',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: MediaQuery.of(context).size.width >= 850 ? 14 : 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                else
-                  Icon(
-                    Icons.lock_outline,
-                    size: MediaQuery.of(context).size.width >= 850 ? 20 : 16,
-                    color: Colors.grey,
-                  ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -463,10 +367,12 @@ class _ActiveGlowCardState extends State<_ActiveGlowCard>
 class _ActiveSessionPage extends StatefulWidget {
   final String sessionId;
   final String sessionTitle;
+  final String courseId;
 
   const _ActiveSessionPage({
     required this.sessionId,
     required this.sessionTitle,
+    required this.courseId,
   });
 
   @override
@@ -507,6 +413,30 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
       final userData = await AuthStorage.getUserData();
       final deviceId = userData?['deviceId'] ?? 'error_device';
       final token = await AuthStorage.getToken() ?? '';
+      
+      int finalSessionId = int.tryParse(widget.sessionId) ?? 0;
+
+      if (finalSessionId == 0) {
+        try {
+          final lRes = await http.get(Uri.parse('${ApiService.baseUrl}/Session/course-sessions/${widget.courseId}/Lecture'), headers: {'Authorization': 'Bearer $token', 'accept': '*/*'});
+          final sRes = await http.get(Uri.parse('${ApiService.baseUrl}/Session/course-sessions/${widget.courseId}/Section'), headers: {'Authorization': 'Bearer $token', 'accept': '*/*'});
+          
+          List<dynamic> extractList(dynamic data) {
+            if (data is List) return data;
+            if (data is Map && data.containsKey(r'$values')) return data[r'$values'] ?? [];
+            return [];
+          }
+          
+          final lectures = lRes.statusCode == 200 ? extractList(jsonDecode(lRes.body)) : [];
+          final sections = sRes.statusCode == 200 ? extractList(jsonDecode(sRes.body)) : [];
+          final allSessions = [...lectures, ...sections];
+          
+          final activeSession = allSessions.firstWhere((s) => s['isActive'] == true, orElse: () => null);
+          if (activeSession != null) {
+            finalSessionId = int.tryParse(activeSession['id']?.toString() ?? activeSession['sessionId']?.toString() ?? '0') ?? 0;
+          }
+        } catch (_) {}
+      }
 
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/Attendance/submit'),
@@ -516,7 +446,7 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          "sessionId": int.tryParse(widget.sessionId) ?? 0,
+          "sessionId": finalSessionId,
           "deviceId": deviceId,
           "studentLatitude": position.latitude,
           "studentLongitude": position.longitude,
@@ -547,7 +477,7 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Network error: $e'),
+            content: Text('Error: $e'),
             backgroundColor: AppColors.errorColor,
           ),
         );
@@ -593,7 +523,7 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Choose how you want to check in.',
+                    'Please enter the 4-digit PIN provided by the Doctor to register your attendance.',
                     style: TextStyle(
                       color: AppColors.darkColor.withOpacity(0.6),
                     ),
@@ -602,35 +532,12 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const QRScannerPage()),
-                ),
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text(
-                  'Scan QR',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.successColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                borderRadius: BorderRadius.circular(16),
+              ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -682,6 +589,283 @@ class _ActiveSessionPageState extends State<_ActiveSessionPage> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar _tabBar;
+
+  _SliverTabBarDelegate(this._tabBar);
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.white,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverTabBarDelegate oldDelegate) {
+    return false;
+  }
+}
+
+class StudentAttendanceReportPage extends StatefulWidget {
+  final String courseName;
+  final List<dynamic> lectures;
+  final List<dynamic> sections;
+
+  const StudentAttendanceReportPage({
+    Key? key,
+    required this.courseName,
+    required this.lectures,
+    required this.sections,
+  }) : super(key: key);
+
+  @override
+  State<StudentAttendanceReportPage> createState() => _StudentAttendanceReportPageState();
+}
+
+class _StudentAttendanceReportPageState extends State<StudentAttendanceReportPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  bool _didAttend(dynamic session) =>
+      session['isAttended'] == true || session['studentAttended'] == true || session['attended'] == true;
+
+  Widget _buildCounterItem(String label, int value, Color color) {
+    return Column(
+      children: [
+        Text(value.toString(), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  Widget _buildSessionCard(dynamic sessionData) {
+    final session = Map<String, dynamic>.from(sessionData);
+    final sessionId = session['id']?.toString() ?? session['sessionId']?.toString() ?? '0';
+    final title = session['title'] ?? 'Session #$sessionId';
+    final bool isAttended = _didAttend(session);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(MediaQuery.of(context).size.width >= 850 ? 24 : 16.0),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width >= 850 ? 16 : 12),
+              decoration: BoxDecoration(
+                color: isAttended ? Colors.green.withOpacity(0.1) : AppColors.errorColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isAttended ? Icons.check_circle_outline : Icons.cancel_outlined,
+                color: isAttended ? Colors.green : AppColors.errorColor,
+                size: MediaQuery.of(context).size.width >= 850 ? 32 : 24,
+              ),
+            ),
+            SizedBox(width: MediaQuery.of(context).size.width >= 850 ? 20 : 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: MediaQuery.of(context).size.width >= 850 ? 18 : 16,
+                      color: AppColors.darkColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'ID: #$sessionId',
+                    style: TextStyle(
+                      color: AppColors.darkColor.withOpacity(0.5),
+                      fontSize: MediaQuery.of(context).size.width >= 850 ? 15 : 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width >= 850 ? 14 : 10,
+                vertical: MediaQuery.of(context).size.width >= 850 ? 8 : 6,
+              ),
+              decoration: BoxDecoration(
+                color: isAttended ? Colors.green.withOpacity(0.15) : AppColors.errorColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isAttended ? 'Attended' : 'Absent',
+                style: TextStyle(
+                  color: isAttended ? Colors.green.shade700 : AppColors.errorColor,
+                  fontSize: MediaQuery.of(context).size.width >= 850 ? 14 : 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSessionList(List<dynamic> sessions) {
+    if (sessions.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history_toggle_off, size: 60, color: AppColors.primaryColor.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text('No sessions found.', style: TextStyle(fontSize: 16, color: AppColors.darkColor.withOpacity(0.5))),
+          ],
+        ),
+      );
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      if (cols > 1) {
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 20,
+            crossAxisSpacing: 20,
+            childAspectRatio: cols == 3 ? 2.5 : 3.0,
+          ),
+          itemCount: sessions.length,
+          itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: sessions.length,
+        itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pastLectures = widget.lectures.where((s) => s['isActive'] != true).toList();
+    final pastSections = widget.sections.where((s) => s['isActive'] != true).toList();
+    final pastSessions = [...pastLectures, ...pastSections];
+
+    final totalAttended = pastSessions.where((s) => _didAttend(s)).length;
+    final totalAbsent = pastSessions.length - totalAttended;
+
+    return Scaffold(
+      backgroundColor: AppColors.lightColor2,
+      appBar: AppBar(
+        title: const Text('Attendance Reports', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: DefaultTabController(
+        length: 2,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: totalAbsent >= 3 ? Border.all(color: AppColors.errorColor, width: 2) : null,
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildCounterItem('Attended', totalAttended, Colors.green),
+                        _buildCounterItem('Absent', totalAbsent, AppColors.errorColor),
+                        _buildCounterItem('Total', pastSessions.length, AppColors.primaryColor),
+                      ],
+                    ),
+                    if (totalAbsent >= 3)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.warning_amber_rounded, color: AppColors.errorColor),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Danger: You have exceeded the allowed absence limit (3) and may be deprived of exams.',
+                                style: TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _SliverTabBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  indicatorColor: AppColors.primaryColor,
+                  labelColor: AppColors.primaryColor,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorWeight: 3,
+                  labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: Responsive.isDesktop(context) ? 18 : 16),
+                  tabs: const [
+                    Tab(text: 'Lectures', icon: Icon(Icons.school)),
+                    Tab(text: 'Sections', icon: Icon(Icons.science)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildSessionList(pastLectures),
+              _buildSessionList(pastSections),
+            ],
           ),
         ),
       ),
