@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'colors.dart';
 import 'api_service.dart';
 import 'auth_widgets.dart';
+import '../core/network/app_exception.dart';
 
 class ActivationPage extends StatefulWidget {
   final VoidCallback onSwitchToLogin;
@@ -108,41 +109,19 @@ class _ActivationPageState extends State<ActivationPage> {
         });
 
       } else {
-        String errorMessage = 'Activation failed. Please try again';
-        
-        try {
-          // Try to get the actual error message from the backend
-          final errorData = jsonDecode(response['body']);
-          if (errorData['message'] != null && errorData['message'].toString().isNotEmpty) {
-            errorMessage = errorData['message'];
-          } else {
-            // Fallbacks if no message provided
-            if (response['statusCode'] == 400) {
-              errorMessage = 'Invalid data. Please check your information';
-            } else if (response['statusCode'] == 404) {
-              errorMessage = 'Account not found. Please check your email';
-            } else if (response['statusCode'] == 409) {
-              errorMessage = 'Account already activated';
-            }
-          }
-        } catch (e) {
-          // Fallbacks if body is not valid JSON
-          if (response['statusCode'] == 400) {
-            errorMessage = 'Invalid data. Please check your information';
-          } else if (response['statusCode'] == 404) {
-            errorMessage = 'Account not found. Please check your email';
-          } else if (response['statusCode'] == 409) {
-            errorMessage = 'Account already activated';
-          }
-        }
-
-        AuthWidgets.showErrorSnackBar(context, errorMessage);
+        AuthWidgets.showErrorSnackBar(
+          context,
+          AppException(message: ApiService.activationErrorMessage(response['statusCode'] as int)),
+        );
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      AuthWidgets.showErrorSnackBar(context, 'Connection error: $e');
+      AuthWidgets.showErrorSnackBar(
+        context,
+        const AppException(message: 'Something went wrong. Please try again.'),
+      );
     }
   }
 
