@@ -5,7 +5,6 @@ import 'session_models.dart';
 import 'session_service.dart';
 import 'qr_display_screen.dart';
 import '../../Auth/colors.dart';
-import '../../core/network/app_exception.dart';
 
 class CreateSessionScreen extends StatefulWidget {
   final int courseId;
@@ -39,6 +38,15 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
   
   Future<void> _initGps() async {
     try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          _isGpsFailed = true;
+        });
+        print('GPS unavailable: Service disabled');
+        return;
+      }
+      
       final status = await Permission.locationWhenInUse.request();
       if (status.isGranted) {
         Position position = await Geolocator.getCurrentPosition(
@@ -173,9 +181,8 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                       );
                     } catch (e) {
                       if (mounted) {
-                        final errorMsg = e is AppException ? e.message : 'Failed to resume session. Please try again.';
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $errorMsg')),
+                          SnackBar(content: Text('Error resuming session: $e')),
                         );
                       }
                     } finally {
@@ -195,10 +202,9 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
         }
       }
 
-      final errorMsg = e is AppException ? e.message : 'An error occurred. Please try again.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $errorMsg'),
+          content: Text('Error: $e'),
           backgroundColor: AppColors.errorColor,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
