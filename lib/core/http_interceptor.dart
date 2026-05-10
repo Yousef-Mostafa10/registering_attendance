@@ -198,8 +198,9 @@ Future<bool> _performRefresh() async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final newToken = data['token'];
-      final newRefresh = data['refreshToken'];
+      // الدخول قد يعود بـ token أو accessToken حسب إصدار الـ API
+      final newToken = data['accessToken'] ?? data['token'];
+      final newRefresh = data['refreshToken'] ?? data['refreshToken']; // استباقاً لأي تغيير
 
       if (newToken != null && newRefresh != null) {
         await AuthStorage.updateTokens(newToken, newRefresh);

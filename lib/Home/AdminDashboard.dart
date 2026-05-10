@@ -698,9 +698,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   double _statCardWidth(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     final available = w > 1400 ? 1400.0 : w;
-    if (w >= 1100) return (available - 80) / 4; // 4 per row, filling space
-    if (w >= 850) return (available - 60) / 3;  // 3 per row
-    return (w - 56) / 2 - 6;  // mobile: 2 per row
+    if (w >= 1100) return (available - 80) / 4; // Desktop Layout: 4 cards per row
+    if (w >= 850)  return (available - 60) / 3; // Tablet Layout:  3 cards per row
+    if (w >= 600)  return (w - 56) / 2 - 6;    // Mobile Layout:  2 cards per row
+    return (w - 52) / 2;                        // Mobile Layout (small): 2 compact cards per row
   }
 
   Widget _buildLoadingStatsGrid() {
@@ -885,70 +886,81 @@ class _AdminDashboardState extends State<AdminDashboard> {
     bool isLoading = false,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 6,
-            spreadRadius: 1,
-            offset: const Offset(0, 2),
+            color: color.withOpacity(0.08),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: color.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
                 child: isLoading
                     ? SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                )
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                        ),
+                      )
                     : Icon(
-                  icon,
-                  color: color,
-                  size: 18,
-                ),
+                        icon,
+                        color: color,
+                        size: 22,
+                      ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              count,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkColor,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    count,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.darkColor,
+                      height: 1.1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.darkColor.withOpacity(0.6),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.darkColor.withOpacity(0.6),
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -1050,14 +1062,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
           alignment: WrapAlignment.center,
           children: List.generate(categories.length, (index) {
             final cat = categories[index];
+            final isMobile = w < 600;
             final available = w > 1400 ? 1400.0 : w;
-            final cardW = w >= 1100 ? (available - 80) / 4 : w >= 850 ? (available - 60) / 2 : (w - 56) / 2 - 6;
+            final cardW = w >= 1100 ? (available - 80) / 4 : w >= 850 ? (available - 60) / 2 : isMobile ? available - 40 : (w - 56) / 2 - 6;
             return SizedBox(
               width: cardW,
               child: _buildSimpleOperationCard(
                 title: cat['title'] as String,
                 icon: cat['icon'] as IconData,
                 color: cat['color'] as Color,
+                isMobile: isMobile,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -1082,33 +1096,72 @@ class _AdminDashboardState extends State<AdminDashboard> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    bool isMobile = false,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        shadowColor: color.withOpacity(0.3),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            vertical: isMobile ? 16 : 20, 
+            horizontal: isMobile ? 16 : 8
           ),
-          shadowColor: color.withOpacity(0.3),
-            child: Container(
-              height: 160, // Increased height to prevent overflow
-              padding: const EdgeInsets.symmetric(vertical: 20), // Added padding
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: Colors.white,
-                border: Border.all(
-                  color: color.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: Column(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            border: Border.all(
+              color: color.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: isMobile 
+            ? Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: AppColors.darkColor.withOpacity(0.3),
+                    size: 16,
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 60, // Increased icon container size
+                    width: 60,
                     height: 60,
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
@@ -1117,17 +1170,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     child: Icon(
                       icon,
                       color: color,
-                      size: 32, // Increased icon size
+                      size: 32,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       title,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 16, // Increased font size
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkColor,
                       ),
@@ -1137,7 +1190,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ],
               ),
-            ),
         ),
       ),
     );
@@ -1196,14 +1248,16 @@ class SubMenuPage extends StatelessWidget {
                 children: List.generate(operations.length, (index) {
                   final op = operations[index];
                   final w = MediaQuery.of(context).size.width;
+                  final isMobile = w < 600;
                   final available = w > 1200 ? 1200.0 : w;
-                  final cardW = w >= 1100 ? (available - 80) / 3 : w >= 850 ? (available - 60) / 2 : (w - 56) / 2 - 8;
+                  final cardW = w >= 1100 ? (available - 80) / 3 : w >= 850 ? (available - 60) / 2 : isMobile ? available - 40 : (w - 56) / 2 - 8;
                   return SizedBox(
                     width: cardW,
                     child: _SubMenuCard(
                       title: op['title']!,
                       icon: op['icon'] as IconData,
                       color: op['color'] as Color,
+                      isMobile: isMobile,
                       onTap: () {
                         if (op.containsKey('page') && op['page'] != null) {
                           if (op['page'] is Widget Function()) {
@@ -1234,12 +1288,14 @@ class _SubMenuCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final bool isMobile;
 
   const _SubMenuCard({
     required this.title,
     required this.icon,
     required this.color,
     required this.onTap,
+    this.isMobile = false,
   });
 
   @override
@@ -1251,39 +1307,72 @@ class _SubMenuCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         shadowColor: color.withOpacity(0.3),
         child: Container(
-          height: Responsive.isDesktop(context) ? 180 : 140,
-          padding: EdgeInsets.symmetric(vertical: Responsive.isDesktop(context) ? 24 : 16),
+          padding: EdgeInsets.symmetric(
+            vertical: isMobile ? 16 : (Responsive.isDesktop(context) ? 24 : 16), 
+            horizontal: isMobile ? 16 : 8
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: Colors.white,
             border: Border.all(color: color.withOpacity(0.2), width: 1),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: Responsive.isDesktop(context) ? 72 : 56,
-                height: Responsive.isDesktop(context) ? 72 : 56,
-                decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 36 : 32),
-              ),
-              SizedBox(height: Responsive.isDesktop(context) ? 16 : 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: Responsive.isDesktop(context) ? 18 : 15, 
-                    fontWeight: FontWeight.bold, 
-                    color: AppColors.darkColor,
+          child: isMobile 
+            ? Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                    child: Icon(icon, color: color, size: 28),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 16, 
+                        fontWeight: FontWeight.bold, 
+                        color: AppColors.darkColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: AppColors.darkColor.withOpacity(0.3),
+                    size: 16,
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: Responsive.isDesktop(context) ? 72 : 56,
+                    height: Responsive.isDesktop(context) ? 72 : 56,
+                    decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+                    child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 36 : 32),
+                  ),
+                  SizedBox(height: Responsive.isDesktop(context) ? 16 : 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: Responsive.isDesktop(context) ? 18 : 15, 
+                        fontWeight: FontWeight.bold, 
+                        color: AppColors.darkColor,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
         ),
       ),
     );

@@ -184,14 +184,18 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                     ),
                     Builder(builder: (context) {
                       final w = MediaQuery.of(context).size.width;
+                      // Desktop Layout: 4 cols ≥ 1100 / Tablet: 3 cols ≥ 850 / Mobile Layout: 2 cols < 600
                       final cols = w >= 1100 ? 4 : w >= 850 ? 3 : 2;
+                      // Mobile Layout: portrait-friendly ratio / Desktop Layout: wide-card ratio
+                      final ratio = w >= 1100 ? 1.8 : w >= 850 ? 1.3 : (w < 600 ? 1.0 : 1.3);
                       return GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: cols,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        childAspectRatio: Responsive.isDesktop(context) ? 1.8 : 1.3,
+                        // Desktop Layout: 8px spacing / Mobile Layout: 6px spacing
+                        crossAxisSpacing: w < 600 ? 6 : 8,
+                        mainAxisSpacing: w < 600 ? 6 : 8,
+                        childAspectRatio: ratio,
                         children: [
                           _reportCard(
                             title: 'Lecture Report',
@@ -345,62 +349,80 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
-  }) => Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.04),
-          blurRadius: 20,
-          offset: const Offset(0, 10),
-        ),
-      ],
-    ),
-    child: Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
+  }) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(Responsive.isDesktop(context) ? 20 : 12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            // Desktop Layout: 24px / Mobile Layout: 12px
+            padding: EdgeInsets.all(
+              Responsive.isDesktop(context) ? 24 : (isMobile ? 12 : 16),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  // Desktop Layout: 20px icon padding / Mobile Layout: 10px icon padding
+                  padding: EdgeInsets.all(
+                    Responsive.isDesktop(context) ? 20 : (isMobile ? 10 : 12),
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    icon,
+                    // Desktop Layout: 44px / Mobile Layout: 24px
+                    size: Responsive.isDesktop(context) ? 44 : (isMobile ? 24 : 28),
+                    color: color,
+                  ),
                 ),
-                child: Icon(icon, size: Responsive.isDesktop(context) ? 44 : 28, color: color),
-              ),
-              SizedBox(height: Responsive.isDesktop(context) ? 20 : 14),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: Responsive.isDesktop(context) ? 18 : 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkColor,
+                SizedBox(
+                  height: Responsive.isDesktop(context) ? 20 : (isMobile ? 8 : 14),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: Responsive.isDesktop(context) ? 13 : 10,
-                  color: AppColors.darkColor.withOpacity(0.5),
-                  height: 1.2,
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    // Desktop Layout: 18px / Mobile Layout: 12px
+                    fontSize: Responsive.isDesktop(context) ? 18 : (isMobile ? 12 : 14),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkColor,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    // Desktop Layout: 13px / Mobile Layout: 9px
+                    fontSize: Responsive.isDesktop(context) ? 13 : (isMobile ? 9 : 10),
+                    color: AppColors.darkColor.withOpacity(0.5),
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _actionCard({
     required String title,

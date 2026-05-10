@@ -804,19 +804,19 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
         child: Container(
           constraints: BoxConstraints(
             maxWidth: Responsive.isDesktop(context) ? 700 : double.infinity,
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
+            maxHeight: MediaQuery.of(context).size.height * (Responsive.isMobile(context) ? 0.6 : 0.85),
           ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(32),
-              topRight: Radius.circular(32),
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
-                blurRadius: 20,
-                spreadRadius: 5,
+                blurRadius: 10,
+                spreadRadius: 2,
               ),
             ],
           ),
@@ -848,47 +848,47 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                           children: [
                             CircleAvatar(
                               backgroundColor: (doctor['color'] as Color).withOpacity(0.1),
-                              radius: 45,
+                              radius: Responsive.isMobile(context) ? 32 : 45,
                               child: Text(
                                 doctor['avatar'],
                                 style: TextStyle(
                                   color: doctor['color'] as Color,
-                                  fontSize: 32,
+                                  fontSize: Responsive.isMobile(context) ? 24 : 32,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Text(
                               doctor['name'],
-                              style: const TextStyle(
-                                fontSize: 24,
+                              style: TextStyle(
+                                fontSize: Responsive.isMobile(context) ? 20 : 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1D3557),
+                                color: const Color(0xFF1D3557),
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Doctor Profile',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Colors.grey[600],
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: (doctor['color'] as Color).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(25),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 'ID: ${doctor['id']}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: doctor['color'] as Color,
-                                  fontSize: 13,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
@@ -896,7 +896,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
                       // Information Section
                       Row(
@@ -913,14 +913,14 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                           const Text(
                             'General Information',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1D3557),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
 
                       _buildDetailItem(
                         icon: Icons.badge_outlined,
@@ -935,7 +935,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                         color: doctor['color'] as Color,
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
                       // Action Buttons
                       Row(
@@ -1009,23 +1009,23 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
     required Color color,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
               color: color,
-              size: 20,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1033,15 +1033,15 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: AppColors.darkColor.withOpacity(0.6),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

@@ -168,31 +168,35 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
         constraints: const BoxConstraints(maxWidth: 1200),
         child: LayoutBuilder(builder: (context, constraints) {
           final w = constraints.maxWidth;
+          // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
           final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+          final isMobile = w < 600; // Mobile Layout breakpoint
           if (cols > 1) {
             return GridView.builder(
-              padding: const EdgeInsets.all(16),
+              // Desktop Layout: generous padding / Mobile Layout: compact padding
+              padding: EdgeInsets.all(isMobile ? 12 : 16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: cols,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: cols == 3 ? 2.5 : 3.0,
+                mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
+                crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
+                childAspectRatio: cols == 3 ? 2.5 : 3.0, // Desktop Layout
               ),
               itemCount: sessions.length,
-              itemBuilder: (context, index) => _buildSessionCard(sessions[index], type),
+              itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, isMobile: isMobile),
             );
           }
+          // Mobile Layout: single-column list
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
             itemCount: sessions.length,
-            itemBuilder: (context, index) => _buildSessionCard(sessions[index], type),
+            itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, isMobile: isMobile),
           );
         }),
       ),
     );
   }
 
-  Widget _buildSessionCard(dynamic session, String type) {
+  Widget _buildSessionCard(dynamic session, String type, {bool isMobile = false}) {
     final sessionId = session['id']?.toString() ?? session['sessionId']?.toString() ?? '0';
     final title = session['title'] ?? '$type #$sessionId';
 
@@ -213,37 +217,56 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
           );
         },
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          // Mobile Layout: compact padding / Desktop Layout: standard padding
+          padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                // Mobile Layout: compact icon container / Desktop Layout: standard icon container
+                padding: EdgeInsets.all(isMobile ? 10 : 12), // Mobile: 10 / Desktop: 12
                 decoration: BoxDecoration(
                   color: Colors.indigo.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.class_, color: Colors.indigo),
+                child: Icon(
+                  Icons.class_,
+                  color: Colors.indigo,
+                  // Mobile Layout: smaller icon / Desktop Layout: standard icon
+                  size: isMobile ? 20 : 24, // Mobile: 20 / Desktop: 24
+                ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.darkColor),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        // Mobile Layout: smaller title / Desktop Layout: standard title
+                        fontSize: isMobile ? 14 : 16, // Mobile: 14 / Desktop: 16
+                        color: AppColors.darkColor,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'ID: #$sessionId',
-                      style: TextStyle(color: AppColors.darkColor.withOpacity(0.5), fontSize: 13),
+                      style: TextStyle(
+                        color: AppColors.darkColor.withOpacity(0.5),
+                        fontSize: isMobile ? 11 : 13, // Mobile: 11 / Desktop: 13
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: isMobile ? 14 : 16, // Mobile: 14 / Desktop: 16
+                color: Colors.grey,
+              ),
             ],
           ),
         ),

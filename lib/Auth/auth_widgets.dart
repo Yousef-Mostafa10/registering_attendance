@@ -195,7 +195,7 @@ class AuthWidgets {
               prefixIcon: const Icon(Icons.lock, color: AppColors.primaryColor),
               suffixIcon: IconButton(
                 icon: Icon(
-                  obscureText ? Icons.visibility : Icons.visibility_off,
+                  obscureText ? Icons.visibility_off : Icons.visibility,
                   color: AppColors.primaryColor,
                 ),
                 onPressed: onToggle,

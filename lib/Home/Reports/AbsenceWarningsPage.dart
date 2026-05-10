@@ -122,24 +122,28 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
         Expanded(
           child: LayoutBuilder(builder: (context, constraints) {
             final w = constraints.maxWidth;
+            // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
             final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+            final isMobile = w < 600; // Mobile Layout breakpoint
             if (cols > 1) {
               return GridView.builder(
-                padding: const EdgeInsets.all(16),
+                // Desktop Layout: generous padding / Mobile Layout: compact padding
+                padding: EdgeInsets.all(isMobile ? 12 : 16),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: cols,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: cols == 3 ? 1.2 : 1.4,
+                  mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
+                  crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
+                  childAspectRatio: cols == 3 ? 1.2 : 1.4, // Desktop Layout
                 ),
                 itemCount: _warnings.length,
-                itemBuilder: (_, i) => _buildWarningCard(_warnings[i]),
+                itemBuilder: (_, i) => _buildWarningCard(_warnings[i], isMobile: isMobile),
               );
             }
+            // Mobile Layout: single-column list
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
               itemCount: _warnings.length,
-              itemBuilder: (_, i) => _buildWarningCard(_warnings[i]),
+              itemBuilder: (_, i) => _buildWarningCard(_warnings[i], isMobile: isMobile),
             );
           }),
         ),
@@ -147,7 +151,7 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
     );
   }
 
-  Widget _buildWarningCard(dynamic w) {
+  Widget _buildWarningCard(dynamic w, {bool isMobile = false}) {
     final String name = w['studentName'] ?? 'Unknown';
     final String code = w['universityCode'] ?? '—';
     final int attended = w['lectureAttended'] ?? w['attended'] ?? 0;
@@ -156,43 +160,96 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
     final double pct = total > 0 ? (attended / total) * 100 : 0;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      // Mobile Layout: compact margin / Desktop Layout: standard margin
+      margin: EdgeInsets.only(bottom: isMobile ? 8 : 12), // Mobile: 8 / Desktop: 12
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        // Mobile Layout: compact padding / Desktop Layout: standard padding
+        padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
         child: Column(children: [
           Row(children: [
             CircleAvatar(
+              // Mobile Layout: smaller avatar / Desktop Layout: standard avatar
+              radius: isMobile ? 18 : 20, // Mobile: 18 / Desktop: 20
               backgroundColor: AppColors.errorColor.withOpacity(0.1),
-              child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: const TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.bold)),
+              child: Text(
+                name.isNotEmpty ? name[0].toUpperCase() : '?',
+                style: TextStyle(
+                  color: AppColors.errorColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isMobile ? 8 : 12), // Mobile: 8 / Desktop: 12
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(name, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text('Code: $code', style: TextStyle(color: AppColors.darkColor.withOpacity(0.5), fontSize: 12)),
+              Text(
+                name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  // Mobile Layout: smaller name / Desktop Layout: standard name
+                  fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'Code: $code',
+                style: TextStyle(
+                  color: AppColors.darkColor.withOpacity(0.5),
+                  fontSize: isMobile ? 11 : 12, // Mobile: 11 / Desktop: 12
+                ),
+              ),
             ])),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(color: AppColors.errorColor.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-              child: Text('${pct.toStringAsFixed(0)}%',
-                  style: const TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.bold)),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 8 : 10, // Mobile: 8 / Desktop: 10
+                vertical: isMobile ? 4 : 5,    // Mobile: 4 / Desktop: 5
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.errorColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${pct.toStringAsFixed(0)}%',
+                style: TextStyle(
+                  color: AppColors.errorColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 12 : 13, // Mobile: 12 / Desktop: 13
+                ),
+              ),
             ),
           ]),
-          const SizedBox(height: 12),
+          SizedBox(height: isMobile ? 8 : 12), // Mobile: 8 / Desktop: 12
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: total > 0 ? attended / total : 0,
               backgroundColor: AppColors.errorColor.withOpacity(0.15),
               color: pct >= 75 ? Colors.green : (pct >= 50 ? Colors.orange : AppColors.errorColor),
-              minHeight: 8,
+              // Mobile Layout: slimmer bar / Desktop Layout: standard bar
+              minHeight: isMobile ? 6 : 8, // Mobile: 6 / Desktop: 8
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 6 : 8), // Mobile: 6 / Desktop: 8
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('Attended: $attended', style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.w600)),
-            Text('Absent: $absent', style: const TextStyle(color: AppColors.errorColor, fontSize: 13, fontWeight: FontWeight.w600)),
+            Text(
+              'Attended: $attended',
+              style: TextStyle(
+                color: Colors.green,
+                // Mobile Layout: smaller stat text / Desktop Layout: standard stat text
+                fontSize: isMobile ? 12 : 13, // Mobile: 12 / Desktop: 13
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              'Absent: $absent',
+              style: TextStyle(
+                color: AppColors.errorColor,
+                fontSize: isMobile ? 12 : 13, // Mobile: 12 / Desktop: 13
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ]),
         ]),
       ),

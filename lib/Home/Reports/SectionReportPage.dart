@@ -257,29 +257,33 @@ class _SectionReportPageState extends State<SectionReportPage> {
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
+      // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
       final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      final isMobile = w < 600; // Mobile Layout breakpoint
       if (cols > 1) {
         return GridView.builder(
-          padding: const EdgeInsets.all(16),
+          // Desktop Layout: generous padding / Mobile Layout: compact padding
+          padding: EdgeInsets.all(isMobile ? 12 : 16),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cols,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: cols == 3 ? 1.3 : 1.5,
+            mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
+            crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
+            childAspectRatio: cols == 3 ? 1.3 : 1.5, // Desktop Layout
           ),
           itemCount: _students.length,
-          itemBuilder: (_, i) => _studentCard(_students[i]),
+          itemBuilder: (_, i) => _studentCard(_students[i], isMobile: isMobile),
         );
       }
+      // Mobile Layout: single-column list with compact padding
       return ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
         itemCount: _students.length,
-        itemBuilder: (_, i) => _studentCard(_students[i]),
+        itemBuilder: (_, i) => _studentCard(_students[i], isMobile: isMobile),
       );
     });
   }
 
-  Widget _studentCard(Map<String, dynamic> s) {
+  Widget _studentCard(Map<String, dynamic> s, {bool isMobile = false}) {
     final String name = s['studentName'] ?? 'Unknown';
     final String code = s['universityCode'] ?? '—';
     final int attended = s['lectureAttended'] ?? s['sectionAttended'] ?? 0;
@@ -289,41 +293,48 @@ class _SectionReportPageState extends State<SectionReportPage> {
         : null;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: isMobile ? 8 : 12), // Mobile: 8 / Desktop: 12
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        // Mobile Layout: compact padding / Desktop Layout: standard padding
+        padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
         child: Column(
           children: [
             Row(
               children: [
                 CircleAvatar(
+                  // Mobile Layout: smaller avatar / Desktop Layout: standard avatar
+                  radius: isMobile ? 18 : 20, // Mobile: 18 / Desktop: 20
                   backgroundColor: _accent.withOpacity(0.1),
                   child: Text(
                     name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: _accent,
                       fontWeight: FontWeight.bold,
+                      fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: isMobile ? 8 : 12), // Mobile: 8 / Desktop: 12
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                          // Mobile Layout: smaller name / Desktop Layout: standard name
+                          fontSize: isMobile ? 13 : 15, // Mobile: 13 / Desktop: 15
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Code: $code',
                         style: TextStyle(
                           color: AppColors.darkColor.withOpacity(0.5),
-                          fontSize: 12,
+                          fontSize: isMobile ? 11 : 12, // Mobile: 11 / Desktop: 12
                         ),
                       ),
                     ],
@@ -331,9 +342,9 @@ class _SectionReportPageState extends State<SectionReportPage> {
                 ),
                 if (marks != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 8 : 10, // Mobile: 8 / Desktop: 10
+                      vertical: isMobile ? 4 : 5,    // Mobile: 4 / Desktop: 5
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.warningColor.withOpacity(0.1),
@@ -341,9 +352,10 @@ class _SectionReportPageState extends State<SectionReportPage> {
                     ),
                     child: Text(
                       '${marks.toStringAsFixed(1)} pts',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.warningColor,
                         fontWeight: FontWeight.bold,
+                        fontSize: isMobile ? 11 : 13, // Mobile: 11 / Desktop: 13
                       ),
                     ),
                   ),
@@ -353,8 +365,8 @@ class _SectionReportPageState extends State<SectionReportPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _miniStat('Attended', attended.toString(), Colors.green),
-                _miniStat('Absent', absent.toString(), AppColors.errorColor),
+                _miniStat('Attended', attended.toString(), Colors.green, isMobile: isMobile),
+                _miniStat('Absent', absent.toString(), AppColors.errorColor, isMobile: isMobile),
               ],
             ),
           ],
@@ -435,20 +447,21 @@ class _SectionReportPageState extends State<SectionReportPage> {
     ),
   );
 
-  Widget _miniStat(String label, String val, Color color) => Column(
+  Widget _miniStat(String label, String val, Color color, {bool isMobile = false}) => Column(
     children: [
       Text(
         val,
         style: TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 20,
+          // Mobile Layout: smaller value / Desktop Layout: standard value
+          fontSize: isMobile ? 16 : 20, // Mobile: 16 / Desktop: 20
           color: color,
         ),
       ),
       Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: isMobile ? 11 : 12, // Mobile: 11 / Desktop: 12
           color: AppColors.darkColor.withOpacity(0.5),
         ),
       ),

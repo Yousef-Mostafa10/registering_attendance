@@ -824,19 +824,19 @@ class _TAsListPageState extends State<TAsListPage> {
         child: Container(
           constraints: BoxConstraints(
             maxWidth: Responsive.isDesktop(context) ? 700 : double.infinity,
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
+            maxHeight: MediaQuery.of(context).size.height * (Responsive.isMobile(context) ? 0.65 : 0.85),
           ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(32),
-              topRight: Radius.circular(32),
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
-                blurRadius: 20,
-                spreadRadius: 5,
+                blurRadius: 10,
+                spreadRadius: 2,
               ),
             ],
           ),
@@ -868,40 +868,40 @@ class _TAsListPageState extends State<TAsListPage> {
                           children: [
                             CircleAvatar(
                               backgroundColor: (ta['color'] as Color).withOpacity(0.1),
-                              radius: 45,
+                              radius: Responsive.isMobile(context) ? 32 : 45,
                               child: Text(
                                 ta['avatar'],
                                 style: TextStyle(
                                   color: ta['color'] as Color,
-                                  fontSize: 32,
+                                  fontSize: Responsive.isMobile(context) ? 24 : 32,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Text(
                               ta['name'],
-                              style: const TextStyle(
-                                fontSize: 24,
+                              style: TextStyle(
+                                fontSize: Responsive.isMobile(context) ? 20 : 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1D3557),
+                                color: const Color(0xFF1D3557),
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Teaching Assistant Profile',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Colors.grey[600],
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: ta['status'] == 'Active'
                                         ? AppColors.successColor.withOpacity(0.1)
@@ -915,13 +915,13 @@ class _TAsListPageState extends State<TAsListPage> {
                                       color: ta['status'] == 'Active'
                                           ? AppColors.successColor
                                           : AppColors.errorColor,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: (ta['color'] as Color).withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(20),
@@ -941,7 +941,7 @@ class _TAsListPageState extends State<TAsListPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
                       // Information Section
                       Row(
@@ -958,14 +958,14 @@ class _TAsListPageState extends State<TAsListPage> {
                           const Text(
                             'General Information',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1D3557),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
 
                       _buildDetailItem(
                         icon: Icons.badge_outlined,
@@ -980,7 +980,7 @@ class _TAsListPageState extends State<TAsListPage> {
                         color: ta['color'] as Color,
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
                       // Action Buttons
                       Row(
@@ -1054,23 +1054,23 @@ class _TAsListPageState extends State<TAsListPage> {
     required Color color,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
               color: color,
-              size: 20,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1078,15 +1078,15 @@ class _TAsListPageState extends State<TAsListPage> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: AppColors.darkColor.withOpacity(0.6),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
