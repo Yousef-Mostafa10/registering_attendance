@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Enter your credentials to access the college attendance system',
+            AppLocalizations.of(context)!.enterYourDetails,
             style: TextStyle(
               fontSize: 16,
               color: AppColors.darkColor.withOpacity(0.7),

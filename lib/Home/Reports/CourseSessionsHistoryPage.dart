@@ -4,6 +4,7 @@ import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import '../../Auth/colors.dart';
 import '../../Auth/api_service.dart';
 import '../../Auth/auth_storage.dart';
+import '../../l10n/app_localizations.dart';
 import 'SessionAttendeesPage.dart';
 
 class CourseSessionsHistoryPage extends StatefulWidget {
@@ -101,7 +102,7 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
       appBar: AppBar(
-        title: const Text('Session History', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppLocalizations.of(context)!.sessionHistory, style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -110,9 +111,9 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
           indicatorColor: Colors.white,
           indicatorWeight: 4,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          tabs: const [
-            Tab(text: 'Lectures', icon: Icon(Icons.school)),
-            Tab(text: 'Sections', icon: Icon(Icons.science)),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.lecturesTab, icon: const Icon(Icons.school)),
+            Tab(text: AppLocalizations.of(context)!.sectionsTab, icon: const Icon(Icons.science)),
           ],
         ),
       ),
@@ -142,7 +143,7 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
           ElevatedButton(
             onPressed: _fetchSessions,
             style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-            child: const Text('Retry'),
+            child: Text(AppLocalizations.of(context)!.retry),
           ),
         ],
       ),
@@ -157,7 +158,10 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
           children: [
             Icon(Icons.history_toggle_off, size: 60, color: Colors.indigo.withOpacity(0.3)),
             const SizedBox(height: 16),
-            Text('No $type sessions found.', style: TextStyle(fontSize: 18, color: Colors.indigo.withOpacity(0.5))),
+            Text(
+              AppLocalizations.of(context)!.noSessionsFound,
+              style: TextStyle(fontSize: 18, color: Colors.indigo.withOpacity(0.5)),
+            ),
           ],
         ),
       );
@@ -168,35 +172,32 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
         constraints: const BoxConstraints(maxWidth: 1200),
         child: LayoutBuilder(builder: (context, constraints) {
           final w = constraints.maxWidth;
-          // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
           final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
-          final isMobile = w < 600; // Mobile Layout breakpoint
+          final isMobile = w < 600;
           if (cols > 1) {
             return GridView.builder(
-              // Desktop Layout: generous padding / Mobile Layout: compact padding
               padding: EdgeInsets.all(isMobile ? 12 : 16),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: cols,
-                mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
-                crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
-                childAspectRatio: cols == 3 ? 2.5 : 3.0, // Desktop Layout
+                mainAxisSpacing: isMobile ? 8 : 12,
+                crossAxisSpacing: isMobile ? 8 : 12,
+                childAspectRatio: cols == 3 ? 2.5 : 3.0,
               ),
               itemCount: sessions.length,
-              itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, isMobile: isMobile),
+              itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, sessions, isMobile: isMobile),
             );
           }
-          // Mobile Layout: single-column list
           return ListView.builder(
-            padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             itemCount: sessions.length,
-            itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, isMobile: isMobile),
+            itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, sessions, isMobile: isMobile),
           );
         }),
       ),
     );
   }
 
-  Widget _buildSessionCard(dynamic session, String type, {bool isMobile = false}) {
+  Widget _buildSessionCard(dynamic session, String type, List<dynamic> sessionsList, {bool isMobile = false}) {
     final sessionId = session['id']?.toString() ?? session['sessionId']?.toString() ?? '0';
     final title = session['title'] ?? '$type #$sessionId';
 
@@ -217,13 +218,11 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
           );
         },
         child: Padding(
-          // Mobile Layout: compact padding / Desktop Layout: standard padding
-          padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
+          padding: EdgeInsets.all(isMobile ? 12 : 16),
           child: Row(
             children: [
               Container(
-                // Mobile Layout: compact icon container / Desktop Layout: standard icon container
-                padding: EdgeInsets.all(isMobile ? 10 : 12), // Mobile: 10 / Desktop: 12
+                padding: EdgeInsets.all(isMobile ? 10 : 12),
                 decoration: BoxDecoration(
                   color: Colors.indigo.withOpacity(0.1),
                   shape: BoxShape.circle,
@@ -231,11 +230,10 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
                 child: Icon(
                   Icons.class_,
                   color: Colors.indigo,
-                  // Mobile Layout: smaller icon / Desktop Layout: standard icon
-                  size: isMobile ? 20 : 24, // Mobile: 20 / Desktop: 24
+                  size: isMobile ? 20 : 24,
                 ),
               ),
-              SizedBox(width: isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
+              SizedBox(width: isMobile ? 12 : 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,8 +242,7 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
                       title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        // Mobile Layout: smaller title / Desktop Layout: standard title
-                        fontSize: isMobile ? 14 : 16, // Mobile: 14 / Desktop: 16
+                        fontSize: isMobile ? 14 : 16,
                         color: AppColors.darkColor,
                       ),
                       maxLines: 1,
@@ -256,21 +253,207 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
                       'ID: #$sessionId',
                       style: TextStyle(
                         color: AppColors.darkColor.withOpacity(0.5),
-                        fontSize: isMobile ? 11 : 13, // Mobile: 11 / Desktop: 13
+                        fontSize: isMobile ? 11 : 13,
                       ),
                     ),
                   ],
                 ),
               ),
+              // Delete button
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: AppColors.errorColor,
+                  size: isMobile ? 20 : 22,
+                ),
+                tooltip: AppLocalizations.of(context)!.deleteSession,
+                onPressed: () => _showDeleteConfirmation(sessionId, title, sessionsList),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              SizedBox(width: isMobile ? 4 : 8),
               Icon(
                 Icons.arrow_forward_ios,
-                size: isMobile ? 14 : 16, // Mobile: 14 / Desktop: 16
+                size: isMobile ? 14 : 16,
                 color: Colors.grey,
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Shows a confirmation dialog before deleting a session
+  void _showDeleteConfirmation(String sessionId, String sessionTitle, List<dynamic> sessionsList) {
+    bool isDeleting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              titlePadding: EdgeInsets.zero,
+              title: Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: const BoxDecoration(
+                  color: AppColors.errorColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.delete_forever, color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      AppLocalizations.of(context)!.deleteSession,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        sessionTitle,
+                        style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 14),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+              content: Text(
+                AppLocalizations.of(context)!.deleteSessionWarning,
+                style: const TextStyle(fontSize: 15, color: AppColors.darkColor),
+                textAlign: TextAlign.center,
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: isDeleting ? null : () => Navigator.pop(dialogContext),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.cancel,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isDeleting
+                            ? null
+                            : () async {
+                                setDialogState(() => isDeleting = true);
+
+                                try {
+                                  final token = await AuthStorage.getToken() ?? '';
+                                  final result = await ApiService.deleteSession(
+                                    sessionId: sessionId,
+                                    token: token,
+                                  );
+
+                                  if (!mounted) return;
+
+                                  if (result['statusCode'] == 200) {
+                                    Navigator.pop(dialogContext);
+
+                                    // Remove from local list immediately
+                                    setState(() {
+                                      sessionsList.removeWhere((s) {
+                                        final id = s['id']?.toString() ?? s['sessionId']?.toString() ?? '';
+                                        return id == sessionId;
+                                      });
+                                    });
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(AppLocalizations.of(context)!.sessionDeletedSuccessfully),
+                                        backgroundColor: AppColors.successColor,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  } else {
+                                    setDialogState(() => isDeleting = false);
+                                    var errorMsg = result['body']?.toString() ?? 'Unknown error';
+                                    try {
+                                      final data = jsonDecode(result['body']);
+                                      if (data is Map && data['message'] != null) {
+                                        errorMsg = data['message'];
+                                      }
+                                    } catch (_) {}
+
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(AppLocalizations.of(context)!.deleteSessionError(errorMsg)),
+                                        backgroundColor: AppColors.errorColor,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  setDialogState(() => isDeleting = false);
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(AppLocalizations.of(context)!.deleteSessionError(e.toString())),
+                                      backgroundColor: AppColors.errorColor,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.errorColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: isDeleting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                AppLocalizations.of(context)!.delete,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

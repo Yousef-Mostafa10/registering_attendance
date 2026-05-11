@@ -334,7 +334,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Row(
                 children: [
                   const Text(

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../Auth/colors.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/api_service.dart';
-import '../widgets/AppInstructionsCard.dart';
+import '../l10n/app_localizations.dart';
 
 class ResetStudentsForNewYearPage extends StatefulWidget {
   final bool isTab;
@@ -28,14 +28,11 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
     final token = await AuthStorage.getToken();
     if (token == null) {
       if (!mounted) return;
-      _snack('Authentication token not found', Colors.red);
+      _snack(AppLocalizations.of(context)!.authenticationTokenNotFound, AppColors.errorColor);
       return;
     }
 
-    final ok = await _showConfirm(
-        'Reset entire system?',
-        '⚠️ This resets ALL student data system-wide to prepare for a new academic year.\nCannot be undone!',
-        'Yes, Reset System');
+    final ok = await _showResetConfirmDialog();
     if (!ok) return;
 
     if (!mounted) return;
@@ -49,19 +46,28 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
       final responseBody = response['body'] as String;
 
       if (statusCode == 200) {
-        String msg = '✅ System reset for new year successfully!';
-        try { final d = jsonDecode(responseBody); if (d['message'] != null) msg = '✅ ${d['message']}'; } catch (_) {}
+        String msg = AppLocalizations.of(context)!.resetSystemSuccess;
+        try {
+          final d = jsonDecode(responseBody);
+          if (d['message'] != null) msg = '✅ ${d['message']}';
+        } catch (_) {}
         
         if (!mounted) return;
         setState(() { _apiResponse = msg; _isSuccess = true; });
-        _snack(msg, Colors.green);
+        _snack(msg, AppColors.successColor);
       } else {
-        throw Exception('Failed ($statusCode)');
+        var errorMsg = 'Status $statusCode';
+        try {
+          final d = jsonDecode(responseBody);
+          if (d['message'] != null) errorMsg = d['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() { _apiResponse = 'Error: $e'; _isSuccess = false; });
-      _snack('Error: $e', Colors.red);
+      final errorText = e.toString().replaceFirst('Exception: ', '');
+      setState(() { _apiResponse = AppLocalizations.of(context)!.resetSystemError(errorText); _isSuccess = false; });
+      _snack(AppLocalizations.of(context)!.resetSystemError(errorText), AppColors.errorColor);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -74,31 +80,132 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
         behavior: SnackBarBehavior.floating));
   }
 
-  Future<bool> _showConfirm(String title, String body, String label) async {
-    final r = await showDialog<bool>(
+  Future<bool> _showResetConfirmDialog() async {
+    final result = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 26),
-          const SizedBox(width: 8),
-          Expanded(child: Text(title, style: const TextStyle(fontSize: 16, color: Colors.red))),
-        ]),
-        content: Text(body, style: const TextStyle(fontSize: 14)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            child: Text(label),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (dialogContext) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              titlePadding: EdgeInsets.zero,
+              title: Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: const BoxDecoration(
+                  color: AppColors.errorColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 36),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      AppLocalizations.of(context)!.resetSystemTitle,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.errorColor.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.resetSystemWarning,
+                      style: const TextStyle(fontSize: 14, color: AppColors.darkColor, height: 1.5),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // What will be preserved
+                  Row(
+                    children: [
+                      const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Users & Courses → Preserved',
+                          style: TextStyle(fontSize: 13, color: Colors.green.shade700, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.cancel_outlined, color: AppColors.errorColor, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Sessions, Attendance, Enrollments → Deleted',
+                          style: TextStyle(fontSize: 13, color: AppColors.errorColor, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.cancel,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext, true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.errorColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.proceedReset,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+      },
     );
-    return r ?? false;
+    return result ?? false;
   }
 
   Widget _buildResponseCard() => AnimatedContainer(
@@ -138,14 +245,15 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40))),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: const Text('Reset For New Year',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+              title: Text(AppLocalizations.of(context)!.resetStudentsNewYear,
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft, end: Alignment.bottomRight,
-                    colors: [AppColors.errorColor, const Color(0xFFD65F51)]))),
+                    colors: [AppColors.errorColor, const Color(0xFFD65F51)])),
+              ),
             ),
           ),
 
@@ -153,6 +261,10 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (_apiResponse != null) ...[
+                _buildResponseCard(),
+                const SizedBox(height: 16),
+              ],
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -170,7 +282,7 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Full System Reset',
+                      AppLocalizations.of(context)!.fullSystemReset,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -179,7 +291,7 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Resets the entire system for the new academic year.',
+                      AppLocalizations.of(context)!.resetSystemDescription,
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.darkColor.withOpacity(0.6),
@@ -192,7 +304,7 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
                       child: ElevatedButton.icon(
                         onPressed: _isLoading ? null : _systemReset,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.errorColor, // Use the orange/red app color
+                          backgroundColor: AppColors.errorColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
@@ -209,9 +321,9 @@ class _ResetStudentsForNewYearPageState extends State<ResetStudentsForNewYearPag
                                 height: 24,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Text(
-                                'Reset Entire System',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)!.resetEntireSystem,
+                                style: const TextStyle(
                                   fontSize: 16, 
                                   fontWeight: FontWeight.bold,
                                 ),

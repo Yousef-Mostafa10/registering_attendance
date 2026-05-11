@@ -4,11 +4,14 @@ import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+import '../Auth/api_service.dart';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 import '../core/responsive.dart';
+import '../l10n/app_localizations.dart';
 
 class TAsListPage extends StatefulWidget {
-  const TAsListPage({Key? key}) : super(key: key);
+  TAsListPage({Key? key}) : super(key: key);
 
   @override
   _TAsListPageState createState() => _TAsListPageState();
@@ -307,8 +310,8 @@ class _TAsListPageState extends State<TAsListPage> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              title: const Text(
-                    'Teaching Assistants',
+              title: Text(
+                    AppLocalizations.of(context)!.teachingAssistantsList,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -330,7 +333,7 @@ class _TAsListPageState extends State<TAsListPage> {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 16),
+                    padding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
                     child: Align(
                       alignment: Alignment.bottomLeft,
                       child: StreamBuilder<List<Map<String, dynamic>>>(
@@ -344,7 +347,7 @@ class _TAsListPageState extends State<TAsListPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${filteredTAs.length} TA${filteredTAs.length != 1 ? 's' : ''}',
+                                AppLocalizations.of(context)!.taCount(filteredTAs.length.toString()),
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 14,
@@ -352,7 +355,7 @@ class _TAsListPageState extends State<TAsListPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Auto-refresh every 30 seconds',
+                                AppLocalizations.of(context)!.autoRefresh30,
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.7),
                                   fontSize: 10,
@@ -400,7 +403,7 @@ class _TAsListPageState extends State<TAsListPage> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search TAs...',
+                          hintText: AppLocalizations.of(context)!.searchTAs,
                           hintStyle: TextStyle(
                             color: AppColors.darkColor.withOpacity(0.4),
                           ),

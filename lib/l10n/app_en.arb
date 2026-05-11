@@ -2,7 +2,8 @@
   "@@locale": "en",
   "appName": "College Attendance System",
   "appDescription": "A new Flutter project.",
-
+  "studentAttendanceApplication": "Student Attendance Application",
+  "forAssistanceContactIT": "For assistance, please contact your university IT department",
   "@section_auth": "Authentication & Activation",
   "login": "Login",
   "activate": "Activate Account",
@@ -12,7 +13,7 @@
   "email": "Email",
   "enterEmail": "Enter your email",
   "universityEmail": "University Email",
-  "enterUniversityEmail": "Enter your email",
+  "enterUniversityEmail": "Enter university email",
   "password": "Password",
   "enterPassword": "Enter your password",
   "newPassword": "New Password",
@@ -39,7 +40,6 @@
   "authenticationRequired": "Authentication Required",
   "accountNotFound": "Account not found. Check your university code.",
   "tooManyAttempts": "Too many attempts. Please wait a moment and try again.",
-
   "@section_dashboard": "Dashboard",
   "dashboard": "Dashboard",
   "collegeAttendanceSystem": "College Attendance System",
@@ -51,7 +51,7 @@
   "loadingStatistics": "Loading statistics...",
   "updatesAutomatically": "Updates automatically every 30 seconds",
   "myCourses": "My Courses",
-  "coursesList": "Courses List",
+  "coursesList": "List Courses",
   "noAccessPermission": "No Access Permission",
   "connectionError": "Connection Error",
   "noDataAvailable": "No Data Available",
@@ -61,7 +61,11 @@
   "tas": "TAs",
   "students": "Students",
   "courses": "Courses",
-
+  "totalCourses": "Total Courses",
+  "totalStudents": "Total Students",
+  "searchCourses": "Search courses...",
+  "noCoursesAssigned": "No courses assigned yet",
+  "noCoursesMatch": "No courses match your search",
   "@section_staff_management": "Staff Management",
   "staffManagement": "Staff Management",
   "createDoctorTA": "Create Dr,TA",
@@ -93,7 +97,6 @@
   "taAccountCreatedSuccessfully": "Teaching assistant account created successfully",
   "exit": "Exit",
   "authenticationTokenNotFound": "Authentication token not found",
-
   "@section_student_management": "Student Management",
   "studentManagement": "Student Management",
   "bulkCreateStudents": "Bulk Create Students",
@@ -114,11 +117,7 @@
   "addStudentManually": "Add Student",
   "studentName": "Student Name",
   "enterStudentName": "Enter student full name",
-  "universityCode": "University Code",
   "studentCode": "Student Code",
-  "email": "Email",
-  "universityEmail": "University Email",
-  "enterUniversityEmail": "Enter university email",
   "studentsToAdd": "Students to Add",
   "ready": "Ready",
   "studentAdded": "Student added to list",
@@ -129,28 +128,37 @@
   "importedStudents": "Imported {count} students, skipped {skipped} rows.",
   "@importedStudents": {
     "placeholders": {
-      "count": {"type": "int"},
-      "skipped": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
     }
   },
   "importFailed": "Import failed: {error}",
   "@importFailed": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "errorCreatingStudents": "Error creating students: {error}",
   "@errorCreatingStudents": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
-  "deleteUser": "Delete User",
   "confirmDeletion": "Confirm Deletion",
   "areYouSurDeleteUser": "Are you sure you want to delete user with code: {code}?",
   "@areYouSurDeleteUser": {
     "placeholders": {
-      "code": {"type": "String"}
+      "code": {
+        "type": "String"
+      }
     }
   },
   "dangerZone": "⚠️ Danger Zone",
@@ -164,11 +172,9 @@
   "cancel": "Cancel",
   "delete": "Delete",
   "deleteUserSuccessfully": "User deleted successfully!",
-
   "@section_course_management": "Course Management",
   "courseManagement": "Course Management",
   "createCourse": "Create Course",
-  "coursesList": "List Courses",
   "assignStaff": "Assign Staff",
   "assignStaffToCourse": "Assign Staff to Course",
   "assignDoctorOrTA": "Assign Doctor or TA",
@@ -212,8 +218,6 @@
   "courseEnrollmentStep4": "Click \"Enroll Student\" to finalize the registration.",
   "pleaseBothCodes": "Please enter both codes.",
   "pleaseFixErrorsForm": "Please fix the errors in the form",
-  "enrollStudent": "Enroll Student",
-
   "@section_session_management": "Session Management",
   "sessionManagement": "Session Management",
   "startNewSession": "Start New Session",
@@ -244,7 +248,6 @@
   "sessionCreationSteps": "Session Creation Steps",
   "courseInformation": "Course Information",
   "course": "Course",
-
   "@section_attendance": "Attendance",
   "attendance": "Attendance",
   "registerAttendance": "Register Attendance",
@@ -260,7 +263,9 @@
   "pinAutoChangeSeconds": "PIN and QR automatically change every {seconds} seconds",
   "@pinAutoChangeSeconds": {
     "placeholders": {
-      "seconds": {"type": "int"}
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "fullScreen": "Full Screen",
@@ -274,7 +279,6 @@
   "attendanceDeletedSuccessfully": "Attendance deleted successfully",
   "studentAddedSuccessfully": "Student added successfully",
   "attendanceIsClosed": "Attendance is Closed",
-
   "@section_reports": "Reports & Analytics",
   "reports": "Reports",
   "lectureReport": "Lecture Report",
@@ -294,26 +298,34 @@
   "totalLectures": "Total Lectures: {count}",
   "@totalLectures": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "marks": "Marks: {marks}",
   "@marks": {
     "placeholders": {
-      "marks": {"type": "String"}
+      "marks": {
+        "type": "String"
+      }
     }
   },
   "totalSections": "Total Sections: {count}",
   "@totalSections": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "exportToExcel": "Export to Excel",
   "exportFailed": "Export failed: {error}",
   "@exportFailed": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "searchByNameCode": "Search by name or university code...",
@@ -321,7 +333,9 @@
   "studentEnrolled": "{count} student(s) enrolled",
   "@studentEnrolled": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "absenceWarningsPageTitle": "Absence Warnings",
@@ -331,7 +345,6 @@
   "noStudentsAttendedYet": "No students attended yet",
   "noSessionsFound": "No sessions found.",
   "noStudentsFound": "No students found",
-
   "@section_general": "General UI",
   "confirmPassword": "Confirm Password",
   "refresh": "Refresh",
@@ -352,14 +365,18 @@
   "errorStopping": "Error stopping session: {error}",
   "@errorStopping": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "changeAllowedScanDistance": "Change the allowed scanning distance for students (in meters).",
   "meters": "{count} meters",
   "@meters": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "radiusUpdatedSuccessfully": "Radius updated successfully!",
@@ -369,9 +386,107 @@
   "alreadyClosed": "Session is already closed.",
   "alreadyActive": "This session is already active.",
   "conflictingSession": "A conflicting session already exists for this course.",
-
   "@section_language": "Language",
   "language": "Language",
   "english": "English",
-  "arabic": "العربية"
+  "arabic": "العربية",
+  "doctorsList": "Doctors List",
+  "teachingAssistantsList": "Teaching Assistants List",
+  "doctorsCount": "{count} Doctors",
+  "@doctorsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "taCount": "{count} Teaching Assistants",
+  "@taCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "autoRefresh30": "Auto-refresh every 30 seconds",
+  "searchDoctors": "...Search doctors",
+  "searchTAs": "...Search TAs",
+  "passwordReqs": "Password requirements:",
+  "atLeast6Chars": "At least 6 characters",
+  "howToDeleteStudents": "How to delete students",
+  "deleteOption1": "Option 1: Use \"Import from Excel\" to upload a .xlsx file containing a \"University Code\" column",
+  "deleteOption2": "Option 2: Manually enter university codes one by one in the \"Add Manually\" section",
+  "deleteOption3": "Review the compiled list of students below.",
+  "deleteOption4": "Click \"Delete Students\" to permanently remove them from the system",
+  "deleteOption5": "Warning: This action cannot be undone",
+  "uploadExcelHint": "Upload an Excel file with a column named \"university code\" or \"code\"",
+  "clearBtn": "Clear",
+  "addManually": "Add Manually",
+  "enterCodeAndPressAdd": "Enter a university code and press Add",
+  "addBtn": "Add",
+  "addStudentsBulkSubtitle": "Add students one by one or in bulk",
+  "howToCreateStudents": "How to create students",
+  "createOption1": "Option 1: Use \"Import from Excel\" to upload a .xlsx file with \"Name\", \"University Email\", and \"University Code\" columns",
+  "createOption2": "Option 2: Use the manual \"Add Student\" form to add students one by one to the list below",
+  "createOption3": "Review the \"Students to Add\" list below to ensure accuracy",
+  "createOption4": "Click \"Create Students\" to finalize and send to the server",
+  "uploadExcelCreateHint": "Upload an Excel file with columns: name, universityEmail, universityCode",
+  "addStudentBtn": "Add Student",
+  "scanQrCode": "Scan QR Code",
+  "enterPinCode": "Enter PIN Code",
+  "totalStats": "Total",
+  "absentStats": "Absent",
+  "attendedStats": "Attended",
+  "dangerAbsenceLimit": "Danger: You have exceeded the allowed absence limit (3) and may be deprived of exams",
+  "sectionsTab": "Sections",
+  "lecturesTab": "Lectures",
+  "activeSession": "Active Session",
+  "enterPinDescription": "Please enter the 4-digit PIN provided by the Doctor to register your attendance",
+  "enterPinTitle": "Enter PIN",
+  "pinCodeLabel": "PIN Code",
+  "submitPinBtn": "Submit PIN",
+  "reassignDoctor": "Reassign Doctor",
+  "reassignDoctorSubtitle": "Transfer course to another doctor",
+  "newDoctorCode": "New Doctor Code",
+  "enterNewDoctorCode": "e.g., DOC-XXXX",
+  "confirm": "Confirm",
+  "reassignSuccess": "Doctor reassigned successfully!",
+  "reassignError": "Failed to reassign doctor: {error}",
+  "@reassignError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pleaseEnterDoctorCode": "Please enter the new doctor's university code",
+  "viewDashboard": "View Dashboard",
+  "viewDashboardSubtitle": "Analytics and session management",
+  "deleteSession": "Delete Session",
+  "deleteSessionWarning": "Are you sure you want to delete this session? This action cannot be undone.",
+  "sessionDeletedSuccessfully": "Session deleted successfully!",
+  "deleteSessionError": "Failed to delete session: {error}",
+  "@deleteSessionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSystemTitle": "Reset System for New Year",
+  "resetSystemSubtitle": "Prepare the system for a new academic year",
+  "fullSystemReset": "Full System Reset",
+  "resetSystemDescription": "Resets the entire system for the new academic year. This will clear all attendance records and session data while preserving user accounts and courses.",
+  "resetSystemWarning": "⚠️ Critical Warning: This will permanently delete ALL attendance records, session history, and enrollment data from the previous academic year. User accounts and courses will be preserved. This action is irreversible.",
+  "proceedReset": "Proceed and Reset",
+  "resetEntireSystem": "Reset Entire System",
+  "resetSystemSuccess": "System reset for new year completed successfully!",
+  "resetSystemError": "Failed to reset system: {error}",
+  "@resetSystemError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

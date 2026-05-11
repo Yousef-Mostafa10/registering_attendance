@@ -14,6 +14,8 @@ import 'auth_storage.dart';
 import 'auth_widgets.dart';
 import '../core/http_interceptor.dart' as http;
 import 'api_service.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/language_toggle_button.dart';
 class ActivationLoginPage extends StatefulWidget {
   final bool showLogin;
   const ActivationLoginPage({Key? key, this.showLogin = false})
@@ -293,6 +295,20 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
                 ),
                 child: Column(
                   children: [
+                    // Top Bar with Language Toggle
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        LanguageToggleButton(
+                          textColor: AppColors.primaryColor,
+                          onLocaleChanged: () {
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
                     // App logo and title
                     const SizedBox(height: 20),
                     Container(
@@ -316,16 +332,16 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'College Attendance System',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.collegeAttendanceSystem,
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkColor,
                       ),
                     ),
                     Text(
-                      'Student Attendance Application',
+                      AppLocalizations.of(context)!.studentAttendanceApplication,
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.darkColor.withOpacity(0.7),
@@ -370,7 +386,7 @@ class _ActivationLoginPageState extends State<ActivationLoginPage>
                     // Additional information
                     const SizedBox(height: 30),
                     Text(
-                      'For assistance, please contact your university IT department',
+                      AppLocalizations.of(context)!.forAssistanceContactIT,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,

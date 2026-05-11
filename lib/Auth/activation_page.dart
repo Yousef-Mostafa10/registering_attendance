@@ -178,7 +178,7 @@ class _ActivationPageState extends State<ActivationPage> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Enter your details to activate your college attendance account',
+            AppLocalizations.of(context)!.enterDetailsToActivate,
             style: TextStyle(
               fontSize: 16,
               color: AppColors.darkColor.withOpacity(0.7),

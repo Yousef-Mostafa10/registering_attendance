@@ -217,7 +217,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context) 
                   ? const EdgeInsets.only(bottom: 20) 
-                  : const EdgeInsets.only(left: 20, bottom: 16),
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Text(
                     _isDoctor ? AppLocalizations.of(context)!.createDoctorAccount : AppLocalizations.of(context)!.createTAAccount,
                     style: TextStyle(
@@ -255,7 +255,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   children: [
                     // Title
                     Text(
-                      'Create New Account',
+                      AppLocalizations.of(context)!.createNewAccount,
                       style: TextStyle(
                         fontSize: Responsive.isDesktop(context) ? 32 : 24,
                         fontWeight: FontWeight.bold,
@@ -264,7 +264,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Fill in the details to create a new account',
+                      AppLocalizations.of(context)!.fillDetailsToCreate,
                       style: TextStyle(
                         fontSize: Responsive.isDesktop(context) ? 16 : 14,
                         color: AppColors.darkColor.withOpacity(0.6),
@@ -273,13 +273,13 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     const SizedBox(height: 32),
                     
                     AppInstructionsCard(
-                      title: 'Account Creation Steps',
-                      instructions: const [
-                        'Select the Account Type (Doctor or Teaching Assistant).',
-                        'Enter the full name of the staff member.',
-                        'Provide a valid email address.',
-                        'Set a secure password (minimum 6 characters).',
-                        'Click the Create button to finalize.',
+                      title: AppLocalizations.of(context)!.accountCreationSteps,
+                      instructions: [
+                        AppLocalizations.of(context)!.selectAccountType,
+                        AppLocalizations.of(context)!.enterFullName,
+                        AppLocalizations.of(context)!.provideValidEmail,
+                        AppLocalizations.of(context)!.setSecurePassword,
+                        AppLocalizations.of(context)!.clickCreateButton,
                       ],
                     ),
                     const SizedBox(height: 32),
@@ -291,8 +291,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     // Name Field
                     _buildTextField(
                       controller: _nameController,
-                      label: 'Full Name',
-                      hint: _isDoctor ? 'Enter doctor name' : 'Enter TA name',
+                      label: AppLocalizations.of(context)!.fullName,
+                      hint: _isDoctor ? AppLocalizations.of(context)!.enterDoctorName : AppLocalizations.of(context)!.enterTAName,
                       prefixIcon: Icons.person,
                       validator: _validateName,
                     ),
@@ -301,8 +301,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     // Email Field
                     _buildTextField(
                       controller: _emailController,
-                      label: 'Email Address',
-                      hint: 'Enter email address',
+                      label: AppLocalizations.of(context)!.emailAddress,
+                      hint: AppLocalizations.of(context)!.emailAddress,
                       prefixIcon: Icons.email,
                       keyboardType: TextInputType.emailAddress,
                       validator: _validateEmail,
@@ -349,7 +349,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                           ),
                         )
                             : Text(
-                          'Create ${_isDoctor ? 'Doctor' : 'TA'} Account',
+                          '${AppLocalizations.of(context)!.create} ${_isDoctor ? AppLocalizations.of(context)!.doctor : AppLocalizations.of(context)!.teachingAssistant} ${AppLocalizations.of(context)!.createAccount.split(' ')[1]}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -373,7 +373,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                           ),
                         ),
                         child: Text(
-                          'Cancel',
+                          AppLocalizations.of(context)!.cancel,
                           style: TextStyle(
                             color: AppColors.darkColor,
                             fontSize: 16,
@@ -440,7 +440,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Doctor',
+                        AppLocalizations.of(context)!.doctor,
                         style: TextStyle(
                           color: _isDoctor ? Colors.white : AppColors.darkColor,
                           fontWeight: FontWeight.bold,
@@ -482,7 +482,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Teaching\nAssistant',
+                        AppLocalizations.of(context)!.teachingAssistant,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: !_isDoctor ? Colors.white : AppColors.darkColor,
@@ -689,7 +689,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Password requirements:',
+          AppLocalizations.of(context)!.passwordReqs,
           style: TextStyle(
             fontSize: 12,
             color: AppColors.darkColor.withOpacity(0.6),
@@ -705,7 +705,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ),
             const SizedBox(width: 6),
             Text(
-              'At least 6 characters',
+              AppLocalizations.of(context)!.atLeast6Chars,
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.darkColor.withOpacity(0.6),

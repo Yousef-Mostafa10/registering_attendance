@@ -2,7 +2,8 @@
   "@@locale": "ar",
   "appName": "نظام تسجيل الحضور بالجامعة",
   "appDescription": "مشروع فلاتر جديد.",
-
+  "studentAttendanceApplication": "تطبيق حضور وغياب الطلاب",
+  "forAssistanceContactIT": "للمساعدة، يرجى التواصل مع قسم تكنولوجيا المعلومات في جامعتك",
   "@section_auth": "المصادقة والتفعيل",
   "login": "تسجيل الدخول",
   "activate": "تفعيل الحساب",
@@ -12,7 +13,7 @@
   "email": "البريد الإلكتروني",
   "enterEmail": "أدخل بريدك الإلكتروني",
   "universityEmail": "البريد الجامعي",
-  "enterUniversityEmail": "أدخل بريدك الإلكتروني",
+  "enterUniversityEmail": "أدخل البريد الجامعي",
   "password": "كلمة المرور",
   "enterPassword": "أدخل كلمة مرورك",
   "newPassword": "كلمة مرور جديدة",
@@ -39,11 +40,10 @@
   "authenticationRequired": "المصادقة مطلوبة",
   "accountNotFound": "الحساب غير موجود. تحقق من رمزك الجامعي.",
   "tooManyAttempts": "محاولات كثيرة جداً. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.",
-
   "@section_dashboard": "لوحة التحكم",
   "dashboard": "لوحة التحكم",
   "collegeAttendanceSystem": "نظام تسجيل الحضور بالجامعة",
-  "studentDashboard": "لوحة تحكم الطالب",
+  "studentDashboard": "لوحة الطالب",
   "adminDashboard": "لوحة تحكم الإدارة",
   "doctorDashboard": "لوحة تحكم الطبيب",
   "dashboardMenu": "قائمة لوحة التحكم",
@@ -61,7 +61,11 @@
   "tas": "معيدون",
   "students": "الطلاب",
   "courses": "المقررات",
-
+  "totalCourses": "إجمالي المقررات",
+  "totalStudents": "إجمالي الطلاب",
+  "searchCourses": "البحث في المقررات...",
+  "noCoursesAssigned": "لم يتم تعيين مقررات بعد",
+  "noCoursesMatch": "لا توجد مقررات تطابق بحثك",
   "@section_staff_management": "إدارة الموظفين",
   "staffManagement": "إدارة الموظفين",
   "createDoctorTA": "إنشاء د/م",
@@ -93,18 +97,17 @@
   "taAccountCreatedSuccessfully": "تم إنشاء حساب المعيد بنجاح",
   "exit": "خروج",
   "authenticationTokenNotFound": "لم يتم العثور على رمز المصادقة",
-
   "@section_student_management": "إدارة الطلاب",
   "studentManagement": "إدارة الطلاب",
-  "bulkCreateStudents": "إنشاء طلاب بكميات كبيرة",
+  "bulkCreateStudents": "إنشاء طلاب دفعة واحدة",
   "createMultipleStudents": "إنشاء عدة طلاب",
   "addStudentsOneByOne": "إضافة الطلاب واحداً تلو الآخر أو بكميات كبيرة",
-  "bulkDeleteStudents": "حذف طلاب بكميات كبيرة",
+  "bulkDeleteStudents": "حذف الطلاب دفعة واحدة",
   "resetAccounts": "إعادة تعيين الحسابات",
   "resetAccountsPage": "إعادة تعيين حسابات الطلاب",
   "resetStudentsNewYear": "إعادة تعيين الطلاب للسنة الجديدة",
-  "importFromExcel": "الاستيراد من إكسل",
-  "uploadExcel": "تحميل ملف إكسل",
+  "importFromExcel": "استيراد من إكسل",
+  "uploadExcel": "رفع ملف إكسل",
   "importExcel": "قم بتحميل ملف إكسل يحتوي على عمود باسم \"كود الجامعة\" أو \"الكود\"",
   "uploading": "جاري التحميل...",
   "importing": "جاري الاستيراد...",
@@ -114,11 +117,7 @@
   "addStudentManually": "إضافة طالب",
   "studentName": "اسم الطالب",
   "enterStudentName": "أدخل الاسم الكامل للطالب",
-  "universityCode": "الكود الجامعي",
   "studentCode": "كود الطالب",
-  "email": "البريد الإلكتروني",
-  "universityEmail": "البريد الجامعي",
-  "enterUniversityEmail": "أدخل البريد الجامعي",
   "studentsToAdd": "الطلاب المراد إضافتهم",
   "ready": "جاهز",
   "studentAdded": "تم إضافة الطالب إلى القائمة",
@@ -129,28 +128,37 @@
   "importedStudents": "تم استيراد {count} طلاب، تم تخطي {skipped} صفوف.",
   "@importedStudents": {
     "placeholders": {
-      "count": {"type": "int"},
-      "skipped": {"type": "int"}
+      "count": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
     }
   },
   "importFailed": "فشل الاستيراد: {error}",
   "@importFailed": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "errorCreatingStudents": "خطأ في إنشاء الطلاب: {error}",
   "@errorCreatingStudents": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
-  "deleteUser": "حذف مستخدم",
   "confirmDeletion": "تأكيد الحذف",
   "areYouSurDeleteUser": "هل أنت متأكد من رغبتك في حذف المستخدم برمز: {code}؟",
   "@areYouSurDeleteUser": {
     "placeholders": {
-      "code": {"type": "String"}
+      "code": {
+        "type": "String"
+      }
     }
   },
   "dangerZone": "⚠️ منطقة الخطر",
@@ -164,11 +172,9 @@
   "cancel": "إلغاء",
   "delete": "حذف",
   "deleteUserSuccessfully": "تم حذف المستخدم بنجاح!",
-
   "@section_course_management": "إدارة المقررات",
   "courseManagement": "إدارة المقررات",
   "createCourse": "إنشاء مقرر",
-  "coursesList": "قائمة المقررات",
   "assignStaff": "تعيين الموظفين",
   "assignStaffToCourse": "تعيين الموظفين للمقرر",
   "assignDoctorOrTA": "تعيين طبيب أو معيد",
@@ -212,8 +218,6 @@
   "courseEnrollmentStep4": "انقر فوق \"تسجيل الطالب\" لإنهاء التسجيل.",
   "pleaseBothCodes": "يرجى إدخال كلا الكودين.",
   "pleaseFixErrorsForm": "يرجى إصلاح الأخطاء في النموذج",
-  "enrollStudent": "تسجيل طالب",
-
   "@section_session_management": "إدارة الجلسات",
   "sessionManagement": "إدارة الجلسات",
   "startNewSession": "بدء جلسة جديدة",
@@ -244,13 +248,12 @@
   "sessionCreationSteps": "خطوات إنشاء الجلسة",
   "courseInformation": "معلومات المقرر",
   "course": "المقرر",
-
   "@section_attendance": "الحضور",
   "attendance": "الحضور",
   "registerAttendance": "تسجيل الحضور",
   "scanQRCode": "مسح رمز QR",
   "enterPINCode": "إدخال رمز PIN",
-  "activeSessionOpen": "جلسة نشطة مفتوحة!",
+  "activeSessionOpen": "!توجد جلسة نشطة الآن",
   "liveSession": "جلسة مباشرة",
   "liveAttendance": "الحضور المباشر",
   "attendeesCount": "عدد الحاضرين المباشر",
@@ -260,7 +263,9 @@
   "pinAutoChangeSeconds": "يتغير رمز PIN و QR تلقائياً كل {seconds} ثانية",
   "@pinAutoChangeSeconds": {
     "placeholders": {
-      "seconds": {"type": "int"}
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "fullScreen": "ملء الشاشة",
@@ -274,7 +279,6 @@
   "attendanceDeletedSuccessfully": "تم حذف الحضور بنجاح",
   "studentAddedSuccessfully": "تم إضافة الطالب بنجاح",
   "attendanceIsClosed": "انتهى الحضور",
-
   "@section_reports": "التقارير والتحليلات",
   "reports": "التقارير",
   "lectureReport": "تقرير المحاضرة",
@@ -294,26 +298,34 @@
   "totalLectures": "إجمالي المحاضرات: {count}",
   "@totalLectures": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "marks": "الدرجات: {marks}",
   "@marks": {
     "placeholders": {
-      "marks": {"type": "String"}
+      "marks": {
+        "type": "String"
+      }
     }
   },
   "totalSections": "إجمالي الأقسام: {count}",
   "@totalSections": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "exportToExcel": "تصدير إلى إكسل",
   "exportFailed": "فشل التصدير: {error}",
   "@exportFailed": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "searchByNameCode": "ابحث بالاسم أو الكود الجامعي...",
@@ -321,7 +333,9 @@
   "studentEnrolled": "{count} طالب(ة) مسجل(ة)",
   "@studentEnrolled": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "absenceWarningsPageTitle": "تحذيرات الغياب",
@@ -331,7 +345,6 @@
   "noStudentsAttendedYet": "لم يحضر أي طلاب حتى الآن",
   "noSessionsFound": "لم يتم العثور على أي جلسات.",
   "noStudentsFound": "لم يتم العثور على طلاب",
-
   "@section_general": "الواجهة العامة",
   "confirmPassword": "تأكيد كلمة المرور",
   "refresh": "تحديث",
@@ -352,14 +365,18 @@
   "errorStopping": "خطأ في إيقاف الجلسة: {error}",
   "@errorStopping": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "changeAllowedScanDistance": "تغيير مسافة المسح المسموحة للطلاب (بالأمتار).",
   "meters": "{count} متر",
   "@meters": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "radiusUpdatedSuccessfully": "تم تحديث النطاق بنجاح!",
@@ -369,9 +386,107 @@
   "alreadyClosed": "الجلسة مغلقة بالفعل.",
   "alreadyActive": "هذه الجلسة نشطة بالفعل.",
   "conflictingSession": "توجد جلسة متضاربة موجودة بالفعل لهذا المقرر.",
-
   "@section_language": "اللغة",
   "language": "اللغة",
   "english": "English",
-  "arabic": "العربية"
+  "arabic": "العربية",
+  "doctorsList": "قائمة الأطباء",
+  "teachingAssistantsList": "قائمة المعيدين",
+  "doctorsCount": "{count} أطباء",
+  "@doctorsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "taCount": "{count} معيدين",
+  "@taCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "autoRefresh30": "تحديث تلقائي كل 30 ثانية",
+  "searchDoctors": "...ابحث عن الأطباء",
+  "searchTAs": "...ابحث عن المعيدين",
+  "passwordReqs": ":متطلبات كلمة المرور",
+  "atLeast6Chars": "6 أحرف على الأقل",
+  "howToDeleteStudents": "كيفية حذف الطلاب",
+  "deleteOption1": "الخيار 1: استخدم \"استيراد من إكسل\" لرفع ملف .xlsx يحتوي على عمود \"كود الجامعة\"",
+  "deleteOption2": "الخيار 2: أدخل أكواد الجامعة يدوياً واحداً تلو الآخر في قسم \"إضافة يدوياً\"",
+  "deleteOption3": "راجع القائمة المجمعة للطلاب أدناه.",
+  "deleteOption4": "انقر على \"حذف الطلاب\" لإزالتهم نهائياً من النظام",
+  "deleteOption5": "تحذير: لا يمكن التراجع عن هذا الإجراء",
+  "uploadExcelHint": "قم برفع ملف إكسل يحتوي على عمود باسم \"university code\" أو \"code\"",
+  "clearBtn": "مسح",
+  "addManually": "إضافة يدوياً",
+  "enterCodeAndPressAdd": "أدخل كود الجامعة واضغط إضافة",
+  "addBtn": "إضافة",
+  "addStudentsBulkSubtitle": "أضف الطلاب واحداً تلو الآخر أو دفعة واحدة",
+  "howToCreateStudents": "كيفية إنشاء الطلاب",
+  "createOption1": "الخيار 1: استخدم \"استيراد من إكسل\" لرفع ملف .xlsx يحتوي على أعمدة \"Name\"، \"University Email\"، و \"University Code\"",
+  "createOption2": "الخيار 2: استخدم نموذج \"إضافة طالب\" اليدوي لإضافة الطلاب للقائمة أدناه",
+  "createOption3": "راجع قائمة \"الطلاب المراد إضافتهم\" أدناه لضمان الدقة",
+  "createOption4": "انقر على \"إنشاء الطلاب\" للإنهاء والإرسال للخادم",
+  "uploadExcelCreateHint": "قم برفع ملف إكسل بأعمدة: name, universityEmail, universityCode",
+  "addStudentBtn": "إضافة طالب",
+  "scanQrCode": "مسح رمز QR",
+  "enterPinCode": "إدخال كود PIN",
+  "totalStats": "الإجمالي",
+  "absentStats": "غياب",
+  "attendedStats": "حضور",
+  "dangerAbsenceLimit": "خطر: لقد تجاوزت الحد المسموح للغياب (3) وقد تُحرم من الامتحانات",
+  "sectionsTab": "سكاشن",
+  "lecturesTab": "محاضرات",
+  "activeSession": "الجلسة النشطة",
+  "enterPinDescription": "يرجى إدخال رمز الـ PIN المكون من 4 أرقام المقدم من الدكتور لتسجيل حضورك",
+  "enterPinTitle": "إدخال رمز PIN",
+  "pinCodeLabel": "رمز PIN",
+  "submitPinBtn": "إرسال رمز PIN",
+  "reassignDoctor": "نقل الكورس لدكتور آخر",
+  "reassignDoctorSubtitle": "نقل المقرر إلى دكتور آخر",
+  "newDoctorCode": "كود الدكتور الجديد",
+  "enterNewDoctorCode": "مثال: DOC-XXXX",
+  "confirm": "تأكيد",
+  "reassignSuccess": "تم نقل المقرر للدكتور بنجاح!",
+  "reassignError": "فشل نقل الدكتور: {error}",
+  "@reassignError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pleaseEnterDoctorCode": "يرجى إدخال الكود الجامعي للدكتور الجديد",
+  "viewDashboard": "عرض لوحة التحكم",
+  "viewDashboardSubtitle": "التحليلات وإدارة الجلسات",
+  "deleteSession": "حذف الجلسة",
+  "deleteSessionWarning": "هل أنت متأكد من حذف هذه الجلسة بالكامل؟ لا يمكن التراجع عن هذا الإجراء.",
+  "sessionDeletedSuccessfully": "تم حذف الجلسة بنجاح!",
+  "deleteSessionError": "فشل حذف الجلسة: {error}",
+  "@deleteSessionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetSystemTitle": "تهيئة النظام للعام الجديد",
+  "resetSystemSubtitle": "تحضير النظام للعام الدراسي الجديد",
+  "fullSystemReset": "إعادة تهيئة النظام بالكامل",
+  "resetSystemDescription": "يقوم بتهيئة النظام بالكامل للعام الدراسي الجديد. سيتم حذف جميع سجلات الحضور وبيانات الجلسات مع الحفاظ على حسابات المستخدمين والمقررات.",
+  "resetSystemWarning": "⚠️ تحذير خطير: سيتم حذف جميع سجلات الحضور وتاريخ الجلسات وبيانات التسجيل للعام الدراسي السابق بشكل نهائي. سيتم الحفاظ على حسابات المستخدمين والمقررات. لا يمكن التراجع عن هذا الإجراء.",
+  "proceedReset": "تأكيد التهيئة",
+  "resetEntireSystem": "تهيئة النظام بالكامل",
+  "resetSystemSuccess": "تمت تهيئة النظام للعام الجديد بنجاح!",
+  "resetSystemError": "فشل تهيئة النظام: {error}",
+  "@resetSystemError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

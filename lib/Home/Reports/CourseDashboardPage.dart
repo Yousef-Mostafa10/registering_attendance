@@ -114,15 +114,6 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                                 : CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'ID: ${widget.course['id']} • $courseCode',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
                                 courseName,
                                 textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.left,
                                 style: TextStyle(
@@ -142,14 +133,20 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                                 ),
                               ],
                               const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: Responsive.isDesktop(context) 
-                                    ? MainAxisAlignment.center 
-                                    : MainAxisAlignment.start,
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                alignment: Responsive.isDesktop(context) 
+                                    ? WrapAlignment.center 
+                                    : WrapAlignment.start,
                                 children: [
                                   _infoPill(
                                     Icons.people_outline,
                                     '$studentCountLabel Students',
+                                  ),
+                                  _infoPill(
+                                    Icons.tag,
+                                    'ID: ${widget.course['id']} • $courseCode',
                                   ),
                                 ],
                               ),
