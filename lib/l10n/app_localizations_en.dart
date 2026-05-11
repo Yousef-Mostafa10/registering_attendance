@@ -15,6 +15,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appDescription => 'A new Flutter project.';
 
   @override
+  String get studentAttendanceApplication => 'Student Attendance Application';
+
+  @override
+  String get forAssistanceContactIT =>
+      'For assistance, please contact your university IT department';
+
+  @override
   String get login => 'Login';
 
   @override
@@ -185,6 +192,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses => 'Courses';
+
+  @override
+  String get totalCourses => 'Total Courses';
+
+  @override
+  String get totalStudents => 'Total Students';
+
+  @override
+  String get searchCourses => 'Search courses...';
+
+  @override
+  String get noCoursesAssigned => 'No courses assigned yet';
+
+  @override
+  String get noCoursesMatch => 'No courses match your search';
 
   @override
   String get staffManagement => 'Staff Management';
@@ -929,4 +951,223 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arabic => 'العربية';
+
+  @override
+  String get doctorsList => 'Doctors List';
+
+  @override
+  String get teachingAssistantsList => 'Teaching Assistants List';
+
+  @override
+  String doctorsCount(String count) {
+    return '$count Doctors';
+  }
+
+  @override
+  String taCount(String count) {
+    return '$count Teaching Assistants';
+  }
+
+  @override
+  String get autoRefresh30 => 'Auto-refresh every 30 seconds';
+
+  @override
+  String get searchDoctors => '...Search doctors';
+
+  @override
+  String get searchTAs => '...Search TAs';
+
+  @override
+  String get passwordReqs => 'Password requirements:';
+
+  @override
+  String get atLeast6Chars => 'At least 6 characters';
+
+  @override
+  String get howToDeleteStudents => 'How to delete students';
+
+  @override
+  String get deleteOption1 =>
+      'Option 1: Use \"Import from Excel\" to upload a .xlsx file containing a \"University Code\" column';
+
+  @override
+  String get deleteOption2 =>
+      'Option 2: Manually enter university codes one by one in the \"Add Manually\" section';
+
+  @override
+  String get deleteOption3 => 'Review the compiled list of students below.';
+
+  @override
+  String get deleteOption4 =>
+      'Click \"Delete Students\" to permanently remove them from the system';
+
+  @override
+  String get deleteOption5 => 'Warning: This action cannot be undone';
+
+  @override
+  String get uploadExcelHint =>
+      'Upload an Excel file with a column named \"university code\" or \"code\"';
+
+  @override
+  String get clearBtn => 'Clear';
+
+  @override
+  String get addManually => 'Add Manually';
+
+  @override
+  String get enterCodeAndPressAdd => 'Enter a university code and press Add';
+
+  @override
+  String get addBtn => 'Add';
+
+  @override
+  String get addStudentsBulkSubtitle => 'Add students one by one or in bulk';
+
+  @override
+  String get howToCreateStudents => 'How to create students';
+
+  @override
+  String get createOption1 =>
+      'Option 1: Use \"Import from Excel\" to upload a .xlsx file with \"Name\", \"University Email\", and \"University Code\" columns';
+
+  @override
+  String get createOption2 =>
+      'Option 2: Use the manual \"Add Student\" form to add students one by one to the list below';
+
+  @override
+  String get createOption3 =>
+      'Review the \"Students to Add\" list below to ensure accuracy';
+
+  @override
+  String get createOption4 =>
+      'Click \"Create Students\" to finalize and send to the server';
+
+  @override
+  String get uploadExcelCreateHint =>
+      'Upload an Excel file with columns: name, universityEmail, universityCode';
+
+  @override
+  String get addStudentBtn => 'Add Student';
+
+  @override
+  String get scanQrCode => 'Scan QR Code';
+
+  @override
+  String get enterPinCode => 'Enter PIN Code';
+
+  @override
+  String get totalStats => 'Total';
+
+  @override
+  String get absentStats => 'Absent';
+
+  @override
+  String get attendedStats => 'Attended';
+
+  @override
+  String get dangerAbsenceLimit =>
+      'Danger: You have exceeded the allowed absence limit (3) and may be deprived of exams';
+
+  @override
+  String get sectionsTab => 'Sections';
+
+  @override
+  String get lecturesTab => 'Lectures';
+
+  @override
+  String get activeSession => 'Active Session';
+
+  @override
+  String get enterPinDescription =>
+      'Please enter the 4-digit PIN provided by the Doctor to register your attendance';
+
+  @override
+  String get enterPinTitle => 'Enter PIN';
+
+  @override
+  String get pinCodeLabel => 'PIN Code';
+
+  @override
+  String get submitPinBtn => 'Submit PIN';
+
+  @override
+  String get reassignDoctor => 'Reassign Doctor';
+
+  @override
+  String get reassignDoctorSubtitle => 'Transfer course to another doctor';
+
+  @override
+  String get newDoctorCode => 'New Doctor Code';
+
+  @override
+  String get enterNewDoctorCode => 'e.g., DOC-XXXX';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get reassignSuccess => 'Doctor reassigned successfully!';
+
+  @override
+  String reassignError(String error) {
+    return 'Failed to reassign doctor: $error';
+  }
+
+  @override
+  String get pleaseEnterDoctorCode =>
+      'Please enter the new doctor\'s university code';
+
+  @override
+  String get viewDashboard => 'View Dashboard';
+
+  @override
+  String get viewDashboardSubtitle => 'Analytics and session management';
+
+  @override
+  String get deleteSession => 'Delete Session';
+
+  @override
+  String get deleteSessionWarning =>
+      'Are you sure you want to delete this session? This action cannot be undone.';
+
+  @override
+  String get sessionDeletedSuccessfully => 'Session deleted successfully!';
+
+  @override
+  String deleteSessionError(String error) {
+    return 'Failed to delete session: $error';
+  }
+
+  @override
+  String get resetSystemTitle => 'Reset System for New Year';
+
+  @override
+  String get resetSystemSubtitle =>
+      'Prepare the system for a new academic year';
+
+  @override
+  String get fullSystemReset => 'Full System Reset';
+
+  @override
+  String get resetSystemDescription =>
+      'Resets the entire system for the new academic year. This will clear all attendance records and session data while preserving user accounts and courses.';
+
+  @override
+  String get resetSystemWarning =>
+      '⚠️ Critical Warning: This will permanently delete ALL attendance records, session history, and enrollment data from the previous academic year. User accounts and courses will be preserved. This action is irreversible.';
+
+  @override
+  String get proceedReset => 'Proceed and Reset';
+
+  @override
+  String get resetEntireSystem => 'Reset Entire System';
+
+  @override
+  String get resetSystemSuccess =>
+      'System reset for new year completed successfully!';
+
+  @override
+  String resetSystemError(String error) {
+    return 'Failed to reset system: $error';
+  }
 }

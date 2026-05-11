@@ -6,12 +6,13 @@ import '../main.dart' as app_main;
 /// LanguageToggleButton is a reusable widget that shows the current language
 /// and allows users to toggle between English and Arabic
 class LanguageToggleButton extends StatefulWidget {
-  /// Optional callback when locale changes
   final VoidCallback? onLocaleChanged;
+  final Color textColor;
   
   const LanguageToggleButton({
     Key? key,
     this.onLocaleChanged,
+    this.textColor = Colors.white,
   }) : super(key: key);
 
   @override
@@ -43,10 +44,10 @@ class _LanguageToggleButtonState extends State<LanguageToggleButton> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: widget.textColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
+                color: widget.textColor.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -57,14 +58,14 @@ class _LanguageToggleButtonState extends State<LanguageToggleButton> {
                   app_main.localeProvider.isArabic
                       ? Icons.translate
                       : Icons.language,
-                  color: Colors.white,
+                  color: widget.textColor,
                   size: 20,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   app_main.localeProvider.languageCode,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: widget.textColor,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),

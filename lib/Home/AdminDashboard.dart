@@ -376,7 +376,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context) 
                   ? const EdgeInsets.only(bottom: 16) 
-                  : const EdgeInsets.only(left: 20, bottom: 16),
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -396,8 +396,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${widget.role} Dashboard',
-                          style: TextStyle(
+                          widget.role == 'Admin' ? AppLocalizations.of(context)!.adminDashboard : (widget.role == 'Doctor' ? AppLocalizations.of(context)!.doctorDashboard : '${widget.role} Dashboard'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -511,7 +511,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome ${widget.role},',
+                            '${AppLocalizations.of(context)!.welcome} ${widget.role},',
                             style: TextStyle(
                               fontSize: 16,
                               color: AppColors.darkColor.withOpacity(0.7),
@@ -549,7 +549,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Loading statistics...',
+                                AppLocalizations.of(context)!.loadingStatistics,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.darkColor.withOpacity(0.6),
@@ -564,7 +564,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                   snapshot.data!.containsKey('error') &&
                                   snapshot.data!['error'] != null) {
                                 return Text(
-                                  'Auto-refresh every 30 seconds',
+                                  AppLocalizations.of(context)!.updatesAutomatically,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.darkColor.withOpacity(0.5),
@@ -601,7 +601,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   // عرض حالة الخطأ
                   if (snapshot.hasError) {
                     return _buildErrorStatsGrid(
-                      message: 'Connection Error',
+                      message: AppLocalizations.of(context)!.connectionError,
                       onRetry: _fetchStatistics,
                     );
                   }
@@ -609,7 +609,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   // عرض حالة لا توجد بيانات
                   if (!snapshot.hasData) {
                     return _buildErrorStatsGrid(
-                      message: 'No Data Available',
+                      message: AppLocalizations.of(context)!.noDataAvailable,
                       onRetry: _fetchStatistics,
                     );
                   }
@@ -619,14 +619,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   // التحقق من وجود أخطاء
                   if (stats.containsKey('error') && stats['error'] != null) {
                     if (stats['error'] == 'api_403' || widget.role != 'Admin') {
-                      return _buildForbiddenStatsGrid(message: 'No Access Permission');
+                      return _buildForbiddenStatsGrid(message: AppLocalizations.of(context)!.noAccessPermission);
                     }
                     
-                    String errorMessage = 'Network Error';
+                    String errorMessage = AppLocalizations.of(context)!.networkError;
                     if (stats['error'] == 'no_token') {
-                      errorMessage = 'Authentication Required';
+                      errorMessage = AppLocalizations.of(context)!.authenticationRequired;
                     } else if (stats['error'] == 'unauthorized') {
-                      errorMessage = 'Session Expired';
+                      errorMessage = AppLocalizations.of(context)!.sessionExpired;
                     }
 
                     return _buildErrorStatsGrid(
@@ -652,7 +652,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       const SizedBox(height: 8),
                       // رسالة تلقائية للـ auto-refresh
                       Text(
-                        'Updates automatically every 30 seconds',
+                        AppLocalizations.of(context)!.updatesAutomatically,
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.darkColor.withOpacity(0.4),
@@ -668,11 +668,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
           // Main Categories Menu
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(left: 20, top: 30, right: 20, bottom: 10),
+              padding: const EdgeInsetsDirectional.only(start: 20, top: 30, end: 20, bottom: 10),
               child: Text(
-                'Dashboard Menu',
+                AppLocalizations.of(context)!.dashboardMenu,
                 textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.start,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkColor,
@@ -800,10 +800,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
           runSpacing: 12,
           alignment: WrapAlignment.center,
           children: [
-            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.groups, title: 'Doctors', count: '-', color: Colors.grey)),
-            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.school, title: 'TAs', count: '-', color: Colors.grey)),
-            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.people, title: 'Students', count: '-', color: Colors.grey)),
-            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.book_online, title: 'Courses', count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.groups, title: AppLocalizations.of(context)!.doctors, count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.school, title: AppLocalizations.of(context)!.tas, count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.people, title: AppLocalizations.of(context)!.students, count: '-', color: Colors.grey)),
+            SizedBox(width: _statCardWidth(context), child: _buildCompactStatCard(icon: Icons.book_online, title: AppLocalizations.of(context)!.courses, count: '-', color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 12),
@@ -845,7 +845,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.groups,
-            title: 'Doctors',
+            title: AppLocalizations.of(context)!.doctors,
             count: doctors.toString(),
             color: AppColors.primaryColor,
           ),
@@ -854,7 +854,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.school,
-            title: 'TAs',
+            title: AppLocalizations.of(context)!.tas,
             count: tas.toString(),
             color: Colors.blueGrey,
           ),
@@ -863,7 +863,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.people,
-            title: 'Students',
+            title: AppLocalizations.of(context)!.students,
             count: students.toString(),
             color: AppColors.successColor,
           ),
@@ -872,7 +872,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           width: _statCardWidth(context),
           child: _buildCompactStatCard(
             icon: Icons.book_online,
-            title: 'Courses',
+            title: AppLocalizations.of(context)!.courses,
             count: courses.toString(),
             color: AppColors.accentColor,
           ),
@@ -977,24 +977,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
     
     if (widget.role == 'Admin') {
       categories.add({
-        'title': 'Staff Management',
+        'title': AppLocalizations.of(context)!.staffManagement,
         'icon': Icons.people_alt,
         'color': Colors.blue,
         'operations': [
           {
-            'title': 'Create Dr,TA',
+            'title': AppLocalizations.of(context)!.createDoctorTA,
             'icon': Icons.person_add,
             'color': AppColors.primaryColor,
             'page': () => CreateAccountPage(),
           },
           {
-            'title': 'List Doctors',
+            'title': AppLocalizations.of(context)!.listDoctors,
             'icon': Icons.list,
             'color': AppColors.primaryColor.withOpacity(0.8),
             'page': () => DoctorsListPage(),
           },
           {
-            'title': 'List TAs',
+            'title': AppLocalizations.of(context)!.listTAs,
             'icon': Icons.list,
             'color': AppColors.warningColor,
             'page': () => TAsListPage(),
@@ -1003,24 +1003,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
       });
 
       categories.add({
-        'title': 'Student Management',
+        'title': AppLocalizations.of(context)!.studentManagement,
         'icon': Icons.school,
         'color': Colors.orange,
         'operations': [
           {
-            'title': 'Bulk Create Students',
+            'title': AppLocalizations.of(context)!.bulkCreateStudents,
             'icon': Icons.upload_file,
             'color': AppColors.secondaryColor,
             'page': () => CreateStudentsBulkPage(),
           },
           {
-            'title': 'Bulk Delete Students',
+            'title': AppLocalizations.of(context)!.bulkDeleteStudents,
             'icon': Icons.delete_forever,
             'color': AppColors.errorColor,
             'page': () => DeleteStudentsBulkPage(),
           },
           {
-            'title': 'Reset Accounts',
+            'title': AppLocalizations.of(context)!.resetAccounts,
             'icon': Icons.manage_accounts,
             'color': AppColors.warningColor,
             'page': () => const ResetStudentsAccountsPage(),
@@ -1030,26 +1030,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
 
     categories.add({
-      'title': 'Course Management',
+      'title': AppLocalizations.of(context)!.courseManagement,
       'icon': Icons.library_books,
       'color': Colors.deepPurple,
       'operations': [
         if (widget.role == 'Admin')
           {
-            'title': 'Create Course',
+            'title': AppLocalizations.of(context)!.createCourse,
             'icon': Icons.add_circle,
             'color': AppColors.successColor,
             'page': () => CreateCoursePage(),
           },
         {
-          'title': 'List Courses',
+          'title': AppLocalizations.of(context)!.coursesList,
           'icon': Icons.list_alt,
           'color': AppColors.successColor.withOpacity(0.8),
           'page': () => CoursesListPage(),
         },
         if (widget.role == 'Admin')
           {
-            'title': 'Assign Staff',
+            'title': AppLocalizations.of(context)!.assignStaff,
             'icon': Icons.assignment_ind,
             'color': Colors.deepPurple,
             'page': () => const AssignStaffPage(),

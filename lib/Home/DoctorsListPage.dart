@@ -5,10 +5,12 @@ import 'package:registering_attendance/Home/creatDoctorOrTA.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../Auth/colors.dart';
+import '../Auth/api_service.dart';
 import '../core/responsive.dart';
+import '../l10n/app_localizations.dart';
 
 class DoctorsListPage extends StatefulWidget {
-  const DoctorsListPage({Key? key}) : super(key: key);
+  DoctorsListPage({Key? key}) : super(key: key);
 
   @override
   _DoctorsListPageState createState() => _DoctorsListPageState();
@@ -283,8 +285,8 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                   bottomRight: Radius.circular(30),
                 ),
               ),
-              title: const Text(
-                    'Doctors List',
+              title: Text(
+                    AppLocalizations.of(context)!.doctorsList,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -306,7 +308,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 16),
+                    padding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
                     child: Align(
                       alignment: Alignment.bottomLeft,
                       child: StreamBuilder<List<Map<String, dynamic>>>(
@@ -328,7 +330,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Auto-refresh every 30 seconds',
+                                AppLocalizations.of(context)!.autoRefresh30,
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.7),
                                   fontSize: 10,
@@ -376,7 +378,7 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search doctors...',
+                          hintText: AppLocalizations.of(context)!.searchDoctors,
                           hintStyle: TextStyle(
                             color: AppColors.darkColor.withOpacity(0.4),
                           ),
@@ -773,8 +775,8 @@ class _DoctorsListPageState extends State<DoctorsListPage> {
                               color: (doctor['color'] as Color).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'Doctor',
+                            child: Text(
+                              AppLocalizations.of(context)!.doctors,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,

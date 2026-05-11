@@ -15,6 +15,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appDescription => 'مشروع فلاتر جديد.';
 
   @override
+  String get studentAttendanceApplication => 'تطبيق حضور وغياب الطلاب';
+
+  @override
+  String get forAssistanceContactIT =>
+      'للمساعدة، يرجى التواصل مع قسم تكنولوجيا المعلومات في جامعتك';
+
+  @override
   String get login => 'تسجيل الدخول';
 
   @override
@@ -131,7 +138,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get collegeAttendanceSystem => 'نظام تسجيل الحضور بالجامعة';
 
   @override
-  String get studentDashboard => 'لوحة تحكم الطالب';
+  String get studentDashboard => 'لوحة الطالب';
 
   @override
   String get adminDashboard => 'لوحة تحكم الإدارة';
@@ -183,6 +190,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses => 'المقررات';
+
+  @override
+  String get totalCourses => 'إجمالي المقررات';
+
+  @override
+  String get totalStudents => 'إجمالي الطلاب';
+
+  @override
+  String get searchCourses => 'البحث في المقررات...';
+
+  @override
+  String get noCoursesAssigned => 'لم يتم تعيين مقررات بعد';
+
+  @override
+  String get noCoursesMatch => 'لا توجد مقررات تطابق بحثك';
 
   @override
   String get staffManagement => 'إدارة الموظفين';
@@ -279,7 +301,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get studentManagement => 'إدارة الطلاب';
 
   @override
-  String get bulkCreateStudents => 'إنشاء طلاب بكميات كبيرة';
+  String get bulkCreateStudents => 'إنشاء طلاب دفعة واحدة';
 
   @override
   String get createMultipleStudents => 'إنشاء عدة طلاب';
@@ -289,7 +311,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة الطلاب واحداً تلو الآخر أو بكميات كبيرة';
 
   @override
-  String get bulkDeleteStudents => 'حذف طلاب بكميات كبيرة';
+  String get bulkDeleteStudents => 'حذف الطلاب دفعة واحدة';
 
   @override
   String get resetAccounts => 'إعادة تعيين الحسابات';
@@ -301,10 +323,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetStudentsNewYear => 'إعادة تعيين الطلاب للسنة الجديدة';
 
   @override
-  String get importFromExcel => 'الاستيراد من إكسل';
+  String get importFromExcel => 'استيراد من إكسل';
 
   @override
-  String get uploadExcel => 'تحميل ملف إكسل';
+  String get uploadExcel => 'رفع ملف إكسل';
 
   @override
   String get importExcel =>
@@ -663,7 +685,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterPINCode => 'إدخال رمز PIN';
 
   @override
-  String get activeSessionOpen => 'جلسة نشطة مفتوحة!';
+  String get activeSessionOpen => '!توجد جلسة نشطة الآن';
 
   @override
   String get liveSession => 'جلسة مباشرة';
@@ -918,4 +940,221 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get arabic => 'العربية';
+
+  @override
+  String get doctorsList => 'قائمة الأطباء';
+
+  @override
+  String get teachingAssistantsList => 'قائمة المعيدين';
+
+  @override
+  String doctorsCount(String count) {
+    return '$count أطباء';
+  }
+
+  @override
+  String taCount(String count) {
+    return '$count معيدين';
+  }
+
+  @override
+  String get autoRefresh30 => 'تحديث تلقائي كل 30 ثانية';
+
+  @override
+  String get searchDoctors => '...ابحث عن الأطباء';
+
+  @override
+  String get searchTAs => '...ابحث عن المعيدين';
+
+  @override
+  String get passwordReqs => ':متطلبات كلمة المرور';
+
+  @override
+  String get atLeast6Chars => '6 أحرف على الأقل';
+
+  @override
+  String get howToDeleteStudents => 'كيفية حذف الطلاب';
+
+  @override
+  String get deleteOption1 =>
+      'الخيار 1: استخدم \"استيراد من إكسل\" لرفع ملف .xlsx يحتوي على عمود \"كود الجامعة\"';
+
+  @override
+  String get deleteOption2 =>
+      'الخيار 2: أدخل أكواد الجامعة يدوياً واحداً تلو الآخر في قسم \"إضافة يدوياً\"';
+
+  @override
+  String get deleteOption3 => 'راجع القائمة المجمعة للطلاب أدناه.';
+
+  @override
+  String get deleteOption4 =>
+      'انقر على \"حذف الطلاب\" لإزالتهم نهائياً من النظام';
+
+  @override
+  String get deleteOption5 => 'تحذير: لا يمكن التراجع عن هذا الإجراء';
+
+  @override
+  String get uploadExcelHint =>
+      'قم برفع ملف إكسل يحتوي على عمود باسم \"university code\" أو \"code\"';
+
+  @override
+  String get clearBtn => 'مسح';
+
+  @override
+  String get addManually => 'إضافة يدوياً';
+
+  @override
+  String get enterCodeAndPressAdd => 'أدخل كود الجامعة واضغط إضافة';
+
+  @override
+  String get addBtn => 'إضافة';
+
+  @override
+  String get addStudentsBulkSubtitle =>
+      'أضف الطلاب واحداً تلو الآخر أو دفعة واحدة';
+
+  @override
+  String get howToCreateStudents => 'كيفية إنشاء الطلاب';
+
+  @override
+  String get createOption1 =>
+      'الخيار 1: استخدم \"استيراد من إكسل\" لرفع ملف .xlsx يحتوي على أعمدة \"Name\"، \"University Email\"، و \"University Code\"';
+
+  @override
+  String get createOption2 =>
+      'الخيار 2: استخدم نموذج \"إضافة طالب\" اليدوي لإضافة الطلاب للقائمة أدناه';
+
+  @override
+  String get createOption3 =>
+      'راجع قائمة \"الطلاب المراد إضافتهم\" أدناه لضمان الدقة';
+
+  @override
+  String get createOption4 =>
+      'انقر على \"إنشاء الطلاب\" للإنهاء والإرسال للخادم';
+
+  @override
+  String get uploadExcelCreateHint =>
+      'قم برفع ملف إكسل بأعمدة: name, universityEmail, universityCode';
+
+  @override
+  String get addStudentBtn => 'إضافة طالب';
+
+  @override
+  String get scanQrCode => 'مسح رمز QR';
+
+  @override
+  String get enterPinCode => 'إدخال كود PIN';
+
+  @override
+  String get totalStats => 'الإجمالي';
+
+  @override
+  String get absentStats => 'غياب';
+
+  @override
+  String get attendedStats => 'حضور';
+
+  @override
+  String get dangerAbsenceLimit =>
+      'خطر: لقد تجاوزت الحد المسموح للغياب (3) وقد تُحرم من الامتحانات';
+
+  @override
+  String get sectionsTab => 'سكاشن';
+
+  @override
+  String get lecturesTab => 'محاضرات';
+
+  @override
+  String get activeSession => 'الجلسة النشطة';
+
+  @override
+  String get enterPinDescription =>
+      'يرجى إدخال رمز الـ PIN المكون من 4 أرقام المقدم من الدكتور لتسجيل حضورك';
+
+  @override
+  String get enterPinTitle => 'إدخال رمز PIN';
+
+  @override
+  String get pinCodeLabel => 'رمز PIN';
+
+  @override
+  String get submitPinBtn => 'إرسال رمز PIN';
+
+  @override
+  String get reassignDoctor => 'نقل الكورس لدكتور آخر';
+
+  @override
+  String get reassignDoctorSubtitle => 'نقل المقرر إلى دكتور آخر';
+
+  @override
+  String get newDoctorCode => 'كود الدكتور الجديد';
+
+  @override
+  String get enterNewDoctorCode => 'مثال: DOC-XXXX';
+
+  @override
+  String get confirm => 'تأكيد';
+
+  @override
+  String get reassignSuccess => 'تم نقل المقرر للدكتور بنجاح!';
+
+  @override
+  String reassignError(String error) {
+    return 'فشل نقل الدكتور: $error';
+  }
+
+  @override
+  String get pleaseEnterDoctorCode => 'يرجى إدخال الكود الجامعي للدكتور الجديد';
+
+  @override
+  String get viewDashboard => 'عرض لوحة التحكم';
+
+  @override
+  String get viewDashboardSubtitle => 'التحليلات وإدارة الجلسات';
+
+  @override
+  String get deleteSession => 'حذف الجلسة';
+
+  @override
+  String get deleteSessionWarning =>
+      'هل أنت متأكد من حذف هذه الجلسة بالكامل؟ لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get sessionDeletedSuccessfully => 'تم حذف الجلسة بنجاح!';
+
+  @override
+  String deleteSessionError(String error) {
+    return 'فشل حذف الجلسة: $error';
+  }
+
+  @override
+  String get resetSystemTitle => 'تهيئة النظام للعام الجديد';
+
+  @override
+  String get resetSystemSubtitle => 'تحضير النظام للعام الدراسي الجديد';
+
+  @override
+  String get fullSystemReset => 'إعادة تهيئة النظام بالكامل';
+
+  @override
+  String get resetSystemDescription =>
+      'يقوم بتهيئة النظام بالكامل للعام الدراسي الجديد. سيتم حذف جميع سجلات الحضور وبيانات الجلسات مع الحفاظ على حسابات المستخدمين والمقررات.';
+
+  @override
+  String get resetSystemWarning =>
+      '⚠️ تحذير خطير: سيتم حذف جميع سجلات الحضور وتاريخ الجلسات وبيانات التسجيل للعام الدراسي السابق بشكل نهائي. سيتم الحفاظ على حسابات المستخدمين والمقررات. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get proceedReset => 'تأكيد التهيئة';
+
+  @override
+  String get resetEntireSystem => 'تهيئة النظام بالكامل';
+
+  @override
+  String get resetSystemSuccess => 'تمت تهيئة النظام للعام الجديد بنجاح!';
+
+  @override
+  String resetSystemError(String error) {
+    return 'فشل تهيئة النظام: $error';
+  }
 }

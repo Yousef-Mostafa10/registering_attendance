@@ -227,9 +227,9 @@ class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
               bottomLeft: Radius.circular(40),
               bottomRight: Radius.circular(40))),
           flexibleSpace: FlexibleSpaceBar(
-            titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-            title: const Text('Bulk Delete Students',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+            title: Text(AppLocalizations.of(context)!.bulkDeleteStudents,
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             background: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -243,14 +243,14 @@ class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
             padding: const EdgeInsets.all(24),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             
-              const AppInstructionsCard(
-                title: 'How to delete students',
+              AppInstructionsCard(
+                title: AppLocalizations.of(context)!.howToDeleteStudents,
                 instructions: [
-                  'Option 1: Use "Import from Excel" to upload a .xlsx file containing a "University Code" column.',
-                  'Option 2: Manually enter university codes one by one in the "Add Manually" section.',
-                  'Review the compiled list of students below.',
-                  'Click "Delete Students" to permanently remove them from the system.',
-                  'Warning: This action cannot be undone.',
+                  AppLocalizations.of(context)!.deleteOption1,
+                  AppLocalizations.of(context)!.deleteOption2,
+                  AppLocalizations.of(context)!.deleteOption3,
+                  AppLocalizations.of(context)!.deleteOption4,
+                  AppLocalizations.of(context)!.deleteOption5,
                 ],
               ),
               const SizedBox(height: 16),
@@ -322,10 +322,10 @@ class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
       boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Import From Excel',
+      Text(AppLocalizations.of(context)!.importFromExcel,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
       const SizedBox(height: 8),
-      Text('Upload an Excel file with a column named "university code" or "code"',
+      Text(AppLocalizations.of(context)!.uploadExcelHint,
           style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.6))),
       const SizedBox(height: 16),
       Row(children: [
@@ -398,10 +398,10 @@ class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
       boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Add Manually',
+      Text(AppLocalizations.of(context)!.addManually,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
       const SizedBox(height: 8),
-      Text('Enter a university code and press Add',
+      Text(AppLocalizations.of(context)!.enterCodeAndPressAdd,
           style: TextStyle(fontSize: 13, color: AppColors.darkColor.withOpacity(0.6))),
       const SizedBox(height: 16),
       Row(children: [
@@ -430,7 +430,7 @@ class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(AppLocalizations.of(context)!.addBtn, style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ]),
     ]),

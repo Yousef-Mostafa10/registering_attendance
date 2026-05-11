@@ -270,7 +270,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context) 
                   ? const EdgeInsets.only(bottom: 20) 
-                  : const EdgeInsets.only(left: 20, bottom: 16),
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -287,7 +287,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${widget.role} Dashboard',
+                          widget.role == 'Admin' ? AppLocalizations.of(context)!.adminDashboard : (widget.role == 'Doctor' ? AppLocalizations.of(context)!.doctorDashboard : '${widget.role} Dashboard'),
                           style: TextStyle(color: Colors.white, fontSize: Responsive.isDesktop(context) ? 20 : 16, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -402,7 +402,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                         child: TextField(
                           controller: _searchCtrl,
                           decoration: InputDecoration(
-                            hintText: 'Search courses...',
+                            hintText: AppLocalizations.of(context)!.searchCourses,
                             hintStyle: TextStyle(color: AppColors.darkColor.withOpacity(0.4)),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -436,11 +436,11 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                   children: [
                     SizedBox(
                       width: cardW,
-                      child: _statCard(Icons.book, 'Total Courses', _isLoading ? '...' : _allCourses.length.toString(), AppColors.primaryColor),
+                      child: _statCard(Icons.book, AppLocalizations.of(context)!.totalCourses, _isLoading ? '...' : _allCourses.length.toString(), AppColors.primaryColor),
                     ),
                     SizedBox(
                       width: cardW,
-                      child: _statCard(Icons.people, 'Total Students', _isLoading ? '...' : _totalStudents.toString(), AppColors.successColor),
+                      child: _statCard(Icons.people, AppLocalizations.of(context)!.totalStudents, _isLoading ? '...' : _totalStudents.toString(), AppColors.successColor),
                     ),
                   ],
                 );
@@ -605,7 +605,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
   Widget _buildEmpty() => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
     Icon(Icons.book_outlined, size: 80, color: AppColors.darkColor.withOpacity(0.2)),
     const SizedBox(height: 16),
-    Text(_searchQuery.isEmpty ? 'No courses assigned yet' : 'No courses match your search',
+    Text(_searchQuery.isEmpty ? AppLocalizations.of(context)!.noCoursesAssigned : AppLocalizations.of(context)!.noCoursesMatch,
         style: TextStyle(fontSize: 16, color: AppColors.darkColor.withOpacity(0.5))),
   ]));
 }

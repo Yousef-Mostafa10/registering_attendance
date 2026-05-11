@@ -352,9 +352,9 @@ class _CoursesListPageState extends State<CoursesListPage> {
                 child: const Icon(Icons.logout, color: Colors.white, size: 32),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Logout',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.logout,
+                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -362,10 +362,10 @@ class _CoursesListPageState extends State<CoursesListPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Are you sure you want to logout from your account?',
+            Text(
+              AppLocalizations.of(context)!.areYouSureLogout,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+              style: const TextStyle(fontSize: 15, color: AppColors.darkColor),
             ),
             const SizedBox(height: 24),
             Row(
@@ -378,7 +378,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       side: BorderSide(color: Colors.grey.shade300),
                     ),
-                    child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                    child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: Colors.grey.shade600)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -438,7 +438,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context) 
                   ? const EdgeInsets.only(bottom: 20) 
-                  : const EdgeInsets.only(left: 20, bottom: 16),
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -455,7 +455,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Student Dashboard',
+                          AppLocalizations.of(context)!.studentDashboard,
                           style: TextStyle(color: Colors.white, fontSize: Responsive.isDesktop(context) ? 20 : 16, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -490,8 +490,8 @@ class _CoursesListPageState extends State<CoursesListPage> {
                 Flexible(
                   child: Text(
                     _userRole == 'Doctor' || _userRole == 'TA'
-                        ? 'My Courses'
-                        : 'Courses List',
+                        ? AppLocalizations.of(context)!.myCourses
+                        : AppLocalizations.of(context)!.coursesList,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: Responsive.isDesktop(context) ? 24 : 20,
@@ -614,7 +614,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Welcome Student,',
+                                Text('${AppLocalizations.of(context)!.welcome} Student,',
                                     style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
                                 Text(_userName,
                                     style: TextStyle(fontSize: Responsive.isDesktop(context) ? 28 : 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
@@ -644,7 +644,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                           width: cardW,
                           child: _buildStatCard(
                             icon: Icons.book,
-                            title: 'Total Courses',
+                            title: AppLocalizations.of(context)!.totalCourses,
                             value: _isLoading ? '...' : _totalCourses.toString(),
                             color: AppColors.primaryColor,
                           ),
@@ -654,7 +654,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                           width: cardW,
                           child: _buildStatCard(
                             icon: Icons.people,
-                            title: 'Total Students',
+                            title: AppLocalizations.of(context)!.totalStudents,
                             value: _isLoading ? '...' : _totalStudents.toString(),
                             color: AppColors.successColor,
                           ),
@@ -667,14 +667,14 @@ class _CoursesListPageState extends State<CoursesListPage> {
                     children: [
                       _buildStatCard(
                         icon: Icons.book,
-                        title: 'Total Courses',
+                        title: AppLocalizations.of(context)!.totalCourses,
                         value: _isLoading ? '...' : _totalCourses.toString(),
                         color: AppColors.primaryColor,
                       ),
                       const SizedBox(width: 12),
                       _buildStatCard(
                         icon: Icons.people,
-                        title: 'Total Students',
+                        title: AppLocalizations.of(context)!.totalStudents,
                         value: _isLoading ? '...' : _totalStudents.toString(),
                         color: AppColors.successColor,
                       ),
@@ -990,12 +990,17 @@ class _CoursesListPageState extends State<CoursesListPage> {
   void _showCourseOptions(Map<String, dynamic> course) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       backgroundColor: Colors.white,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
       builder: (context) {
-        return Container(
+        return SingleChildScrollView(
+          child: Container(
           padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1029,8 +1034,8 @@ class _CoursesListPageState extends State<CoursesListPage> {
               const SizedBox(height: 24),
               _buildOptionTile(
                 icon: Icons.dashboard_outlined,
-                title: 'View Dashboard',
-                subtitle: 'Analytics and session management',
+                title: AppLocalizations.of(context)!.viewDashboard,
+                subtitle: AppLocalizations.of(context)!.viewDashboardSubtitle,
                 color: AppColors.primaryColor,
                 onTap: () {
                   Navigator.pop(context);
@@ -1043,8 +1048,8 @@ class _CoursesListPageState extends State<CoursesListPage> {
               const SizedBox(height: 12),
               _buildOptionTile(
                 icon: Icons.person_add_alt_1_outlined,
-                title: 'Enroll Student',
-                subtitle: 'Single student manual registration',
+                title: AppLocalizations.of(context)!.enrollStudent,
+                subtitle: AppLocalizations.of(context)!.enrollStudentManually,
                 color: Colors.blue,
                 onTap: () {
                   Navigator.pop(context);
@@ -1059,8 +1064,8 @@ class _CoursesListPageState extends State<CoursesListPage> {
               const SizedBox(height: 12),
               _buildOptionTile(
                 icon: Icons.group_add_outlined,
-                title: 'Bulk Enroll',
-                subtitle: 'Excel import or multiple codes',
+                title: AppLocalizations.of(context)!.bulkEnrollPage,
+                subtitle: AppLocalizations.of(context)!.bulkEnrollStudents,
                 color: Colors.teal,
                 onTap: () {
                   Navigator.pop(context);
@@ -1072,9 +1077,234 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   );
                 },
               ),
+              // Reassign Doctor option — Admin only
+              if (_userRole == 'Admin') ...[
+                const SizedBox(height: 12),
+                _buildOptionTile(
+                  icon: Icons.swap_horiz_rounded,
+                  title: AppLocalizations.of(context)!.reassignDoctor,
+                  subtitle: AppLocalizations.of(context)!.reassignDoctorSubtitle,
+                  color: Colors.deepOrange,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showReassignDoctorDialog(course);
+                  },
+                ),
+              ],
               const SizedBox(height: 16),
             ],
           ),
+        ),
+        );
+      },
+    );
+  }
+
+  /// Shows a dialog to reassign a course to a different doctor
+  void _showReassignDoctorDialog(Map<String, dynamic> course) {
+    final TextEditingController codeController = TextEditingController();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              titlePadding: EdgeInsets.zero,
+              title: Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: const BoxDecoration(
+                  color: Colors.deepOrange,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      AppLocalizations.of(context)!.reassignDoctor,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      course['name'],
+                      style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.newDoctorCode,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.darkColor),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: codeController,
+                    enabled: !isLoading,
+                    decoration: InputDecoration(
+                      hintText: AppLocalizations.of(context)!.enterNewDoctorCode,
+                      hintStyle: TextStyle(color: AppColors.darkColor.withOpacity(0.4)),
+                      prefixIcon: Icon(Icons.person_search, color: Colors.deepOrange.withOpacity(0.6)),
+                      filled: true,
+                      fillColor: AppColors.lightColor2,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.deepOrange, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.cancel,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                final code = codeController.text.trim();
+                                if (code.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(AppLocalizations.of(context)!.pleaseEnterDoctorCode),
+                                      backgroundColor: AppColors.errorColor,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setDialogState(() => isLoading = true);
+
+                                try {
+                                  final result = await ApiService.reassignDoctor(
+                                    courseId: int.parse(course['id'].toString()),
+                                    newDoctorUniversityCode: code,
+                                    token: _authToken!,
+                                  );
+
+                                  if (!mounted) return;
+
+                                  if (result['statusCode'] == 200) {
+                                    Navigator.pop(dialogContext);
+
+                                    // Update the local state immediately
+                                    setState(() {
+                                      final index = _allCourses.indexWhere(
+                                        (c) => c['id'].toString() == course['id'].toString(),
+                                      );
+                                      if (index != -1) {
+                                        _allCourses[index]['doctorName'] = code;
+                                      }
+                                    });
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(AppLocalizations.of(context)!.reassignSuccess),
+                                        backgroundColor: AppColors.successColor,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+
+                                    // Refresh to get the actual doctor name from backend
+                                    _fetchCourses();
+                                  } else {
+                                    setDialogState(() => isLoading = false);
+                                    var errorMsg = result['body']?.toString() ?? 'Unknown error';
+                                    try {
+                                      final data = jsonDecode(result['body']);
+                                      if (data is Map && data['message'] != null) {
+                                        errorMsg = data['message'];
+                                      }
+                                    } catch (_) {}
+
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(AppLocalizations.of(context)!.reassignError(errorMsg)),
+                                        backgroundColor: AppColors.errorColor,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  setDialogState(() => isLoading = false);
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(AppLocalizations.of(context)!.reassignError(e.toString())),
+                                      backgroundColor: AppColors.errorColor,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepOrange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                AppLocalizations.of(context)!.confirm,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         );
       },
     );

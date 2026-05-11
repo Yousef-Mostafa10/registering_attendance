@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
 import '../widgets/AppInstructionsCard.dart';
 import '../core/responsive.dart';
+import '../l10n/app_localizations.dart';
 
 class CreateStudentsBulkPage extends StatefulWidget {
   const CreateStudentsBulkPage({Key? key}) : super(key: key);
@@ -430,9 +431,9 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context)
                   ? const EdgeInsets.only(bottom: 20)
-                  : const EdgeInsets.only(left: 20, bottom: 16),
-              title: const Text(
-                    'Bulk Create Students',
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+              title: Text(
+                    AppLocalizations.of(context)!.bulkCreateStudents,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -481,7 +482,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Create Multiple Students',
+                                AppLocalizations.of(context)!.createMultipleStudents,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -490,7 +491,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Add students one by one or in bulk',
+                                AppLocalizations.of(context)!.addStudentsBulkSubtitle,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: AppColors.darkColor.withOpacity(0.6),
@@ -504,13 +505,13 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                   ),
                   const SizedBox(height: 16),
                   
-                  const AppInstructionsCard(
-                    title: 'How to create students',
+                  AppInstructionsCard(
+                    title: AppLocalizations.of(context)!.howToCreateStudents,
                     instructions: [
-                      'Option 1: Use "Import from Excel" to upload a .xlsx file with "Name", "University Email", and "University Code" columns.',
-                      'Option 2: Use the manual "Add Student" form to add students one by one to the list below.',
-                      'Review the "Students to Add" list below to ensure accuracy.',
-                      'Click "Create Students" to finalize and send to the server.',
+                      AppLocalizations.of(context)!.createOption1,
+                      AppLocalizations.of(context)!.createOption2,
+                      AppLocalizations.of(context)!.createOption3,
+                      AppLocalizations.of(context)!.createOption4,
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -557,13 +558,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : Text(
-                                  'Create ${_studentsList.length} Student${_studentsList.length != 1 ? 's' : ''}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                              : Text(AppLocalizations.of(context)!.addBtn, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -652,13 +647,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                     ),
                     side: BorderSide(color: AppColors.errorColor),
                   ),
-                  child: Text(
-                    'Clear All',
-                    style: TextStyle(
-                      color: AppColors.errorColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  child: Text(AppLocalizations.of(context)!.clearBtn, style: const TextStyle(color: Colors.blue)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -844,7 +833,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Import From Excel',
+            AppLocalizations.of(context)!.importFromExcel,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -853,7 +842,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Upload an Excel file with columns: name, universityEmail, universityCode',
+            AppLocalizations.of(context)!.uploadExcelCreateHint,
             style: TextStyle(
               fontSize: 13,
               color: AppColors.darkColor.withOpacity(0.6),
@@ -884,7 +873,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                         )
                       : const Icon(Icons.upload_file),
                   label: Text(
-                    _isImporting ? 'Importing...' : 'Upload Excel',
+                    AppLocalizations.of(context)!.uploadExcel,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),

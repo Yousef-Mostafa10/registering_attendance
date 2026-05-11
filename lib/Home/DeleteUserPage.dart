@@ -238,7 +238,7 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context)
                   ? const EdgeInsets.only(bottom: 20)
-                  : const EdgeInsets.only(left: 20, bottom: 16),
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: const Text(
                     'Delete User',
                     style: TextStyle(

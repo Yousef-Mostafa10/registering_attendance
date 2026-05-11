@@ -110,6 +110,18 @@ abstract class AppLocalizations {
   /// **'A new Flutter project.'**
   String get appDescription;
 
+  /// No description provided for @studentAttendanceApplication.
+  ///
+  /// In en, this message translates to:
+  /// **'Student Attendance Application'**
+  String get studentAttendanceApplication;
+
+  /// No description provided for @forAssistanceContactIT.
+  ///
+  /// In en, this message translates to:
+  /// **'For assistance, please contact your university IT department'**
+  String get forAssistanceContactIT;
+
   /// No description provided for @login.
   ///
   /// In en, this message translates to:
@@ -439,6 +451,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Courses'**
   String get courses;
+
+  /// No description provided for @totalCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Courses'**
+  String get totalCourses;
+
+  /// No description provided for @totalStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Students'**
+  String get totalStudents;
+
+  /// No description provided for @searchCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Search courses...'**
+  String get searchCourses;
+
+  /// No description provided for @noCoursesAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No courses assigned yet'**
+  String get noCoursesAssigned;
+
+  /// No description provided for @noCoursesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No courses match your search'**
+  String get noCoursesMatch;
 
   /// No description provided for @staffManagement.
   ///
@@ -1813,6 +1855,390 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'العربية'**
   String get arabic;
+
+  /// No description provided for @doctorsList.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctors List'**
+  String get doctorsList;
+
+  /// No description provided for @teachingAssistantsList.
+  ///
+  /// In en, this message translates to:
+  /// **'Teaching Assistants List'**
+  String get teachingAssistantsList;
+
+  /// No description provided for @doctorsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Doctors'**
+  String doctorsCount(String count);
+
+  /// No description provided for @taCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Teaching Assistants'**
+  String taCount(String count);
+
+  /// No description provided for @autoRefresh30.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-refresh every 30 seconds'**
+  String get autoRefresh30;
+
+  /// No description provided for @searchDoctors.
+  ///
+  /// In en, this message translates to:
+  /// **'...Search doctors'**
+  String get searchDoctors;
+
+  /// No description provided for @searchTAs.
+  ///
+  /// In en, this message translates to:
+  /// **'...Search TAs'**
+  String get searchTAs;
+
+  /// No description provided for @passwordReqs.
+  ///
+  /// In en, this message translates to:
+  /// **'Password requirements:'**
+  String get passwordReqs;
+
+  /// No description provided for @atLeast6Chars.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 6 characters'**
+  String get atLeast6Chars;
+
+  /// No description provided for @howToDeleteStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'How to delete students'**
+  String get howToDeleteStudents;
+
+  /// No description provided for @deleteOption1.
+  ///
+  /// In en, this message translates to:
+  /// **'Option 1: Use \"Import from Excel\" to upload a .xlsx file containing a \"University Code\" column'**
+  String get deleteOption1;
+
+  /// No description provided for @deleteOption2.
+  ///
+  /// In en, this message translates to:
+  /// **'Option 2: Manually enter university codes one by one in the \"Add Manually\" section'**
+  String get deleteOption2;
+
+  /// No description provided for @deleteOption3.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the compiled list of students below.'**
+  String get deleteOption3;
+
+  /// No description provided for @deleteOption4.
+  ///
+  /// In en, this message translates to:
+  /// **'Click \"Delete Students\" to permanently remove them from the system'**
+  String get deleteOption4;
+
+  /// No description provided for @deleteOption5.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: This action cannot be undone'**
+  String get deleteOption5;
+
+  /// No description provided for @uploadExcelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload an Excel file with a column named \"university code\" or \"code\"'**
+  String get uploadExcelHint;
+
+  /// No description provided for @clearBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearBtn;
+
+  /// No description provided for @addManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Manually'**
+  String get addManually;
+
+  /// No description provided for @enterCodeAndPressAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a university code and press Add'**
+  String get enterCodeAndPressAdd;
+
+  /// No description provided for @addBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addBtn;
+
+  /// No description provided for @addStudentsBulkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add students one by one or in bulk'**
+  String get addStudentsBulkSubtitle;
+
+  /// No description provided for @howToCreateStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'How to create students'**
+  String get howToCreateStudents;
+
+  /// No description provided for @createOption1.
+  ///
+  /// In en, this message translates to:
+  /// **'Option 1: Use \"Import from Excel\" to upload a .xlsx file with \"Name\", \"University Email\", and \"University Code\" columns'**
+  String get createOption1;
+
+  /// No description provided for @createOption2.
+  ///
+  /// In en, this message translates to:
+  /// **'Option 2: Use the manual \"Add Student\" form to add students one by one to the list below'**
+  String get createOption2;
+
+  /// No description provided for @createOption3.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the \"Students to Add\" list below to ensure accuracy'**
+  String get createOption3;
+
+  /// No description provided for @createOption4.
+  ///
+  /// In en, this message translates to:
+  /// **'Click \"Create Students\" to finalize and send to the server'**
+  String get createOption4;
+
+  /// No description provided for @uploadExcelCreateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload an Excel file with columns: name, universityEmail, universityCode'**
+  String get uploadExcelCreateHint;
+
+  /// No description provided for @addStudentBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Student'**
+  String get addStudentBtn;
+
+  /// No description provided for @scanQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR Code'**
+  String get scanQrCode;
+
+  /// No description provided for @enterPinCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN Code'**
+  String get enterPinCode;
+
+  /// No description provided for @totalStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalStats;
+
+  /// No description provided for @absentStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get absentStats;
+
+  /// No description provided for @attendedStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Attended'**
+  String get attendedStats;
+
+  /// No description provided for @dangerAbsenceLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger: You have exceeded the allowed absence limit (3) and may be deprived of exams'**
+  String get dangerAbsenceLimit;
+
+  /// No description provided for @sectionsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get sectionsTab;
+
+  /// No description provided for @lecturesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Lectures'**
+  String get lecturesTab;
+
+  /// No description provided for @activeSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Session'**
+  String get activeSession;
+
+  /// No description provided for @enterPinDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the 4-digit PIN provided by the Doctor to register your attendance'**
+  String get enterPinDescription;
+
+  /// No description provided for @enterPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN'**
+  String get enterPinTitle;
+
+  /// No description provided for @pinCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Code'**
+  String get pinCodeLabel;
+
+  /// No description provided for @submitPinBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit PIN'**
+  String get submitPinBtn;
+
+  /// No description provided for @reassignDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Reassign Doctor'**
+  String get reassignDoctor;
+
+  /// No description provided for @reassignDoctorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer course to another doctor'**
+  String get reassignDoctorSubtitle;
+
+  /// No description provided for @newDoctorCode.
+  ///
+  /// In en, this message translates to:
+  /// **'New Doctor Code'**
+  String get newDoctorCode;
+
+  /// No description provided for @enterNewDoctorCode.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., DOC-XXXX'**
+  String get enterNewDoctorCode;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @reassignSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor reassigned successfully!'**
+  String get reassignSuccess;
+
+  /// No description provided for @reassignError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reassign doctor: {error}'**
+  String reassignError(String error);
+
+  /// No description provided for @pleaseEnterDoctorCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the new doctor\'s university code'**
+  String get pleaseEnterDoctorCode;
+
+  /// No description provided for @viewDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'View Dashboard'**
+  String get viewDashboard;
+
+  /// No description provided for @viewDashboardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics and session management'**
+  String get viewDashboardSubtitle;
+
+  /// No description provided for @deleteSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Session'**
+  String get deleteSession;
+
+  /// No description provided for @deleteSessionWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this session? This action cannot be undone.'**
+  String get deleteSessionWarning;
+
+  /// No description provided for @sessionDeletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Session deleted successfully!'**
+  String get sessionDeletedSuccessfully;
+
+  /// No description provided for @deleteSessionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete session: {error}'**
+  String deleteSessionError(String error);
+
+  /// No description provided for @resetSystemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset System for New Year'**
+  String get resetSystemTitle;
+
+  /// No description provided for @resetSystemSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare the system for a new academic year'**
+  String get resetSystemSubtitle;
+
+  /// No description provided for @fullSystemReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Full System Reset'**
+  String get fullSystemReset;
+
+  /// No description provided for @resetSystemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Resets the entire system for the new academic year. This will clear all attendance records and session data while preserving user accounts and courses.'**
+  String get resetSystemDescription;
+
+  /// No description provided for @resetSystemWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ Critical Warning: This will permanently delete ALL attendance records, session history, and enrollment data from the previous academic year. User accounts and courses will be preserved. This action is irreversible.'**
+  String get resetSystemWarning;
+
+  /// No description provided for @proceedReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed and Reset'**
+  String get proceedReset;
+
+  /// No description provided for @resetEntireSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Entire System'**
+  String get resetEntireSystem;
+
+  /// No description provided for @resetSystemSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'System reset for new year completed successfully!'**
+  String get resetSystemSuccess;
+
+  /// No description provided for @resetSystemError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset system: {error}'**
+  String resetSystemError(String error);
 }
 
 class _AppLocalizationsDelegate

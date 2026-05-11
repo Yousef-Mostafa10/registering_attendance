@@ -220,7 +220,7 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
               centerTitle: Responsive.isDesktop(context),
               titlePadding: Responsive.isDesktop(context) 
                   ? const EdgeInsets.only(bottom: 20) 
-                  : const EdgeInsets.only(left: 20, bottom: 16),
+                  : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Text(
                     'Create New Course',
                     style: TextStyle(

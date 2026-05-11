@@ -446,5 +446,43 @@ class ApiService {
     );
     return {'statusCode': response.statusCode, 'body': response.body};
   }
+
+  /// PUT /Admin/reassign-doctor
+  /// Reassigns a course from one doctor to another using their university codes
+  static Future<Map<String, dynamic>> reassignDoctor({
+    required int courseId,
+    required String newDoctorUniversityCode,
+    required String token,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/Admin/reassign-doctor'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        "courseId": courseId,
+        "newDoctorUniversityCode": newDoctorUniversityCode,
+      }),
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
+
+  /// DELETE /Session/delete/{sessionId}
+  /// Deletes an entire session and all its related data
+  static Future<Map<String, dynamic>> deleteSession({
+    required String sessionId,
+    required String token,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/Session/delete-session/$sessionId'),
+      headers: {
+        'accept': '*/*',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return {'statusCode': response.statusCode, 'body': response.body};
+  }
 }
 

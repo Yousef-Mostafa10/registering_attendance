@@ -232,7 +232,7 @@ class _DeleteCoursePageState extends State<DeleteCoursePage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+              titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: const Text(
                     'Delete Course',
                     style: TextStyle(

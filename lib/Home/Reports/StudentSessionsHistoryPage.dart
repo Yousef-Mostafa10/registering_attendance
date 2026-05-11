@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../Auth/api_service.dart';
 import '../../Auth/auth_storage.dart';
 import '../../Auth/colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../QRScannerPage.dart';
 import '../../core/responsive.dart';
 
@@ -202,7 +203,7 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
                           );
                         },
                         icon: const Icon(Icons.analytics, size: 28),
-                        label: const Text('Attendance Reports'),
+                        label: Text(AppLocalizations.of(context)!.attendanceReports),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           backgroundColor: Colors.white,
@@ -227,7 +228,7 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
                           );
                         },
                         icon: const Icon(Icons.qr_code_scanner, size: 24),
-                        label: const Text('Scan QR Code'),
+                        label: Text(AppLocalizations.of(context)!.scanQrCode),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: AppColors.darkColor,
@@ -251,7 +252,7 @@ class _StudentSessionsHistoryPageState extends State<StudentSessionsHistoryPage>
                           );
                         },
                         icon: const Icon(Icons.pin, size: 24),
-                        label: const Text('Enter PIN Code'),
+                        label: Text(AppLocalizations.of(context)!.enterPinCode),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: AppColors.primaryColor,
