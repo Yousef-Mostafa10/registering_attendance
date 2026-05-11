@@ -409,20 +409,39 @@ class _CoursesListPageState extends State<CoursesListPage> {
     }
   }
 
+
+  @override
+  Widget? buildFloatingActionButton() {
+    if (_userRole == 'Admin' || _userRole == 'Doctor') {
+      return FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CreateCoursePage()),
+        ).then((value) {
+          if (value == true) _fetchCourses();
+        }),
+        backgroundColor: AppColors.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
+      floatingActionButton: buildFloatingActionButton(),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(
-            expandedHeight: _userRole == 'Student' ? 140 : null,
+            expandedHeight: _userRole == 'Student' ? 140 : 120,
             collapsedHeight: _userRole == 'Student' ? 80 : null,
-            pinned: _userRole == 'Student' ? true : false,
+            pinned: true,
             floating: true,
-            snap: _userRole != 'Student',
+            snap: false, // snap doesn't work well with pinned: true and expandedHeight
             backgroundColor: AppColors.primaryColor,
-            elevation: _userRole == 'Student' ? 8 : 4,
+            elevation: 8,
             shape: const ContinuousRectangleBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(40),
@@ -478,45 +497,30 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   ),
                 ),
               ),
-            ) : null,
-            title: _userRole == 'Student' ? null : Row(
-              children: [
-                CircleAvatar(
-                  radius: Responsive.isDesktop(context) ? 20 : 16,
-                  backgroundColor: Colors.white24,
-                  child: Icon(Icons.school, color: Colors.white, size: Responsive.isDesktop(context) ? 22 : 18),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: Text(
-                    _userRole == 'Doctor' || _userRole == 'TA'
-                        ? AppLocalizations.of(context)!.myCourses
-                        : AppLocalizations.of(context)!.coursesList,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: Responsive.isDesktop(context) ? 24 : 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+            ) : FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.primaryColor, AppColors.darkColor],
                   ),
                 ),
-              ],
+              ),
+            ),
+            title: _userRole == 'Student' ? null : Text(
+              _userRole == 'Doctor' || _userRole == 'TA'
+                  ? AppLocalizations.of(context)!.myCourses
+                  : AppLocalizations.of(context)!.coursesList,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: Responsive.isDesktop(context) ? 24 : 20,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
             actions: [
               LanguageToggleButton(),
-              if (_userRole == 'Admin' || _userRole == 'Doctor')
-                IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CreateCoursePage()),
-                  ),
-                ),
-              if (_userRole != 'Student')
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  onPressed: _fetchCourses,
-                ),
               if (_userRole == 'Student')
                 IconButton(
                   icon: Container(
@@ -531,53 +535,75 @@ class _CoursesListPageState extends State<CoursesListPage> {
                 ),
               const SizedBox(width: 10),
             ],
-            bottom: _userRole == 'Student' ? null : PreferredSize(
-              preferredSize: const Size.fromHeight(80),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  top: 4,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      const Icon(Icons.search, color: Colors.white70),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: AppLocalizations.of(context)!.searchByNameCode,
-                            hintStyle: const TextStyle(color: Colors.white60),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                      if (_searchQuery.isNotEmpty)
-                        IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.white70),
-                          onPressed: () => _searchController.clear(),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+            // Removed bottom search bar
             ),
-          ),
         ],
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1400),
             child: Column(
           children: [
+            // New Search Bar in body
+            if (_userRole != 'Student')
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: AppColors.darkColor.withOpacity(0.5)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context)!.searchByNameCode,
+                            hintStyle: TextStyle(
+                              color: AppColors.darkColor.withOpacity(0.4),
+                            ),
+                            border: InputBorder.none,
+                          ),
+                          style: TextStyle(
+                            color: AppColors.darkColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      if (_searchQuery.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                          },
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: AppColors.lightColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.clear,
+                              size: 20,
+                              color: AppColors.accentColor,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             if (_userRole == 'Student')
               Center(
                 child: ConstrainedBox(
