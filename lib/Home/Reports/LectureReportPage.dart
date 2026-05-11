@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:excel/excel.dart' as excel;
@@ -134,7 +135,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
       appBar: AppBar(
-        title: const Text('Lecture Report'),
+        title: Text(AppLocalizations.of(context)!.lectureReport),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -217,7 +218,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Apply'),
+                  child: Text(AppLocalizations.of(context)!.apply),
                 ),
               ],
             ),
@@ -406,7 +407,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
             ),
-            child: const Text('Retry'),
+            child: Text(AppLocalizations.of(context)!.retry),
           ),
         ],
       ),

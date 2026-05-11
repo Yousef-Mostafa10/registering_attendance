@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../core/responsive.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/BulkCourseEnrollmentPage.dart';
@@ -23,6 +24,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
 import '../Auth/api_service.dart';
+import '../widgets/language_toggle_button.dart';
 
 class AdminDashboard extends StatefulWidget {
   final String userName;
@@ -157,9 +159,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 child: const Icon(Icons.logout, color: Colors.white, size: 32),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Logout',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.logout,
+                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -167,10 +169,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Are you sure you want to logout from your account?',
+            Text(
+              AppLocalizations.of(context)!.areYouSureLogout,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+              style: const TextStyle(fontSize: 15, color: AppColors.darkColor),
             ),
             const SizedBox(height: 24),
             Row(
@@ -183,7 +185,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       side: BorderSide(color: Colors.grey.shade300),
                     ),
-                    child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                    child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: Colors.grey.shade600)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -197,7 +199,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(AppLocalizations.of(context)!.logout, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -429,6 +431,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
             ),
             actions: [
+              LanguageToggleButton(),
               // إزالة زر Refresh وإبقاء زر Logout فقط
               IconButton(
                 icon: Container(
@@ -715,7 +718,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             width: _statCardWidth(context),
             child: _buildCompactStatCard(
               icon: Icons.hourglass_empty,
-              title: 'Loading...',
+              title: AppLocalizations.of(context)!.updatesAutomatically,
               count: '...',
               color: Colors.grey[400]!,
               isLoading: true,
@@ -724,7 +727,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Loading statistics...',
+          AppLocalizations.of(context)!.loadingStatistics,
           style: TextStyle(
             fontSize: 12,
             color: AppColors.darkColor.withOpacity(0.5),

@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'colors.dart';
 import 'api_service.dart';
 import 'auth_widgets.dart';
@@ -38,11 +39,11 @@ class _LoginPageState extends State<LoginPage> {
   // التحقق من صحة البريد الإلكتروني
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return AppLocalizations.of(context)!.emailIsRequired;
     }
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email address';
+      return AppLocalizations.of(context)!.enterValidEmail;
     }
     return null;
   }
@@ -50,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
   // التحقق من صحة كلمة المرور
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return AppLocalizations.of(context)!.passwordIsRequired;
     }
     return null;
   }
@@ -58,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
   // Login function
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
-      AuthWidgets.showWarningSnackBar(context, 'Please fix the errors in the form');
+      AuthWidgets.showWarningSnackBar(context, AppLocalizations.of(context)!.pleaseFixErrorsForm);
       return;
     }
 
@@ -81,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(response['body']);
 
         if (data['isSuccess'] == true) {
-          AuthWidgets.showSuccessSnackBar(context, 'Login successful!');
+          AuthWidgets.showSuccessSnackBar(context, AppLocalizations.of(context)!.loginSuccessful);
 
           // Pass user data to parent
           widget.onLoginSuccess({
@@ -95,8 +96,8 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           AuthWidgets.showErrorSnackBar(
             context,
-            const AppException(
-              message: 'Incorrect email or password, or account not activated yet.',
+            AppException(
+              message: AppLocalizations.of(context)!.loginFailed,
             ),
           );
         }
@@ -112,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
       });
       AuthWidgets.showErrorSnackBar(
         context,
-        const AppException(message: 'Something went wrong. Please try again.'),
+        AppException(message: AppLocalizations.of(context)!.somethingWentWrong),
       );
     }
   }
@@ -132,9 +133,9 @@ class _LoginPageState extends State<LoginPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'OK',
-              style: TextStyle(color: AppColors.primaryColor),
+            child: Text(
+              AppLocalizations.of(context)!.ok,
+              style: const TextStyle(color: AppColors.primaryColor),
             ),
           ),
         ],
@@ -153,9 +154,9 @@ class _LoginPageState extends State<LoginPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
-          const Text(
-            'Login',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.login,
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: AppColors.darkColor,
@@ -174,8 +175,8 @@ class _LoginPageState extends State<LoginPage> {
           // Login email field
           AuthWidgets.buildTextField(
             controller: _emailController,
-            label: 'Email',
-            hint: 'Enter your email',
+            label: AppLocalizations.of(context)!.email,
+            hint: AppLocalizations.of(context)!.enterEmail,
             prefixIcon: Icons.email,
             keyboardType: TextInputType.emailAddress,
             focusNode: _emailFocus,
@@ -189,8 +190,8 @@ class _LoginPageState extends State<LoginPage> {
           // Login password field
           AuthWidgets.buildPasswordField(
             controller: _passwordController,
-            label: 'Password',
-            hint: 'Enter your password',
+            label: AppLocalizations.of(context)!.password,
+            hint: AppLocalizations.of(context)!.enterPassword,
             obscureText: _obscurePassword,
             focusNode: _passwordFocus,
             validator: _validatePassword,
@@ -212,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
 
           // Login button
           AuthWidgets.buildActionButton(
-            text: 'Login',
+            text: AppLocalizations.of(context)!.login,
             onPressed: _login,
             isLoading: _isLoading,
           ),
@@ -224,15 +225,15 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: widget.onSwitchToActivation,
               child: RichText(
                 text: TextSpan(
-                  text: 'Don\'t have an account? ',
+                  text: AppLocalizations.of(context)!.dontHaveAccount,
                   style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.darkColor,
                   ),
                   children: [
-                    const TextSpan(
-                      text: 'Activate Account',
-                      style: TextStyle(
+                    TextSpan(
+                      text: AppLocalizations.of(context)!.activateAccount,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.accentColor,

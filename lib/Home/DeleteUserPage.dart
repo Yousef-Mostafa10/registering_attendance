@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:registering_attendance/Home/DoctorsListPage.dart';
 import 'package:registering_attendance/Home/TAsListPage.dart';
 import '../Auth/colors.dart';
@@ -40,10 +41,10 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
 
   String? _validateUserCode(String? value) {
     if (value == null || value.isEmpty) {
-      return 'University Code is required';
+      return AppLocalizations.of(context)!.emailIsRequired;
     }
     if (value.trim().isEmpty) {
-      return 'Please enter a valid University Code';
+      return AppLocalizations.of(context)!.enterValidEmail;
     }
     return null;
   }
@@ -164,11 +165,11 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning, color: Colors.red),
-            SizedBox(width: 12),
-            Text('Confirm Deletion'),
+            const Icon(Icons.warning, color: Colors.red),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context)!.confirmDeletion),
           ],
         ),
         content: Column(
@@ -192,7 +193,7 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -200,7 +201,7 @@ class _DeleteUserPageState extends State<DeleteUserPage> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),

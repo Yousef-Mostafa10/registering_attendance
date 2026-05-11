@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
@@ -272,7 +273,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text('Enrollment Results', style: TextStyle(color: AppColors.darkColor, fontWeight: FontWeight.bold)),
+          title: Text(AppLocalizations.of(context)!.enrolledStudents, style: TextStyle(color: AppColors.darkColor, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -300,7 +301,7 @@ class _BulkCourseEnrollmentPageState extends State<BulkCourseEnrollmentPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );

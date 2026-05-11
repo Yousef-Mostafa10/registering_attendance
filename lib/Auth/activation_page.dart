@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'colors.dart';
 import 'api_service.dart';
 import 'auth_widgets.dart';
@@ -40,11 +41,11 @@ class _ActivationPageState extends State<ActivationPage> {
   // التحقق من صحة البريد الإلكتروني
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return AppLocalizations.of(context)!.emailIsRequired;
     }
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email address';
+      return AppLocalizations.of(context)!.enterValidEmail;
     }
     return null;
   }
@@ -52,7 +53,7 @@ class _ActivationPageState extends State<ActivationPage> {
   // التحقق من صحة كود الجامعة
   String? _validateCode(String? value) {
     if (value == null || value.isEmpty) {
-      return 'University code is required';
+      return AppLocalizations.of(context)!.codeIsRequired;
     }
     if (value.length < 3) {
       return 'Code must be at least 3 characters';
@@ -63,10 +64,10 @@ class _ActivationPageState extends State<ActivationPage> {
   // التحقق من صحة كلمة المرور
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return AppLocalizations.of(context)!.passwordIsRequired;
     }
     if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+      return AppLocalizations.of(context)!.enterStrongPassword;
     }
     return null;
   }
@@ -74,7 +75,7 @@ class _ActivationPageState extends State<ActivationPage> {
   // Account activation function
   Future<void> _activateAccount() async {
     if (!_formKey.currentState!.validate()) {
-      AuthWidgets.showWarningSnackBar(context, 'Please fix the errors in the form');
+      AuthWidgets.showWarningSnackBar(context, AppLocalizations.of(context)!.pleaseFixErrorsForm);
       return;
     }
 
@@ -99,7 +100,7 @@ class _ActivationPageState extends State<ActivationPage> {
         final data = jsonDecode(response['body']);
         
         // Show success message
-        AuthWidgets.showSuccessSnackBar(context, 'Account activated successfully! You can now login.');
+        AuthWidgets.showSuccessSnackBar(context, AppLocalizations.of(context)!.activationSuccessful);
 
         // Switch to login page automatically after a small delay
         Future.delayed(const Duration(seconds: 2), () {
@@ -120,7 +121,7 @@ class _ActivationPageState extends State<ActivationPage> {
       });
       AuthWidgets.showErrorSnackBar(
         context,
-        const AppException(message: 'Something went wrong. Please try again.'),
+        AppException(message: AppLocalizations.of(context)!.somethingWentWrong),
       );
     }
   }
@@ -167,9 +168,9 @@ class _ActivationPageState extends State<ActivationPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 20),
-          const Text(
-            'Activate Account',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.activateAccount,
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: AppColors.darkColor,
@@ -188,8 +189,8 @@ class _ActivationPageState extends State<ActivationPage> {
           // University Email field
           AuthWidgets.buildTextField(
             controller: _emailController,
-            label: 'University Email',
-            hint: 'Enter your email',
+            label: AppLocalizations.of(context)!.universityEmail,
+            hint: AppLocalizations.of(context)!.enterUniversityEmail,
             prefixIcon: Icons.email,
             keyboardType: TextInputType.emailAddress,
             focusNode: _emailFocus,
@@ -203,8 +204,8 @@ class _ActivationPageState extends State<ActivationPage> {
           // University Code field
           AuthWidgets.buildTextField(
             controller: _codeController,
-            label: 'University Code',
-            hint: 'Enter your code',
+            label: AppLocalizations.of(context)!.universityCode,
+            hint: AppLocalizations.of(context)!.enterCode,
             prefixIcon: Icons.vpn_key,
             focusNode: _codeFocus,
             validator: _validateCode,
@@ -217,8 +218,8 @@ class _ActivationPageState extends State<ActivationPage> {
           // New Password field
           AuthWidgets.buildPasswordField(
             controller: _passwordController,
-            label: 'New Password',
-            hint: 'Enter a strong password (min. 6 characters)',
+            label: AppLocalizations.of(context)!.newPassword,
+            hint: AppLocalizations.of(context)!.enterStrongPassword,
             obscureText: _obscurePassword,
             focusNode: _passwordFocus,
             validator: _validatePassword,
@@ -240,7 +241,7 @@ class _ActivationPageState extends State<ActivationPage> {
 
           // Activate button
           AuthWidgets.buildActionButton(
-            text: 'Activate Account',
+            text: AppLocalizations.of(context)!.activateAccount,
             onPressed: _activateAccount,
             isLoading: _isLoading,
           ),
@@ -252,15 +253,15 @@ class _ActivationPageState extends State<ActivationPage> {
               onPressed: widget.onSwitchToLogin,
               child: RichText(
                 text: TextSpan(
-                  text: 'Already have an account? ',
+                  text: AppLocalizations.of(context)!.alreadyHaveAccount,
                   style: const TextStyle(
                     fontSize: 16,
                     color: AppColors.darkColor,
                   ),
                   children: [
-                    const TextSpan(
-                      text: 'Login',
-                      style: TextStyle(
+                    TextSpan(
+                      text: AppLocalizations.of(context)!.login,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.accentColor,

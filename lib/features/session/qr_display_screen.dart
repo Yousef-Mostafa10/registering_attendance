@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'session_service.dart';
@@ -162,7 +163,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Live Attendance', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(AppLocalizations.of(context)!.liveAttendance, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             Text('Session ID: ${widget.sessionId}', style: const TextStyle(fontSize: 13, color: Colors.white70)),
           ],
         ),

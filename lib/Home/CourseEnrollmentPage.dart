@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
@@ -49,7 +50,7 @@ class _CourseEnrollmentPageState extends State<CourseEnrollmentPage> {
 
   String? _validateCourseId(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Course ID is required';
+      return AppLocalizations.of(context)!.emailIsRequired;
     }
     final courseId = int.tryParse(value);
     if (courseId == null || courseId <= 0) {
