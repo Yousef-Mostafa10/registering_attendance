@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/language_toggle_button.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:registering_attendance/Home/creatCourse.dart';
@@ -199,18 +201,18 @@ class _CoursesListPageState extends State<CoursesListPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Confirm Deletion', style: TextStyle(color: Colors.red)),
+            const Icon(Icons.warning, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.of(context)!.confirmDeletion, style: const TextStyle(color: Colors.red)),
           ],
         ),
-        content: Text('Are you sure you want to delete the course "$courseName"?\n\nThis action cannot be undone and will permanently remove all related data.'),
+        content: Text('${AppLocalizations.of(context)!.confirmDeletion} "$courseName"?\n\n${AppLocalizations.of(context)!.thisActionCannotBeUndone}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -219,7 +221,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
       ),
@@ -390,7 +392,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(AppLocalizations.of(context)!.logout, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -501,6 +503,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
               ],
             ),
             actions: [
+              LanguageToggleButton(),
               if (_userRole == 'Admin' || _userRole == 'Doctor')
                 IconButton(
                   icon: const Icon(Icons.add, color: Colors.white),
@@ -551,9 +554,9 @@ class _CoursesListPageState extends State<CoursesListPage> {
                         child: TextField(
                           controller: _searchController,
                           style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            hintText: 'Search courses...',
-                            hintStyle: TextStyle(color: Colors.white60),
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context)!.searchByNameCode,
+                            hintStyle: const TextStyle(color: Colors.white60),
                             border: InputBorder.none,
                           ),
                         ),

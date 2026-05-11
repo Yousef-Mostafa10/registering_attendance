@@ -1,3 +1,4 @@
+import '../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/responsive.dart';
@@ -506,7 +507,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
           builder: (context, setState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text('Stop Active Session', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(AppLocalizations.of(context)!.stopActiveSession, style: const TextStyle(fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -532,7 +533,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
               actions: [
                 TextButton(
                   onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: Colors.grey)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -587,7 +588,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                           height: 20,
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
-                      : const Text('Stop Session', style: TextStyle(fontWeight: FontWeight.bold)),
+                      : Text(AppLocalizations.of(context)!.stopSession, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );

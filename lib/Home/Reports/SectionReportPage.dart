@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:excel/excel.dart' as excel;
@@ -136,7 +137,7 @@ class _SectionReportPageState extends State<SectionReportPage> {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
       appBar: AppBar(
-        title: const Text('Section Report'),
+        title: Text(AppLocalizations.of(context)!.sectionReport),
         backgroundColor: _accent,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -215,7 +216,7 @@ class _SectionReportPageState extends State<SectionReportPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Apply'),
+                      child: Text(AppLocalizations.of(context)!.apply),
                     ),
                   ],
                 ),
@@ -396,7 +397,7 @@ class _SectionReportPageState extends State<SectionReportPage> {
           ElevatedButton(
             onPressed: _fetch,
             style: ElevatedButton.styleFrom(backgroundColor: _accent),
-            child: const Text('Retry'),
+            child: Text(AppLocalizations.of(context)!.retry),
           ),
         ],
       ),

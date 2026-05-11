@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/language_toggle_button.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import '../core/responsive.dart';
 import '../Auth/auth_storage.dart';
@@ -177,9 +179,9 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                 child: const Icon(Icons.logout, color: Colors.white, size: 32),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Logout',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.logout,
+                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -187,10 +189,10 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Are you sure you want to logout from your account?',
+            Text(
+              AppLocalizations.of(context)!.areYouSureLogout,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: AppColors.darkColor),
+              style: const TextStyle(fontSize: 15, color: AppColors.darkColor),
             ),
             const SizedBox(height: 24),
             Row(
@@ -203,7 +205,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       side: BorderSide(color: Colors.grey.shade300),
                     ),
-                    child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                    child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: Colors.grey.shade600)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -217,7 +219,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(AppLocalizations.of(context)!.logout, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -310,6 +312,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               ),
             ),
             actions: [
+              LanguageToggleButton(),
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(10),
@@ -361,7 +364,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                         Column(
                           crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.start : CrossAxisAlignment.start,
                           children: [
-                            Text('Welcome ${widget.role},',
+                            Text('${AppLocalizations.of(context)!.welcome} ${widget.role},',
                                 style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
                             Text(widget.userName,
                                 style: TextStyle(fontSize: Responsive.isDesktop(context) ? 28 : 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
@@ -449,7 +452,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-              child: Text('My Courses',
+              child: Text(AppLocalizations.of(context)!.myCourses,
                   textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.start,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
             ),
@@ -596,7 +599,7 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
     const SizedBox(height: 16),
     Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.errorColor)),
     const SizedBox(height: 16),
-    ElevatedButton.icon(onPressed: _fetchCourses, icon: const Icon(Icons.refresh), label: const Text('Retry'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor)),
+    ElevatedButton.icon(onPressed: _fetchCourses, icon: const Icon(Icons.refresh), label: Text(AppLocalizations.of(context)!.retry), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor)),
   ])));
 
   Widget _buildEmpty() => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:excel/excel.dart' as excel;
@@ -72,11 +73,11 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return AppLocalizations.of(context)!.emailIsRequired;
     }
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value)) {
-      return 'Invalid email format';
+      return AppLocalizations.of(context)!.enterValidEmail;
     }
     return null;
   }
@@ -908,7 +909,7 @@ class _CreateStudentsBulkPageState extends State<CreateStudentsBulkPage> {
                   ),
                   side: BorderSide(color: Colors.grey.shade300),
                 ),
-                child: const Text('Clear'),
+                child: const Text('Clear')  ,
               ),
             ],
           ),

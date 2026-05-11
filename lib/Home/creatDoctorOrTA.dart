@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,21 +63,21 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return AppLocalizations.of(context)!.emailIsRequired;
     }
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email address';
+      return AppLocalizations.of(context)!.enterValidEmail;
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return AppLocalizations.of(context)!.passwordIsRequired;
     }
     if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+      return AppLocalizations.of(context)!.enterStrongPassword;
     }
     return null;
   }
@@ -126,7 +127,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final message = responseData['message'] ??
-            (_isDoctor ? 'Doctor account created successfully' : 'Teaching assistant account created successfully');
+            (_isDoctor ? AppLocalizations.of(context)!.doctorAccountCreatedSuccessfully : AppLocalizations.of(context)!.taAccountCreatedSuccessfully);
         final accountId = responseData['${_isDoctor ? 'doctorId' : 'taId'}']?.toString();
 
         // عرض رسالة النجاح مع خيار الخروج
@@ -218,7 +219,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   ? const EdgeInsets.only(bottom: 20) 
                   : const EdgeInsets.only(left: 20, bottom: 16),
               title: Text(
-                    _isDoctor ? 'Create Doctor Account' : 'Create TA Account',
+                    _isDoctor ? AppLocalizations.of(context)!.createDoctorAccount : AppLocalizations.of(context)!.createTAAccount,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: Responsive.isDesktop(context) ? 20 : 18,

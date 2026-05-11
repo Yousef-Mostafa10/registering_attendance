@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'session_models.dart';
@@ -147,13 +148,13 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
             context: context,
             barrierDismissible: false,
             builder: (ctx) => AlertDialog(
-              title: const Text('Active Session Found', style: TextStyle(fontWeight: FontWeight.bold)),
-              content: const Text('There is already a running session. Do you want to continue with it?'),
+              title: Text(AppLocalizations.of(context)!.sessionAlreadyRunning, style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: Text(AppLocalizations.of(context)!.sessionAlreadyRunning),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: Colors.grey)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -193,7 +194,7 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                       }
                     }
                   },
-                  child: const Text('Continue', style: TextStyle(color: Colors.white)),
+                  child: Text(AppLocalizations.of(context)!.continueAction, style: const TextStyle(color: Colors.white)),
                 ),
               ],
             ),

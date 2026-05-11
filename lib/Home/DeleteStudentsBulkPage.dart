@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../Auth/colors.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/api_service.dart';
@@ -193,7 +194,7 @@ class _DeleteStudentsBulkPageState extends State<DeleteStudentsBulkPage> {
         content: Text(body, style: const TextStyle(fontSize: 14)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+              child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(

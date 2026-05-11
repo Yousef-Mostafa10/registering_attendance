@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/colors.dart';
@@ -69,7 +70,7 @@ class _AssignStaffPageState extends State<AssignStaffPage> {
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
       appBar: AppBar(
-        title: const Text('Assign Staff to Course', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(AppLocalizations.of(context)!.assignStaffToCourse, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.primaryColor,
         elevation: 0,
         centerTitle: true,
