@@ -144,7 +144,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminDashboard => 'لوحة تحكم الإدارة';
 
   @override
-  String get doctorDashboard => 'لوحة تحكم الطبيب';
+  String get doctorDashboard => 'لوحة تحكم عضو هيئة التدريس';
 
   @override
   String get dashboardMenu => 'قائمة لوحة التحكم';
@@ -180,7 +180,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get retry => 'إعادة محاولة';
 
   @override
-  String get doctors => 'أطباء';
+  String get doctors => 'أعضاء هيئة تدريس';
 
   @override
   String get tas => 'معيدون';
@@ -210,16 +210,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get staffManagement => 'إدارة الموظفين';
 
   @override
-  String get createDoctorTA => 'إنشاء د/م';
+  String get createDoctorTA => 'إضافة عضو هيئة تدريس/معيد';
 
   @override
-  String get createDoctor => 'إنشاء طبيب';
+  String get createDoctor => 'إضافة عضو هيئة تدريس';
 
   @override
   String get createTA => 'إنشاء معيد';
 
   @override
-  String get listDoctors => 'قائمة الأطباء';
+  String get listDoctors => 'عرض أعضاء هيئة التدريس';
 
   @override
   String get listTAs => 'قائمة المعيدين';
@@ -228,7 +228,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteUser => 'حذف مستخدم';
 
   @override
-  String get createDoctorAccount => 'إنشاء حساب طبيب';
+  String get createDoctorAccount => 'إنشاء حساب عضو هيئة تدريس';
 
   @override
   String get createTAAccount => 'إنشاء حساب معيد';
@@ -243,7 +243,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountCreationSteps => 'خطوات إنشاء الحساب';
 
   @override
-  String get selectAccountType => 'حدد نوع الحساب (طبيب أو معيد).';
+  String get selectAccountType => 'حدد نوع الحساب (عضو هيئة تدريس أو معيد).';
 
   @override
   String get enterFullName => 'أدخل الاسم الكامل لموظف الكادر.';
@@ -262,7 +262,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountType => 'نوع الحساب';
 
   @override
-  String get doctor => 'طبيب';
+  String get doctor => 'عضو هيئة تدريس';
 
   @override
   String get teachingAssistant => 'معيد';
@@ -271,7 +271,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fullName => 'الاسم الكامل';
 
   @override
-  String get enterDoctorName => 'أدخل اسم الطبيب';
+  String get enterDoctorName => 'أدخل اسم عضو هيئة التدريس';
 
   @override
   String get enterTAName => 'أدخل اسم المعيد';
@@ -286,7 +286,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createAccount => 'إنشاء حساب';
 
   @override
-  String get doctorAccountCreatedSuccessfully => 'تم إنشاء حساب الطبيب بنجاح';
+  String get doctorAccountCreatedSuccessfully =>
+      'تم إنشاء حساب عضو هيئة التدريس بنجاح';
 
   @override
   String get taAccountCreatedSuccessfully => 'تم إنشاء حساب المعيد بنجاح';
@@ -452,7 +453,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get assignStaffToCourse => 'تعيين الموظفين للمقرر';
 
   @override
-  String get assignDoctorOrTA => 'تعيين طبيب أو معيد';
+  String get assignDoctorOrTA => 'تعيين عضو هيئة تدريس أو معيد';
 
   @override
   String get courseCode => 'كود المقرر';
@@ -1157,4 +1158,82 @@ class AppLocalizationsAr extends AppLocalizations {
   String resetSystemError(String error) {
     return 'فشل تهيئة النظام: $error';
   }
+
+  @override
+  String get dataPreserved => 'حسابات المستخدمين والمقررات → محفوظة';
+
+  @override
+  String get dataDeleted => 'الجلسات والحضور والتسجيلات → محذوفة';
+
+  @override
+  String get singleAccount => 'حساب واحد';
+
+  @override
+  String get newYearReset => 'إعادة تعيين السنة الجديدة';
+
+  @override
+  String get resetStudentAccount => 'إعادة تعيين حساب الطالب';
+
+  @override
+  String get enterStudentUniversityCodeReset =>
+      'أدخل كود الجامعة للطالب لإعادة تعيين حسابه. سيسمح له هذا باستخدام شاشة \"التفعيل\" مرة أخرى.';
+
+  @override
+  String get howToResetAccount => 'كيفية إعادة تعيين الحساب';
+
+  @override
+  String get obtainStudentUniversityCode => 'احصل على كود جامعة الطالب.';
+
+  @override
+  String get enterExactUniversityCode =>
+      'أدخل كود الجامعة الدقيق في الحقل أدناه.';
+
+  @override
+  String get clickResetAccountButton => 'انقر على \"إعادة تعيين الحساب\".';
+
+  @override
+  String get studentWillActivateAgain =>
+      'بعد النجاح، سيتمكن الطالب من تفعيل حسابه مرة أخرى من جهازه الخاص.';
+
+  @override
+  String get studentUniversityCodeReset => 'كود جامعة الطالب';
+
+  @override
+  String get enterUniversityCodeExample =>
+      'أدخل كود الجامعة (مثال: ST-20205522)';
+
+  @override
+  String get resetAccount => 'إعادة تعيين الحساب';
+
+  @override
+  String get accountResetSuccessfully => 'تم إعادة تعيين الحساب بنجاح';
+
+  @override
+  String failedToResetAccount(String error) {
+    return 'فشل في إعادة تعيين الحساب: $error';
+  }
+
+  @override
+  String get studentUniversityCodeRequired => 'كود جامعة الطالب مطلوب';
+
+  @override
+  String get invalidUniversityCode =>
+      'يرجى إدخال كود جامعة صحيح (مثال: ST-20205522)';
+
+  @override
+  String get whatHappensResetStudent =>
+      'ماذا يحدث عند إعادة تعيين حساب الطالب؟';
+
+  @override
+  String get studentCanUseActivateScreen =>
+      'يمكن للطالب استخدام شاشة ال\"التفعيل\" مرة أخرى';
+
+  @override
+  String get accountStatusReset => 'حالة الحساب معاد تعيينها';
+
+  @override
+  String get completeActivationAgain => 'يحتاج لإكمال عملية التفعيل مرة أخرى';
+
+  @override
+  String get previousAccountDataAffected => 'قد تتأثر بيانات الحساب السابقة';
 }

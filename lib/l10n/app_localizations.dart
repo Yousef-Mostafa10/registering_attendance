@@ -2239,6 +2239,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to reset system: {error}'**
   String resetSystemError(String error);
+
+  /// No description provided for @dataPreserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Users & Courses → Preserved'**
+  String get dataPreserved;
+
+  /// No description provided for @dataDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions, Attendance, Enrollments → Deleted'**
+  String get dataDeleted;
+
+  /// No description provided for @singleAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Single Account'**
+  String get singleAccount;
+
+  /// No description provided for @newYearReset.
+  ///
+  /// In en, this message translates to:
+  /// **'New Year Reset'**
+  String get newYearReset;
+
+  /// No description provided for @resetStudentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Student Account'**
+  String get resetStudentAccount;
+
+  /// No description provided for @enterStudentUniversityCodeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the student University Code to reset their account. This will allow them to use the \"Activate\" screen again.'**
+  String get enterStudentUniversityCodeReset;
+
+  /// No description provided for @howToResetAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'How to Reset an Account'**
+  String get howToResetAccount;
+
+  /// No description provided for @obtainStudentUniversityCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Obtain the student\'s University Code.'**
+  String get obtainStudentUniversityCode;
+
+  /// No description provided for @enterExactUniversityCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the exact University Code in the field below.'**
+  String get enterExactUniversityCode;
+
+  /// No description provided for @clickResetAccountButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Click \"Reset Account\".'**
+  String get clickResetAccountButton;
+
+  /// No description provided for @studentWillActivateAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Once successful, the student will be able to activate their account again from their own device.'**
+  String get studentWillActivateAgain;
+
+  /// No description provided for @studentUniversityCodeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Student University Code'**
+  String get studentUniversityCodeReset;
+
+  /// No description provided for @enterUniversityCodeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter university code (e.g., ST-20205522)'**
+  String get enterUniversityCodeExample;
+
+  /// No description provided for @resetAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Account'**
+  String get resetAccount;
+
+  /// No description provided for @accountResetSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Account reset successfully'**
+  String get accountResetSuccessfully;
+
+  /// No description provided for @failedToResetAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset account: {error}'**
+  String failedToResetAccount(String error);
+
+  /// No description provided for @studentUniversityCodeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Student University Code is required'**
+  String get studentUniversityCodeRequired;
+
+  /// No description provided for @invalidUniversityCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid University Code (e.g., ST-20205522)'**
+  String get invalidUniversityCode;
+
+  /// No description provided for @whatHappensResetStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'What happens when you reset a student account?'**
+  String get whatHappensResetStudent;
+
+  /// No description provided for @studentCanUseActivateScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'The student can use the \"Activate\" screen again'**
+  String get studentCanUseActivateScreen;
+
+  /// No description provided for @accountStatusReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Their account status is reset'**
+  String get accountStatusReset;
+
+  /// No description provided for @completeActivationAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'They need to complete the activation process again'**
+  String get completeActivationAgain;
+
+  /// No description provided for @previousAccountDataAffected.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous account data may be affected'**
+  String get previousAccountDataAffected;
 }
 
 class _AppLocalizationsDelegate
