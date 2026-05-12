@@ -516,5 +516,9 @@
   },
   "studentUniversityCodeRequired": "Student University Code is required",
   "invalidUniversityCode": "Please enter a valid University Code (e.g., ST-20205522)",
-  "whatHappensResetStudent": "What happens when you reset a student account?"
+  "whatHappensResetStudent": "What happens when you reset a student account?",
+  "studentCanUseActivateScreen": "The student can use the \"Activate\" screen again",
+  "accountStatusReset": "Their account status is reset",
+  "completeActivationAgain": "They need to complete the activation process again",
+  "previousAccountDataAffected": "Previous account data may be affected"
 }

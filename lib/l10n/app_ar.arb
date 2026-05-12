@@ -516,5 +516,9 @@
   },
   "studentUniversityCodeRequired": "كود جامعة الطالب مطلوب",
   "invalidUniversityCode": "يرجى إدخال كود جامعة صحيح (مثال: ST-20205522)",
-  "whatHappensResetStudent": "ماذا يحدث عند إعادة تعيين حساب الطالب؟"
+  "whatHappensResetStudent": "ماذا يحدث عند إعادة تعيين حساب الطالب؟",
+  "studentCanUseActivateScreen": "يمكن للطالب استخدام شاشة ال\"التفعيل\" مرة أخرى",
+  "accountStatusReset": "حالة الحساب معاد تعيينها",
+  "completeActivationAgain": "يحتاج لإكمال عملية التفعيل مرة أخرى",
+  "previousAccountDataAffected": "قد تتأثر بيانات الحساب السابقة"
 }

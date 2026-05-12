@@ -412,7 +412,7 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'What happens when you reset a student account?',
+                          AppLocalizations.of(context)!.whatHappensResetStudent,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -422,19 +422,19 @@ class _ResetStudentAccountPageState extends State<ResetStudentAccountPage> {
                         const SizedBox(height: 12),
                         _buildInfoItem(
                           icon: Icons.refresh,
-                          text: 'The student can use the "Activate" screen again',
+                          text: AppLocalizations.of(context)!.studentCanUseActivateScreen,
                         ),
                         _buildInfoItem(
                           icon: Icons.lock_open,
-                          text: 'Their account status is reset',
+                          text: AppLocalizations.of(context)!.accountStatusReset,
                         ),
                         _buildInfoItem(
                           icon: Icons.settings_backup_restore,
-                          text: 'They need to complete the activation process again',
+                          text: AppLocalizations.of(context)!.completeActivationAgain,
                         ),
                         _buildInfoItem(
                           icon: Icons.warning,
-                          text: 'Previous account data may be affected',
+                          text: AppLocalizations.of(context)!.previousAccountDataAffected,
                         ),
                       ],
                     ),

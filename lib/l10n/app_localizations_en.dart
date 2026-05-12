@@ -1237,4 +1237,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatHappensResetStudent =>
       'What happens when you reset a student account?';
+
+  @override
+  String get studentCanUseActivateScreen =>
+      'The student can use the \"Activate\" screen again';
+
+  @override
+  String get accountStatusReset => 'Their account status is reset';
+
+  @override
+  String get completeActivationAgain =>
+      'They need to complete the activation process again';
+
+  @override
+  String get previousAccountDataAffected =>
+      'Previous account data may be affected';
 }

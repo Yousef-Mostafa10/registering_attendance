@@ -2353,6 +2353,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What happens when you reset a student account?'**
   String get whatHappensResetStudent;
+
+  /// No description provided for @studentCanUseActivateScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'The student can use the \"Activate\" screen again'**
+  String get studentCanUseActivateScreen;
+
+  /// No description provided for @accountStatusReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Their account status is reset'**
+  String get accountStatusReset;
+
+  /// No description provided for @completeActivationAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'They need to complete the activation process again'**
+  String get completeActivationAgain;
+
+  /// No description provided for @previousAccountDataAffected.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous account data may be affected'**
+  String get previousAccountDataAffected;
 }
 
 class _AppLocalizationsDelegate

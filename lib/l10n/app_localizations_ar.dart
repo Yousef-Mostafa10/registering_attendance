@@ -1223,4 +1223,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get whatHappensResetStudent =>
       'ماذا يحدث عند إعادة تعيين حساب الطالب؟';
+
+  @override
+  String get studentCanUseActivateScreen =>
+      'يمكن للطالب استخدام شاشة ال\"التفعيل\" مرة أخرى';
+
+  @override
+  String get accountStatusReset => 'حالة الحساب معاد تعيينها';
+
+  @override
+  String get completeActivationAgain => 'يحتاج لإكمال عملية التفعيل مرة أخرى';
+
+  @override
+  String get previousAccountDataAffected => 'قد تتأثر بيانات الحساب السابقة';
 }
