@@ -144,7 +144,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminDashboard => 'لوحة تحكم الإدارة';
 
   @override
-  String get doctorDashboard => 'لوحة تحكم الطبيب';
+  String get doctorDashboard => 'لوحة تحكم عضو هيئة التدريس';
 
   @override
   String get dashboardMenu => 'قائمة لوحة التحكم';
@@ -210,16 +210,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get staffManagement => 'إدارة الموظفين';
 
   @override
-  String get createDoctorTA => 'إنشاء د/م';
+  String get createDoctorTA => 'إضافة عضو هيئة تدريس/معيد';
 
   @override
-  String get createDoctor => 'إنشاء طبيب';
+  String get createDoctor => 'إضافة عضو هيئة تدريس';
 
   @override
   String get createTA => 'إنشاء معيد';
 
   @override
-  String get listDoctors => 'قائمة الأطباء';
+  String get listDoctors => 'عرض أعضاء هيئة التدريس';
 
   @override
   String get listTAs => 'قائمة المعيدين';
@@ -228,7 +228,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteUser => 'حذف مستخدم';
 
   @override
-  String get createDoctorAccount => 'إنشاء حساب طبيب';
+  String get createDoctorAccount => 'إنشاء حساب عضو هيئة تدريس';
 
   @override
   String get createTAAccount => 'إنشاء حساب معيد';
@@ -243,7 +243,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountCreationSteps => 'خطوات إنشاء الحساب';
 
   @override
-  String get selectAccountType => 'حدد نوع الحساب (طبيب أو معيد).';
+  String get selectAccountType => 'حدد نوع الحساب (عضو هيئة تدريس أو معيد).';
 
   @override
   String get enterFullName => 'أدخل الاسم الكامل لموظف الكادر.';
@@ -271,7 +271,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fullName => 'الاسم الكامل';
 
   @override
-  String get enterDoctorName => 'أدخل اسم الطبيب';
+  String get enterDoctorName => 'أدخل اسم عضو هيئة التدريس';
 
   @override
   String get enterTAName => 'أدخل اسم المعيد';
@@ -286,7 +286,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createAccount => 'إنشاء حساب';
 
   @override
-  String get doctorAccountCreatedSuccessfully => 'تم إنشاء حساب الطبيب بنجاح';
+  String get doctorAccountCreatedSuccessfully =>
+      'تم إنشاء حساب عضو هيئة التدريس بنجاح';
 
   @override
   String get taAccountCreatedSuccessfully => 'تم إنشاء حساب المعيد بنجاح';
@@ -452,7 +453,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get assignStaffToCourse => 'تعيين الموظفين للمقرر';
 
   @override
-  String get assignDoctorOrTA => 'تعيين طبيب أو معيد';
+  String get assignDoctorOrTA => 'تعيين عضو هيئة تدريس أو معيد';
 
   @override
   String get courseCode => 'كود المقرر';
