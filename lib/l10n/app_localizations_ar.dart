@@ -180,7 +180,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get retry => 'إعادة محاولة';
 
   @override
-  String get doctors => 'أطباء';
+  String get doctors => 'أعضاء هيئة تدريس';
 
   @override
   String get tas => 'معيدون';
@@ -262,7 +262,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountType => 'نوع الحساب';
 
   @override
-  String get doctor => 'طبيب';
+  String get doctor => 'عضو هيئة تدريس';
 
   @override
   String get teachingAssistant => 'معيد';
