@@ -1170,4 +1170,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String resetSystemError(String error) {
     return 'Failed to reset system: $error';
   }
+
+  @override
+  String get dataPreserved => 'Users & Courses → Preserved';
+
+  @override
+  String get dataDeleted => 'Sessions, Attendance, Enrollments → Deleted';
+
+  @override
+  String get singleAccount => 'Single Account';
+
+  @override
+  String get newYearReset => 'New Year Reset';
+
+  @override
+  String get resetStudentAccount => 'Reset Student Account';
+
+  @override
+  String get enterStudentUniversityCodeReset =>
+      'Enter the student University Code to reset their account. This will allow them to use the \"Activate\" screen again.';
+
+  @override
+  String get howToResetAccount => 'How to Reset an Account';
+
+  @override
+  String get obtainStudentUniversityCode =>
+      'Obtain the student\'s University Code.';
+
+  @override
+  String get enterExactUniversityCode =>
+      'Enter the exact University Code in the field below.';
+
+  @override
+  String get clickResetAccountButton => 'Click \"Reset Account\".';
+
+  @override
+  String get studentWillActivateAgain =>
+      'Once successful, the student will be able to activate their account again from their own device.';
+
+  @override
+  String get studentUniversityCodeReset => 'Student University Code';
+
+  @override
+  String get enterUniversityCodeExample =>
+      'Enter university code (e.g., ST-20205522)';
+
+  @override
+  String get resetAccount => 'Reset Account';
+
+  @override
+  String get accountResetSuccessfully => 'Account reset successfully';
+
+  @override
+  String failedToResetAccount(String error) {
+    return 'Failed to reset account: $error';
+  }
+
+  @override
+  String get studentUniversityCodeRequired =>
+      'Student University Code is required';
+
+  @override
+  String get invalidUniversityCode =>
+      'Please enter a valid University Code (e.g., ST-20205522)';
+
+  @override
+  String get whatHappensResetStudent =>
+      'What happens when you reset a student account?';
 }

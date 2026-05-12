@@ -488,5 +488,33 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dataPreserved": "Users & Courses → Preserved",
+  "dataDeleted": "Sessions, Attendance, Enrollments → Deleted",
+  "cancel": "Cancel",
+  "resetAccounts": "Reset Accounts",
+  "singleAccount": "Single Account",
+  "newYearReset": "New Year Reset",
+  "resetStudentAccount": "Reset Student Account",
+  "enterStudentUniversityCodeReset": "Enter the student University Code to reset their account. This will allow them to use the \"Activate\" screen again.",
+  "howToResetAccount": "How to Reset an Account",
+  "obtainStudentUniversityCode": "Obtain the student's University Code.",
+  "enterExactUniversityCode": "Enter the exact University Code in the field below.",
+  "clickResetAccountButton": "Click \"Reset Account\".",
+  "studentWillActivateAgain": "Once successful, the student will be able to activate their account again from their own device.",
+  "studentUniversityCodeReset": "Student University Code",
+  "enterUniversityCodeExample": "Enter university code (e.g., ST-20205522)",
+  "resetAccount": "Reset Account",
+  "accountResetSuccessfully": "Account reset successfully",
+  "failedToResetAccount": "Failed to reset account: {error}",
+  "@failedToResetAccount": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "studentUniversityCodeRequired": "Student University Code is required",
+  "invalidUniversityCode": "Please enter a valid University Code (e.g., ST-20205522)",
+  "whatHappensResetStudent": "What happens when you reset a student account?"
 }

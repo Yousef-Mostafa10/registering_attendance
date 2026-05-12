@@ -488,5 +488,33 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dataPreserved": "حسابات المستخدمين والمقررات → محفوظة",
+  "dataDeleted": "الجلسات والحضور والتسجيلات → محذوفة",
+  "cancel": "إلغاء",
+  "resetAccounts": "إعادة تعيين الحسابات",
+  "singleAccount": "حساب واحد",
+  "newYearReset": "إعادة تعيين السنة الجديدة",
+  "resetStudentAccount": "إعادة تعيين حساب الطالب",
+  "enterStudentUniversityCodeReset": "أدخل كود الجامعة للطالب لإعادة تعيين حسابه. سيسمح له هذا باستخدام شاشة \"التفعيل\" مرة أخرى.",
+  "howToResetAccount": "كيفية إعادة تعيين الحساب",
+  "obtainStudentUniversityCode": "احصل على كود جامعة الطالب.",
+  "enterExactUniversityCode": "أدخل كود الجامعة الدقيق في الحقل أدناه.",
+  "clickResetAccountButton": "انقر على \"إعادة تعيين الحساب\".",
+  "studentWillActivateAgain": "بعد النجاح، سيتمكن الطالب من تفعيل حسابه مرة أخرى من جهازه الخاص.",
+  "studentUniversityCodeReset": "كود جامعة الطالب",
+  "enterUniversityCodeExample": "أدخل كود الجامعة (مثال: ST-20205522)",
+  "resetAccount": "إعادة تعيين الحساب",
+  "accountResetSuccessfully": "تم إعادة تعيين الحساب بنجاح",
+  "failedToResetAccount": "فشل في إعادة تعيين الحساب: {error}",
+  "@failedToResetAccount": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "studentUniversityCodeRequired": "كود جامعة الطالب مطلوب",
+  "invalidUniversityCode": "يرجى إدخال كود جامعة صحيح (مثال: ST-20205522)",
+  "whatHappensResetStudent": "ماذا يحدث عند إعادة تعيين حساب الطالب؟"
 }

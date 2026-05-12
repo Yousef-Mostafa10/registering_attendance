@@ -1158,4 +1158,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String resetSystemError(String error) {
     return 'فشل تهيئة النظام: $error';
   }
+
+  @override
+  String get dataPreserved => 'حسابات المستخدمين والمقررات → محفوظة';
+
+  @override
+  String get dataDeleted => 'الجلسات والحضور والتسجيلات → محذوفة';
+
+  @override
+  String get singleAccount => 'حساب واحد';
+
+  @override
+  String get newYearReset => 'إعادة تعيين السنة الجديدة';
+
+  @override
+  String get resetStudentAccount => 'إعادة تعيين حساب الطالب';
+
+  @override
+  String get enterStudentUniversityCodeReset =>
+      'أدخل كود الجامعة للطالب لإعادة تعيين حسابه. سيسمح له هذا باستخدام شاشة \"التفعيل\" مرة أخرى.';
+
+  @override
+  String get howToResetAccount => 'كيفية إعادة تعيين الحساب';
+
+  @override
+  String get obtainStudentUniversityCode => 'احصل على كود جامعة الطالب.';
+
+  @override
+  String get enterExactUniversityCode =>
+      'أدخل كود الجامعة الدقيق في الحقل أدناه.';
+
+  @override
+  String get clickResetAccountButton => 'انقر على \"إعادة تعيين الحساب\".';
+
+  @override
+  String get studentWillActivateAgain =>
+      'بعد النجاح، سيتمكن الطالب من تفعيل حسابه مرة أخرى من جهازه الخاص.';
+
+  @override
+  String get studentUniversityCodeReset => 'كود جامعة الطالب';
+
+  @override
+  String get enterUniversityCodeExample =>
+      'أدخل كود الجامعة (مثال: ST-20205522)';
+
+  @override
+  String get resetAccount => 'إعادة تعيين الحساب';
+
+  @override
+  String get accountResetSuccessfully => 'تم إعادة تعيين الحساب بنجاح';
+
+  @override
+  String failedToResetAccount(String error) {
+    return 'فشل في إعادة تعيين الحساب: $error';
+  }
+
+  @override
+  String get studentUniversityCodeRequired => 'كود جامعة الطالب مطلوب';
+
+  @override
+  String get invalidUniversityCode =>
+      'يرجى إدخال كود جامعة صحيح (مثال: ST-20205522)';
+
+  @override
+  String get whatHappensResetStudent =>
+      'ماذا يحدث عند إعادة تعيين حساب الطالب؟';
 }
