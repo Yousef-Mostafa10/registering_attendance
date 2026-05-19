@@ -186,15 +186,15 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                       final w = MediaQuery.of(context).size.width;
                       // Desktop Layout: 4 cols ≥ 1100 / Tablet: 3 cols ≥ 850 / Mobile Layout: 2 cols < 600
                       final cols = w >= 1100 ? 4 : w >= 850 ? 3 : 2;
-                      // Mobile Layout: portrait-friendly ratio / Desktop Layout: wide-card ratio
-                      final ratio = w >= 1100 ? 1.8 : w >= 850 ? 1.3 : (w < 600 ? 1.0 : 1.3);
+                      // Mobile cards were too tall for their content; slightly wider ratio makes content feel larger.
+                      final ratio = w >= 1100 ? 1.8 : w >= 850 ? 1.3 : (w < 600 ? 1.15 : 1.3);
                       return GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: cols,
                         // Desktop Layout: 8px spacing / Mobile Layout: 6px spacing
-                        crossAxisSpacing: w < 600 ? 6 : 8,
-                        mainAxisSpacing: w < 600 ? 6 : 8,
+                        crossAxisSpacing: w < 600 ? 8 : 8,
+                        mainAxisSpacing: w < 600 ? 8 : 8,
                         childAspectRatio: ratio,
                         children: [
                           _reportCard(
@@ -368,17 +368,17 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(24),
           child: Padding(
-            // Desktop Layout: 24px / Mobile Layout: 12px
+            // Desktop Layout: 24px / Mobile Layout: tighter padding for denser content
             padding: EdgeInsets.all(
-              Responsive.isDesktop(context) ? 24 : (isMobile ? 12 : 16),
+              Responsive.isDesktop(context) ? 24 : (isMobile ? 8 : 16),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  // Desktop Layout: 20px icon padding / Mobile Layout: 10px icon padding
+                  // Desktop Layout: 20px icon padding / Mobile Layout: slightly larger icon container
                   padding: EdgeInsets.all(
-                    Responsive.isDesktop(context) ? 20 : (isMobile ? 10 : 12),
+                    Responsive.isDesktop(context) ? 20 : (isMobile ? 12 : 12),
                   ),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
@@ -386,20 +386,20 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                   ),
                   child: Icon(
                     icon,
-                    // Desktop Layout: 44px / Mobile Layout: 24px
-                    size: Responsive.isDesktop(context) ? 44 : (isMobile ? 24 : 28),
+                    // Desktop Layout: 44px / Mobile Layout: larger icon for readability
+                    size: Responsive.isDesktop(context) ? 44 : (isMobile ? 30 : 28),
                     color: color,
                   ),
                 ),
                 SizedBox(
-                  height: Responsive.isDesktop(context) ? 20 : (isMobile ? 8 : 14),
+                  height: Responsive.isDesktop(context) ? 20 : (isMobile ? 10 : 14),
                 ),
                 Text(
                   title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    // Desktop Layout: 18px / Mobile Layout: 12px
-                    fontSize: Responsive.isDesktop(context) ? 18 : (isMobile ? 12 : 14),
+                    // Desktop Layout: 18px / Mobile Layout: larger title text
+                    fontSize: Responsive.isDesktop(context) ? 18 : (isMobile ? 17 : 14),
                     fontWeight: FontWeight.bold,
                     color: AppColors.darkColor,
                   ),
@@ -409,8 +409,8 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    // Desktop Layout: 13px / Mobile Layout: 9px
-                    fontSize: Responsive.isDesktop(context) ? 13 : (isMobile ? 9 : 10),
+                    // Desktop Layout: 13px / Mobile Layout: larger subtitle text
+                    fontSize: Responsive.isDesktop(context) ? 13 : (isMobile ? 13 : 10),
                     color: AppColors.darkColor.withOpacity(0.5),
                     height: 1.2,
                   ),
