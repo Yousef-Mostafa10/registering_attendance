@@ -640,8 +640,8 @@ class _CoursesListPageState extends State<CoursesListPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('${AppLocalizations.of(context)!.welcome} Student,',
-                                    style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
+                                Text('${AppLocalizations.of(context)!.welcome},',
+                                  style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
                                 Text(_userName,
                                     style: TextStyle(fontSize: Responsive.isDesktop(context) ? 28 : 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
                                 Text(_email,

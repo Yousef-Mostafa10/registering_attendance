@@ -364,8 +364,8 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                         Column(
                           crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.start : CrossAxisAlignment.start,
                           children: [
-                            Text('${AppLocalizations.of(context)!.welcome} ${widget.role},',
-                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
+                            Text('${AppLocalizations.of(context)!.welcome},',
+                              style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
                             Text(widget.userName,
                                 style: TextStyle(fontSize: Responsive.isDesktop(context) ? 28 : 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
                             Text(widget.email,

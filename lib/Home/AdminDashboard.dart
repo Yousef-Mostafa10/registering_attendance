@@ -511,7 +511,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${AppLocalizations.of(context)!.welcome} ${widget.role},',
+                            '${AppLocalizations.of(context)!.welcome},',
                             style: TextStyle(
                               fontSize: 16,
                               color: AppColors.darkColor.withOpacity(0.7),
