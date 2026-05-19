@@ -1114,6 +1114,60 @@ class AppLocalizationsAr extends AppLocalizations {
   String get viewDashboardSubtitle => 'التحليلات وإدارة الجلسات';
 
   @override
+  String get courseCreationSteps => 'خطوات إنشاء المقرر';
+
+  @override
+  String get courseCreationStep1 => 'أدخل اسمًا واضحًا ووصفيًا للمقرر.';
+
+  @override
+  String get courseCreationStep2 => 'وفر كود مقرر فريدًا (مثال: CS4710).';
+
+  @override
+  String get courseCreationStep3 =>
+      'أدخل كود الجامعة الصحيح للعضو المسؤول عن هذا المقرر.';
+
+  @override
+  String get courseCreationStep4 => 'أضف وصفًا مختصرًا لمحتوى المقرر.';
+
+  @override
+  String get courseCreationStep5 => 'اضغط \"إنشاء مقرر\" لإتمام العملية.';
+
+  @override
+  String get doctorUniversityCode => 'كود الأستاذ الجامعي';
+
+  @override
+  String get enterDoctorUniversityCode =>
+      'أدخل كود الأستاذ الجامعي (مثال: DR-1234)';
+
+  @override
+  String get courseNameIsRequired => 'اسم المقرر مطلوب';
+
+  @override
+  String get courseNameMustBeAtLeast2Chars =>
+      'اسم المقرر يجب أن يكون على الأقل حرفين';
+
+  @override
+  String get courseCodeIsRequired => 'كود المقرر مطلوب';
+
+  @override
+  String get courseCodeMustBeAtLeast2Chars =>
+      'كود المقرر يجب أن يكون على الأقل حرفين';
+
+  @override
+  String get courseDescriptionIsRequired => 'الوصف مطلوب';
+
+  @override
+  String get courseDescriptionMustBeAtLeast5Chars =>
+      'الوصف يجب أن يكون على الأقل 5 أحرف';
+
+  @override
+  String get doctorUniversityCodeIsRequired => 'كود الأستاذ الجامعي مطلوب';
+
+  @override
+  String get doctorUniversityCodeMustBeValid =>
+      'يرجى إدخال كود جامعي صحيح (مثال: DR-1234)';
+
+  @override
   String get deleteSession => 'حذف الجلسة';
 
   @override
