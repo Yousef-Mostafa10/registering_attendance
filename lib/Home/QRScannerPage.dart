@@ -113,7 +113,24 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
       if (response.statusCode == 200) {
         _showSuccessDialog();
       } else {
-        _showErrorDialog(ApiService.attendanceSubmitErrorMessage(response.statusCode));
+        String errMsg = ApiService.attendanceSubmitErrorMessage(response.statusCode);
+        try {
+          if (response.body.isNotEmpty) {
+            final decoded = jsonDecode(response.body);
+            if (decoded is Map) {
+               if (decoded.containsKey('message')) errMsg = decoded['message'].toString();
+               else if (decoded.containsKey('error')) errMsg = decoded['error'].toString();
+               else if (decoded.containsKey('title')) errMsg = decoded['title'].toString();
+            } else if (decoded is String) {
+               errMsg = decoded;
+            }
+          }
+        } catch (_) {
+          if (response.body.isNotEmpty && response.body.length < 200) {
+            errMsg = response.body;
+          }
+        }
+        _showErrorDialog(errMsg);
       }
 
     } catch (e) {
@@ -150,6 +167,7 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
               Navigator.pop(context); // Close dialog
               _scannerController.start(); // Restart scanner
             },
+            style: TextButton.styleFrom(foregroundColor: Colors.grey[800]),
             child: const Text('Try Again'),
           ),
           ElevatedButton(
@@ -157,7 +175,10 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
               Navigator.pop(context);
               Navigator.pop(context); // Go back
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorColor,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Go Back'),
           ),
         ],
@@ -185,7 +206,10 @@ class _QRScannerPageState extends State<QRScannerPage> with SingleTickerProvider
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.successColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.successColor,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Awesome'),
           ),
         ],

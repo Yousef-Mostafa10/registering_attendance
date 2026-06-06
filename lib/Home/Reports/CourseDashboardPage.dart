@@ -54,24 +54,22 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
         allSessions.addAll((parsed is List) ? parsed : (parsed[r'$values'] ?? []));
       }
 
-      if (allSessions.isNotEmpty) {
-        bool found = false;
-        int? activeId;
-        for (var session in allSessions) {
-          final status = session['status']?.toString().toLowerCase() ?? '';
-          if (status == 'active' || status == 'running' || status == 'open' || session['isActive'] == true || session['isClosed'] == false) {
-            found = true;
-            activeId = session['id'] ?? session['sessionId'];
-            break;
-          }
+      bool found = false;
+      int? activeId;
+      for (var session in allSessions) {
+        final status = session['status']?.toString().toLowerCase() ?? '';
+        if (status == 'active' || status == 'running' || status == 'open' || session['isActive'] == true || session['isClosed'] == false) {
+          found = true;
+          activeId = session['id'] ?? session['sessionId'];
+          break;
         }
-        
-        if (found && mounted) {
-           setState(() {
-             _hasActiveSession = true;
-             _activeSessionId = activeId;
-           });
-        }
+      }
+      
+      if (mounted) {
+         setState(() {
+           _hasActiveSession = found;
+           _activeSessionId = activeId;
+         });
       }
     } catch (e) {
       // Ignore gracefully
