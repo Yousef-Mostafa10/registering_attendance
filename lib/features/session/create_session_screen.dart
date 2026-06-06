@@ -343,7 +343,7 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
             ],
           ),
           child: DropdownButtonFormField<String>(
-            initialValue: _sessionType,
+            value: _sessionType,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
