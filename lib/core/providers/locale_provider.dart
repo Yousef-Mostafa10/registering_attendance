@@ -21,8 +21,8 @@ class LocaleProvider extends ChangeNotifier {
     if (savedLocale != null && _supportedLocales.contains(savedLocale)) {
       _locale = Locale(savedLocale);
     } else {
-      // Default to Arabic if nothing is saved
-      _locale = const Locale('ar');
+      // Default to English if nothing is saved
+      _locale = const Locale('en');
     }
     
     notifyListeners();

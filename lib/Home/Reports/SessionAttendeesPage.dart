@@ -315,7 +315,7 @@ class _SessionAttendeesPageState extends State<SessionAttendeesPage> {
                             ),
                           )
                         : LayoutBuilder(builder: (context, constraints) {
-                            final cols = constraints.maxWidth >= 900 ? 3 : constraints.maxWidth >= 600 ? 2 : 1;
+                            final cols = constraints.maxWidth >= 1100 ? 4 : constraints.maxWidth >= 850 ? 3 : constraints.maxWidth >= 600 ? 2 : 1;
                             if (cols > 1) {
                               return GridView.builder(
                                 padding: const EdgeInsets.all(16),
@@ -323,7 +323,7 @@ class _SessionAttendeesPageState extends State<SessionAttendeesPage> {
                                   crossAxisCount: cols,
                                   mainAxisSpacing: 8,
                                   crossAxisSpacing: 8,
-                                  childAspectRatio: cols == 3 ? 3.5 : 4.0,
+                                  mainAxisExtent: 95,
                                 ),
                                 itemCount: _attendees.length,
                                 itemBuilder: (context, index) {

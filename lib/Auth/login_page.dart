@@ -203,13 +203,13 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: 20),
 
-          // Device ID display (read-only)
-          AuthWidgets.buildDeviceIdDisplay(
-              deviceId: widget.deviceId,
-              onRefresh: () => widget.onDeviceIdRefresh('')
-          ),
+          // Device ID display hidden from UI
+          // AuthWidgets.buildDeviceIdDisplay(
+          //     deviceId: widget.deviceId,
+          //     onRefresh: () => widget.onDeviceIdRefresh('')
+          // ),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 10),
 
           // Login button
           AuthWidgets.buildActionButton(

@@ -160,7 +160,7 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
                         : LayoutBuilder(builder: (context, constraints) {
                             final w = constraints.maxWidth;
                             // Desktop Layout: 3 cols ≥900 / Tablet: 2 cols ≥600 / Mobile Layout: 1 col <600
-                            final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+                            final cols = w >= 1100 ? 4 : w >= 850 ? 3 : w >= 600 ? 2 : 1;
                             final isMobile = w < 600; // Mobile Layout breakpoint
                             if (cols > 1) {
                               return GridView.builder(
@@ -170,7 +170,7 @@ class _EnrolledStudentsPageState extends State<EnrolledStudentsPage> {
                                   crossAxisCount: cols,
                                   mainAxisSpacing: isMobile ? 8 : 10,  // Mobile: 8 / Desktop: 10
                                   crossAxisSpacing: isMobile ? 8 : 10, // Mobile: 8 / Desktop: 10
-                                  childAspectRatio: cols == 3 ? 1.8 : 2.2, // Desktop Layout
+                                  mainAxisExtent: 90,
                                 ),
                                 itemCount: _students.length,
                                 itemBuilder: (_, i) => _studentCard(_students[i], i + 1, isMobile: isMobile),

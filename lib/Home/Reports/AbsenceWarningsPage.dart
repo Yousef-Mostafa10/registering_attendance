@@ -32,22 +32,37 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
       final token = prefs.getString('auth_token') ?? '';
       if (token.isEmpty) throw Exception('Not authenticated');
 
-      // URL الصحيح: GET /Attendance/absence-warnings/{courseId}
-      final res = await ApiService.getAbsenceWarnings(courseId: widget.courseId, token: token);
+      // Use getLectureReport and filter locally since the backend absence-warnings endpoint has incorrect calculations for 0 attendances
+      final res = await ApiService.getLectureReport(courseId: widget.courseId, token: token);
 
       if (res['statusCode'] == 200) {
         final data = jsonDecode(res['body']);
         List<dynamic> list = [];
         int total = 0;
-        if (data is List) {
-          list = data;
-        } else if (data is Map) {
+        
+        if (data is Map) {
           total = data['courseTotalLectures'] ?? data['totalLectures'] ?? 0;
           final raw = data['students'] ?? data[r'$values'] ?? data;
           if (raw is List) list = raw;
           else if (raw is Map && raw.containsKey(r'$values')) list = raw[r'$values'] ?? [];
+        } else if (data is List) {
+          list = data;
         }
-        setState(() { _warnings = list; _totalLectures = total; });
+
+        List<dynamic> filteredWarnings = [];
+        for (var student in list) {
+          int attended = student['lectureAttended'] ?? student['attended'] ?? 0;
+          int backendAbsent = student['absenceInLectures'] ?? student['absent'] ?? 0;
+          int trueAbsent = total > 0 ? (total - attended) : backendAbsent;
+          
+          if (trueAbsent >= 3) {
+            student['absenceInLectures'] = trueAbsent;
+            student['absent'] = trueAbsent;
+            filteredWarnings.add(student);
+          }
+        }
+
+        setState(() { _warnings = filteredWarnings; _totalLectures = total; });
       } else if (res['statusCode'] == 403) {
         setState(() => _errorMessage = 'Forbidden: You are not assigned to this course.');
       } else {
@@ -96,7 +111,7 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
   ])));
 
   Widget _buildEmpty(AppLocalizations loc) {
-    final bool notEnough = _totalLectures <= 3;
+    final bool notEnough = _totalLectures < 3;
     return Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(notEnough ? Icons.schedule : Icons.check_circle_outline,
           size: 80, color: notEnough ? Colors.orange : Colors.green),
@@ -125,7 +140,7 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
           child: LayoutBuilder(builder: (context, constraints) {
             final w = constraints.maxWidth;
             // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
-            final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+            final cols = w >= 1100 ? 4 : w >= 850 ? 3 : w >= 600 ? 2 : 1;
             final isMobile = w < 600; // Mobile Layout breakpoint
             if (cols > 1) {
               return GridView.builder(
@@ -135,7 +150,7 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
                   crossAxisCount: cols,
                   mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
                   crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
-                  childAspectRatio: cols == 3 ? 1.2 : 1.4, // Desktop Layout
+                  mainAxisExtent: 155,
                 ),
                 itemCount: _warnings.length,
                 itemBuilder: (_, i) => _buildWarningCard(_warnings[i], isMobile: isMobile),
@@ -157,9 +172,12 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
     final String name = w['studentName'] ?? 'Unknown';
     final String code = w['universityCode'] ?? '—';
     final int attended = w['lectureAttended'] ?? w['attended'] ?? 0;
-    final int absent = w['absenceInLectures'] ?? w['absent'] ?? 0;
-    final int total = (attended + absent);
-    final double pct = total > 0 ? (attended / total) * 100 : 0;
+    final int backendAbsent = w['absenceInLectures'] ?? w['absent'] ?? 0;
+    final int absent = _totalLectures > 0 ? (_totalLectures - attended) : backendAbsent;
+    final int total = _totalLectures > 0 ? _totalLectures : (attended + absent);
+    final double attendancePct = total > 0 ? (attended / total) * 100 : 0;
+    final double absenceRatio = total > 0 ? (absent / total) : 0;
+    final double absencePct = absenceRatio * 100;
 
     return Card(
       // Mobile Layout: compact margin / Desktop Layout: standard margin
@@ -213,7 +231,7 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${pct.toStringAsFixed(0)}%',
+                '${absencePct.toStringAsFixed(0)}%',
                 style: TextStyle(
                   color: AppColors.errorColor,
                   fontWeight: FontWeight.bold,
@@ -226,9 +244,9 @@ class _AbsenceWarningsPageState extends State<AbsenceWarningsPage> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: total > 0 ? attended / total : 0,
+              value: absenceRatio,
               backgroundColor: AppColors.errorColor.withOpacity(0.15),
-              color: pct >= 75 ? Colors.green : (pct >= 50 ? Colors.orange : AppColors.errorColor),
+              color: absencePct >= 60 ? AppColors.errorColor : (absencePct >= 40 ? Colors.orange : Colors.green),
               // Mobile Layout: slimmer bar / Desktop Layout: standard bar
               minHeight: isMobile ? 6 : 8, // Mobile: 6 / Desktop: 8
             ),

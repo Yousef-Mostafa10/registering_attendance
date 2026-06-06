@@ -266,8 +266,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
-      // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
-      final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      final cols = w >= 1100 ? 4 : w >= 850 ? 3 : w >= 600 ? 2 : 1;
       final isMobile = w < 600; // Mobile Layout breakpoint
       if (cols > 1) {
         return GridView.builder(
@@ -277,7 +276,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
             crossAxisCount: cols,
             mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
             crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
-            childAspectRatio: cols == 3 ? 1.6 : 1.8, // Desktop Layout
+            mainAxisExtent: 155,
           ),
           itemCount: _students.length,
           itemBuilder: (_, i) => _studentCard(_students[i], isMobile: isMobile),
@@ -296,7 +295,8 @@ class _LectureReportPageState extends State<LectureReportPage> {
     final String name = s['studentName'] ?? 'Unknown';
     final String code = s['universityCode'] ?? '—';
     final int attended = s['lectureAttended'] ?? 0;
-    final int absent = s['absenceInLectures'] ?? 0;
+    final int backendAbsent = s['absenceInLectures'] ?? 0;
+    final int absent = _totalLectures > 0 ? (_totalLectures - attended) : backendAbsent;
     final double? marks = s['earnedMarks'] != null
         ? (s['earnedMarks'] as num).toDouble()
         : null;
@@ -306,25 +306,25 @@ class _LectureReportPageState extends State<LectureReportPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         // Mobile Layout: compact padding / Desktop Layout: standard padding
-        padding: EdgeInsets.all(isMobile ? 12 : 16), // Mobile: 12 / Desktop: 16
+        padding: EdgeInsets.all(isMobile ? 12 : 14), // Mobile: 12 / Desktop: 14
         child: Column(
           children: [
             Row(
               children: [
                 CircleAvatar(
                   // Mobile Layout: smaller avatar / Desktop Layout: standard avatar
-                  radius: isMobile ? 18 : 20, // Mobile: 18 / Desktop: 20
+                  radius: isMobile ? 18 : 18, // Mobile: 18 / Desktop: 18
                   backgroundColor: AppColors.primaryColor.withOpacity(0.1),
                   child: Text(
                     name.isNotEmpty ? name[0].toUpperCase() : '?',
                     style: TextStyle(
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
+                      fontSize: isMobile ? 13 : 13, // Mobile: 13 / Desktop: 13
                     ),
                   ),
                 ),
-                SizedBox(width: isMobile ? 8 : 12), // Mobile: 8 / Desktop: 12
+                SizedBox(width: isMobile ? 8 : 10), // Mobile: 8 / Desktop: 10
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +334,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           // Mobile Layout: smaller name / Desktop Layout: standard name
-                          fontSize: isMobile ? 13 : 15, // Mobile: 13 / Desktop: 15
+                          fontSize: isMobile ? 13 : 14, // Mobile: 13 / Desktop: 14
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -343,7 +343,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
                         'Code: $code',
                         style: TextStyle(
                           color: AppColors.darkColor.withOpacity(0.5),
-                          fontSize: isMobile ? 11 : 12, // Mobile: 11 / Desktop: 12
+                          fontSize: isMobile ? 11 : 11, // Mobile: 11 / Desktop: 11
                         ),
                       ),
                     ],
@@ -370,7 +370,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
                   ),
               ],
             ),
-            const Divider(height: 20),
+            const Divider(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -465,7 +465,7 @@ class _LectureReportPageState extends State<LectureReportPage> {
         style: TextStyle(
           fontWeight: FontWeight.bold,
           // Mobile Layout: smaller stat value / Desktop Layout: standard stat value
-          fontSize: isMobile ? 16 : 20, // Mobile: 16 / Desktop: 20
+          fontSize: isMobile ? 16 : 18, // Mobile: 16 / Desktop: 18
           color: color,
         ),
       ),

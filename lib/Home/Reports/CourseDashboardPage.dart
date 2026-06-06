@@ -105,7 +105,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                         Padding(
                           padding: EdgeInsets.fromLTRB(
                             16, 
-                            MediaQuery.of(context).padding.top + 5, 
+                            MediaQuery.of(context).padding.top + 24, 
                             16, 
                             5
                           ),
@@ -134,7 +134,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                                               ),
                                             ),
                                           ],
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 12),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
@@ -143,12 +143,8 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                                     : WrapAlignment.start,
                                 children: [
                                   _infoPill(
-                                    Icons.people_outline,
-                                    count == null ? '— ${loc.students}' : loc.studentEnrolled(count),
-                                  ),
-                                  _infoPill(
-                                    Icons.tag,
-                                    '${loc.courseId}: ${widget.course['id']} • $courseCode',
+                                    Icons.info_outline,
+                                    'ID: ${widget.course['id']} • Code: $courseCode • ${count == null ? '— ${loc.students}' : loc.studentEnrolled(count)}',
                                   ),
                                 ],
                               ),
@@ -187,10 +183,11 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                       // Desktop Layout: 4 cols ≥ 1100 / Tablet: 3 cols ≥ 850 / Mobile Layout: 2 cols < 600
                       final cols = w >= 1100 ? 4 : w >= 850 ? 3 : 2;
                       // Mobile cards were too tall for their content; slightly wider ratio makes content feel larger.
-                      final ratio = w >= 1100 ? 1.8 : w >= 850 ? 1.3 : (w < 600 ? 1.15 : 1.3);
+                      final ratio = w >= 1100 ? 1.6 : w >= 850 ? 1.3 : (w < 600 ? 1.15 : 1.3);
                       return GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
                         crossAxisCount: cols,
                         // Desktop Layout: 8px spacing / Mobile Layout: 6px spacing
                         crossAxisSpacing: w < 600 ? 8 : 8,
@@ -266,15 +263,6 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                       icon: Icons.stop_circle,
                       color: AppColors.errorColor,
                       onTap: _showStopSessionDialog,
-                    ),
-                    const SizedBox(height: 12),
-                    _actionCard(
-                      title: loc.viewAllSessions,
-                      subtitle: loc.viewAllSessionsSubtitle,
-                      icon: Icons.list_alt,
-                      color: Colors.indigo,
-                      onTap: () =>
-                          _goto(CourseSessionsHistoryPage(courseId: courseId)),
                     ),
                   ],
 
@@ -368,17 +356,17 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(24),
           child: Padding(
-            // Desktop Layout: 24px / Mobile Layout: tighter padding for denser content
+            // Desktop Layout: 16px / Mobile Layout: tighter padding for denser content
             padding: EdgeInsets.all(
-              Responsive.isDesktop(context) ? 24 : (isMobile ? 8 : 16),
+              Responsive.isDesktop(context) ? 16 : (isMobile ? 8 : 16),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  // Desktop Layout: 20px icon padding / Mobile Layout: slightly larger icon container
+                  // Desktop Layout: 16px icon padding / Mobile Layout: slightly larger icon container
                   padding: EdgeInsets.all(
-                    Responsive.isDesktop(context) ? 20 : (isMobile ? 12 : 12),
+                    Responsive.isDesktop(context) ? 16 : (isMobile ? 12 : 12),
                   ),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
@@ -386,20 +374,20 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                   ),
                   child: Icon(
                     icon,
-                    // Desktop Layout: 44px / Mobile Layout: larger icon for readability
-                    size: Responsive.isDesktop(context) ? 44 : (isMobile ? 30 : 28),
+                    // Desktop Layout: 32px / Mobile Layout: larger icon for readability
+                    size: Responsive.isDesktop(context) ? 32 : (isMobile ? 30 : 28),
                     color: color,
                   ),
                 ),
                 SizedBox(
-                  height: Responsive.isDesktop(context) ? 20 : (isMobile ? 10 : 14),
+                  height: Responsive.isDesktop(context) ? 12 : (isMobile ? 10 : 14),
                 ),
                 Text(
                   title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    // Desktop Layout: 18px / Mobile Layout: larger title text
-                    fontSize: Responsive.isDesktop(context) ? 18 : (isMobile ? 17 : 14),
+                    // Desktop Layout: 16px / Mobile Layout: larger title text
+                    fontSize: Responsive.isDesktop(context) ? 16 : (isMobile ? 17 : 14),
                     fontWeight: FontWeight.bold,
                     color: AppColors.darkColor,
                   ),
@@ -409,8 +397,8 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    // Desktop Layout: 13px / Mobile Layout: larger subtitle text
-                    fontSize: Responsive.isDesktop(context) ? 13 : (isMobile ? 13 : 10),
+                    // Desktop Layout: 12px / Mobile Layout: larger subtitle text
+                    fontSize: Responsive.isDesktop(context) ? 12 : (isMobile ? 13 : 10),
                     color: AppColors.darkColor.withOpacity(0.5),
                     height: 1.2,
                   ),
@@ -447,16 +435,16 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 18),
+          padding: EdgeInsets.all(Responsive.isDesktop(context) ? 16 : 18),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(Responsive.isDesktop(context) ? 20 : 14),
+                padding: EdgeInsets.all(Responsive.isDesktop(context) ? 16 : 14),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(icon, size: Responsive.isDesktop(context) ? 36 : 24, color: color),
+                child: Icon(icon, size: Responsive.isDesktop(context) ? 28 : 24, color: color),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -467,7 +455,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                       title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: Responsive.isDesktop(context) ? 20 : 16,
+                        fontSize: Responsive.isDesktop(context) ? 16 : 16,
                         color: AppColors.darkColor,
                       ),
                     ),
@@ -475,7 +463,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: Responsive.isDesktop(context) ? 15 : 12,
+                        fontSize: Responsive.isDesktop(context) ? 13 : 12,
                         color: AppColors.darkColor.withOpacity(0.5),
                       ),
                     ),
@@ -484,7 +472,7 @@ class _CourseDashboardPageState extends State<CourseDashboardPage> {
               ),
               Icon(
                 Icons.arrow_forward_ios_rounded,
-                size: Responsive.isDesktop(context) ? 20 : 14,
+                size: Responsive.isDesktop(context) ? 16 : 14,
                 color: AppColors.darkColor.withOpacity(0.2),
               ),
             ],

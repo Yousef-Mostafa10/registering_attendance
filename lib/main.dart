@@ -75,8 +75,8 @@ class _CollegeAttendanceAppState extends State<CollegeAttendanceApp> {
             }
           }
         }
-        // Default to Arabic if locale is not supported
-        return const Locale('ar');
+        // Default to English if locale is not supported
+        return const Locale('en');
       },
       
       theme: ThemeData(

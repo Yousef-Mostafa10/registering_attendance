@@ -670,6 +670,9 @@ class _StudentAttendanceReportPageState extends State<StudentAttendanceReportPag
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _fetchMyHistory();
   }
 
@@ -908,7 +911,7 @@ class _StudentAttendanceReportPageState extends State<StudentAttendanceReportPag
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
-      final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      final cols = w >= 1100 ? 4 : w >= 850 ? 3 : w >= 600 ? 2 : 1;
       if (cols > 1) {
         return GridView.builder(
           padding: const EdgeInsets.all(16),
@@ -916,7 +919,7 @@ class _StudentAttendanceReportPageState extends State<StudentAttendanceReportPag
             crossAxisCount: cols,
             mainAxisSpacing: 20,
             crossAxisSpacing: 20,
-            childAspectRatio: cols == 3 ? 2.5 : 3.0,
+            mainAxisExtent: 100,
           ),
           itemCount: sessions.length,
           itemBuilder: (context, index) => _buildSessionCard(sessions[index]),
@@ -975,10 +978,62 @@ class _StudentAttendanceReportPageState extends State<StudentAttendanceReportPag
 
     final pastLectures = _lectures;
     final pastSections = _sections;
-    final pastSessions = [...pastLectures, ...pastSections];
 
-    final totalAttended = pastSessions.where((s) => _didAttend(s)).length;
-    final totalAbsent = pastSessions.length - totalAttended;
+    final lecturesAttended = pastLectures.where((s) => _didAttend(s)).length;
+    final lecturesAbsent = pastLectures.length - lecturesAttended;
+
+    final sectionsAttended = pastSections.where((s) => _didAttend(s)).length;
+    final sectionsAbsent = pastSections.length - sectionsAttended;
+
+    Widget buildStatsCard(String title, int attended, int absent, int total) {
+      final bool isDanger = title == 'Lectures' && absent >= 3;
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: isDanger ? Border.all(color: AppColors.errorColor, width: 2) : null,
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildCounterItem('Attended', attended, Colors.green),
+                _buildCounterItem('Absent', absent, AppColors.errorColor),
+                _buildCounterItem('Total', total, AppColors.primaryColor),
+              ],
+            ),
+            if (isDanger)
+              Container(
+                margin: const EdgeInsets.only(top: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.errorColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: AppColors.errorColor),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Danger: You have exceeded the allowed absence limit (3) and may be deprived of exams.',
+                        style: TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.lightColor2,
@@ -993,48 +1048,15 @@ class _StudentAttendanceReportPageState extends State<StudentAttendanceReportPag
         child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: totalAbsent >= 3 ? Border.all(color: AppColors.errorColor, width: 2) : null,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildCounterItem('Attended', totalAttended, Colors.green),
-                        _buildCounterItem('Absent', totalAbsent, AppColors.errorColor),
-                        _buildCounterItem('Total', pastSessions.length, AppColors.primaryColor),
-                      ],
-                    ),
-                    if (totalAbsent >= 3)
-                      Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.errorColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.warning_amber_rounded, color: AppColors.errorColor),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Danger: You have exceeded the allowed absence limit (3) and may be deprived of exams.',
-                                style: TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  if (_tabController.index == 0)
+                    buildStatsCard('Lectures', lecturesAttended, lecturesAbsent, pastLectures.length)
+                  else
+                    buildStatsCard('Sections', sectionsAttended, sectionsAbsent, pastSections.length),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
             SliverPersistentHeader(

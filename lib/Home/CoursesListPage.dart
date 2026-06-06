@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Auth/auth_storage.dart';
 import '../Auth/colors.dart';
 import '../Auth/api_service.dart';
-import 'Reports/CourseDashboardPage.dart';
+import 'Reports/EnrolledStudentsPage.dart';
 import 'Reports/StudentSessionsHistoryPage.dart';
 import 'package:registering_attendance/Home/EnrollStudentsTabsPage.dart';
 import 'package:registering_attendance/Home/RemoveAssignedStaffPage.dart';
@@ -748,7 +748,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                               crossAxisCount: cols,
                               mainAxisSpacing: 16,
                               crossAxisSpacing: 16,
-                              childAspectRatio: cols == 3 ? 1.6 : 1.9,
+                              childAspectRatio: cols == 3 ? 2.6 : 1.9,
                             ),
                             itemCount: _filteredCourses.length,
                             itemBuilder: (_, i) => _buildCourseCard(_filteredCourses[i]),
@@ -779,7 +779,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
   }) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
+        padding: EdgeInsets.all(Responsive.isDesktop(context) ? 16 : 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -794,15 +794,15 @@ class _CoursesListPageState extends State<CoursesListPage> {
         child: Row(
           children: [
             Container(
-              width: Responsive.isDesktop(context) ? 64 : 48,
-              height: Responsive.isDesktop(context) ? 64 : 48,
+              width: Responsive.isDesktop(context) ? 52 : 48,
+              height: Responsive.isDesktop(context) ? 52 : 48,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 32 : 24),
+              child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 28 : 24),
             ),
-            SizedBox(width: Responsive.isDesktop(context) ? 20 : 12),
+            SizedBox(width: Responsive.isDesktop(context) ? 16 : 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -810,7 +810,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   Text(
                     value,
                     style: TextStyle(
-                      fontSize: Responsive.isDesktop(context) ? 28 : 20,
+                      fontSize: Responsive.isDesktop(context) ? 24 : 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkColor,
                     ),
@@ -818,7 +818,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: Responsive.isDesktop(context) ? 14 : 12,
+                      fontSize: Responsive.isDesktop(context) ? 13 : 12,
                       color: AppColors.darkColor.withOpacity(0.6),
                     ),
                   ),
@@ -1112,15 +1112,15 @@ class _CoursesListPageState extends State<CoursesListPage> {
               ),
               const SizedBox(height: 24),
               _buildOptionTile(
-                icon: Icons.dashboard_outlined,
-                title: AppLocalizations.of(context)!.viewDashboard,
-                subtitle: AppLocalizations.of(context)!.viewDashboardSubtitle,
+                icon: Icons.group,
+                title: AppLocalizations.of(context)!.enrolledStudents,
+                subtitle: '',
                 color: AppColors.primaryColor,
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => CourseDashboardPage(course: course)),
+                    MaterialPageRoute(builder: (_) => EnrolledStudentsPage(courseId: course['id'].toString())),
                   );
                 },
               ),
@@ -1480,7 +1480,7 @@ class _CoursesListPageState extends State<CoursesListPage> {
         title,
         style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkColor),
       ),
-      subtitle: Text(
+      subtitle: subtitle.isEmpty ? null : Text(
         subtitle,
         style: TextStyle(fontSize: 12, color: AppColors.darkColor.withOpacity(0.5)),
       ),

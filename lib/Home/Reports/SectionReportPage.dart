@@ -258,8 +258,7 @@ class _SectionReportPageState extends State<SectionReportPage> {
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
-      // Desktop Layout: 3 cols ≥900 / Tablet Layout: 2 cols ≥600 / Mobile Layout: 1 col <600
-      final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+      final cols = w >= 1100 ? 4 : w >= 850 ? 3 : w >= 600 ? 2 : 1;
       final isMobile = w < 600; // Mobile Layout breakpoint
       if (cols > 1) {
         return GridView.builder(
@@ -269,7 +268,7 @@ class _SectionReportPageState extends State<SectionReportPage> {
             crossAxisCount: cols,
             mainAxisSpacing: isMobile ? 8 : 12,  // Mobile: 8 / Desktop: 12
             crossAxisSpacing: isMobile ? 8 : 12, // Mobile: 8 / Desktop: 12
-            childAspectRatio: cols == 3 ? 1.3 : 1.5, // Desktop Layout
+            mainAxisExtent: 155,
           ),
           itemCount: _students.length,
           itemBuilder: (_, i) => _studentCard(_students[i], isMobile: isMobile),
@@ -288,7 +287,8 @@ class _SectionReportPageState extends State<SectionReportPage> {
     final String name = s['studentName'] ?? 'Unknown';
     final String code = s['universityCode'] ?? '—';
     final int attended = s['lectureAttended'] ?? s['sectionAttended'] ?? 0;
-    final int absent = s['absenceInLectures'] ?? s['absenceInSections'] ?? 0;
+    final int backendAbsent = s['absenceInLectures'] ?? s['absenceInSections'] ?? 0;
+    final int absent = _totalSections > 0 ? (_totalSections - attended) : backendAbsent;
     final double? marks = s['earnedMarks'] != null
         ? (s['earnedMarks'] as num).toDouble()
         : null;

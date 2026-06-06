@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan attendance QR codes.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location to verify your physical presence in the lecture hall.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location to verify your physical presence in the lecture hall.</string>
 </dict>
 </plist>

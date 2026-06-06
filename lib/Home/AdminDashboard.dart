@@ -400,10 +400,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: Responsive.isDesktop(context),
-                  titlePadding: Responsive.isDesktop(context)
-                      ? const EdgeInsets.only(bottom: 16)
-                      : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+                  centerTitle: false,
+                  titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
                   title: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -486,16 +484,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
               SliverToBoxAdapter(
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: Responsive.isDesktop(context) ? 1000 : 1200,
-                    ),
+                    constraints: const BoxConstraints(maxWidth: 1200),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 24,
-                      ),
+                      padding: EdgeInsets.fromLTRB(20, Responsive.isDesktop(context) ? 12 : 24, 20, Responsive.isDesktop(context) ? 0 : 24),
                       child: Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: Responsive.isDesktop(context) ? const EdgeInsets.symmetric(vertical: 16, horizontal: 24) : const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
@@ -514,13 +507,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                         ),
                         child: Row(
-                          mainAxisAlignment: Responsive.isDesktop(context)
-                              ? MainAxisAlignment.center
-                              : MainAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Container(
-                              width: 60,
-                              height: 60,
+                              width: Responsive.isDesktop(context) ? 60 : 60,
+                              height: Responsive.isDesktop(context) ? 60 : 60,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: LinearGradient(

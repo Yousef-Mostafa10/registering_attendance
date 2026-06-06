@@ -231,13 +231,13 @@ class _ActivationPageState extends State<ActivationPage> {
           ),
           const SizedBox(height: 30),
 
-          // Device ID display (read-only)
-          AuthWidgets.buildDeviceIdDisplay(
-              deviceId: widget.deviceId,
-              onRefresh: () => widget.onDeviceIdRefresh('')
-          ),
+          // Device ID display hidden from UI
+          // AuthWidgets.buildDeviceIdDisplay(
+          //     deviceId: widget.deviceId,
+          //     onRefresh: () => widget.onDeviceIdRefresh('')
+          // ),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 10),
 
           // Activate button
           AuthWidgets.buildActionButton(

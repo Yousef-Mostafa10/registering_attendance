@@ -267,9 +267,9 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              centerTitle: Responsive.isDesktop(context),
+              centerTitle: false,
               titlePadding: Responsive.isDesktop(context) 
-                  ? const EdgeInsets.only(bottom: 20) 
+                  ? const EdgeInsetsDirectional.only(start: 40, bottom: 20) 
                   : const EdgeInsetsDirectional.only(start: 20, bottom: 16),
               title: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -334,9 +334,9 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20, Responsive.isDesktop(context) ? 12 : 24, 20, 0),
                   child: Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: Responsive.isDesktop(context) ? const EdgeInsets.symmetric(vertical: 16, horizontal: 24) : const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
@@ -348,28 +348,28 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
                       ),
                     ),
                     child: Row(
-                      mainAxisAlignment: Responsive.isDesktop(context) ? MainAxisAlignment.center : MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Container(
-                          width: Responsive.isDesktop(context) ? 80 : 60,
-                          height: Responsive.isDesktop(context) ? 80 : 60,
+                          width: Responsive.isDesktop(context) ? 60 : 60,
+                          height: Responsive.isDesktop(context) ? 60 : 60,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const LinearGradient(colors: [AppColors.secondaryColor, AppColors.accentColor]),
                             boxShadow: [BoxShadow(color: AppColors.secondaryColor.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
                           ),
-                          child: Icon(Icons.verified_user, color: Colors.white, size: Responsive.isDesktop(context) ? 40 : 30),
+                          child: Icon(Icons.verified_user, color: Colors.white, size: Responsive.isDesktop(context) ? 30 : 30),
                         ),
                         const SizedBox(width: 24),
                         Column(
-                          crossAxisAlignment: Responsive.isDesktop(context) ? CrossAxisAlignment.start : CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('${AppLocalizations.of(context)!.welcome} ${widget.role},',
-                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, color: AppColors.darkColor.withOpacity(0.7))),
+                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 15 : 16, color: AppColors.darkColor.withOpacity(0.7))),
                             Text(widget.userName,
-                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 28 : 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 22 : 22, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
                             Text(widget.email,
-                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 16 : 13, color: AppColors.darkColor.withOpacity(0.5))),
+                                style: TextStyle(fontSize: Responsive.isDesktop(context) ? 14 : 13, color: AppColors.darkColor.withOpacity(0.5))),
                           ],
                         ),
                       ],
@@ -380,81 +380,45 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
             ),
           ),
 
-          // ── 3. Quick Actions: Add Course + inline Search ───────────────────
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: EdgeInsets.symmetric(horizontal: Responsive.isDesktop(context) ? 40 : 20, vertical: 20),
+              child: Row(
                 children: [
-                  // Search bar — always visible
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4))],
+                  Expanded(
+                    child: _buildCompactStatCard(
+                      icon: Icons.book, 
+                      title: AppLocalizations.of(context)!.totalCourses, 
+                      count: _isLoading ? '...' : _allCourses.length.toString(), 
+                      color: AppColors.primaryColor,
+                      isLoading: _isLoading,
                     ),
-                    child: Row(children: [
-                      const SizedBox(width: 14),
-                      Icon(Icons.search, color: AppColors.primaryColor.withOpacity(0.7)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: InputDecoration(
-                            hintText: AppLocalizations.of(context)!.searchCourses,
-                            hintStyle: TextStyle(color: AppColors.darkColor.withOpacity(0.4)),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                        ),
-                      ),
-                      if (_searchQuery.isNotEmpty)
-                        IconButton(
-                          icon: Icon(Icons.clear, color: AppColors.darkColor.withOpacity(0.4), size: 20),
-                          onPressed: () => _searchCtrl.clear(),
-                        ),
-                      const SizedBox(width: 4),
-                    ]),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildCompactStatCard(
+                      icon: Icons.people, 
+                      title: AppLocalizations.of(context)!.totalStudents, 
+                      count: _isLoading ? '...' : _totalStudents.toString(), 
+                      color: AppColors.successColor,
+                      isLoading: _isLoading,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
 
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: Responsive.isDesktop(context) ? 40 : 20, vertical: 20),
-              child: Builder(builder: (context) {
-                final w = MediaQuery.of(context).size.width;
-                final available = w > 1400 ? 1400.0 : w;
-                final cardW = w >= 1100 ? (available - 100) / 2 : w >= 850 ? (available - 60) / 2 : (w - 52) / 2;
-                return Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: cardW,
-                      child: _statCard(Icons.book, AppLocalizations.of(context)!.totalCourses, _isLoading ? '...' : _allCourses.length.toString(), AppColors.primaryColor),
-                    ),
-                    SizedBox(
-                      width: cardW,
-                      child: _statCard(Icons.people, AppLocalizations.of(context)!.totalStudents, _isLoading ? '...' : _totalStudents.toString(), AppColors.successColor),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          ),
-
           // ── 5. Courses Label ───────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-              child: Text(AppLocalizations.of(context)!.myCourses,
-                  textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.start,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+              padding: EdgeInsets.fromLTRB(Responsive.isDesktop(context) ? 20 : 20, 24, 20, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: Text(AppLocalizations.of(context)!.myCourses,
+                    textAlign: Responsive.isDesktop(context) ? TextAlign.center : TextAlign.start,
+                    style: TextStyle(fontSize: Responsive.isDesktop(context) ? 22 : 18, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+              ),
             ),
           ),
 
@@ -468,18 +432,18 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           else
             Builder(builder: (context) {
               final w = MediaQuery.of(context).size.width;
-              // Desktop Layout: 3 cols ≥ 1100 / Tablet Layout: 2 cols ≥ 850 / Mobile Layout: 1 col < 850
-              final cols = w >= 1100 ? 3 : w >= 850 ? 2 : 1;
+              // Desktop Layout: 1 col (full width) / Tablet Layout: 2 cols ≥ 850 / Mobile Layout: 1 col < 850
+              final cols = w >= 1100 ? 1 : w >= 850 ? 2 : 1;
               if (cols > 1) {
                 return SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: cols,
-                      // Desktop Layout: 16px spacing / Mobile Layout: standard
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: cols == 3 ? 1.6 : 1.9, // Desktop Layout
+                      mainAxisExtent: Responsive.isDesktop(context) ? 170 : null,
+                      childAspectRatio: Responsive.isDesktop(context) ? 1.0 : 1.9, // Overridden by mainAxisExtent on desktop
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => _courseCard(_filtered[i]),
@@ -508,34 +472,88 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
 
 
 
-  Widget _statCard(IconData icon, String title, String value, Color color) => Container(
-    padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: Responsive.isDesktop(context) ? 80 : 56,
-          height: Responsive.isDesktop(context) ? 80 : 56,
-          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: Responsive.isDesktop(context) ? 40 : 28),
-        ),
-        SizedBox(width: Responsive.isDesktop(context) ? 24 : 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(value, style: TextStyle(fontSize: Responsive.isDesktop(context) ? 36 : 24, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
-              Text(title, style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 14, color: AppColors.darkColor.withOpacity(0.6))),
-            ],
+  Widget _buildCompactStatCard({
+    required IconData icon,
+    required String title,
+    required String count,
+    required Color color,
+    bool isLoading = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.08),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
           ),
+        ],
+        border: Border.all(color: color.withOpacity(0.1), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: isLoading
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                        ),
+                      )
+                    : Icon(icon, color: color, size: 20),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    count,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.darkColor,
+                      height: 1.1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.darkColor.withOpacity(0.6),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 
   Widget _courseCard(Map<String, dynamic> course) {
     final Color color = course['color'] as Color;
@@ -551,37 +569,37 @@ class _DoctorDashboardPageState extends State<DoctorDashboardPage> {
           builder: (_) => CourseDashboardPage(course: course),
         )),
         child: Padding(
-          padding: EdgeInsets.all(Responsive.isDesktop(context) ? 24 : 16),
+          padding: const EdgeInsets.all(16),
           child: Row(children: [
-            Container(width: Responsive.isDesktop(context) ? 8 : 4, height: Responsive.isDesktop(context) ? 120 : 70, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
-            SizedBox(width: Responsive.isDesktop(context) ? 24 : 16),
+            Container(width: Responsive.isDesktop(context) ? 6 : 4, height: Responsive.isDesktop(context) ? 70 : 70, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+            const SizedBox(width: 16),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: Responsive.isDesktop(context) ? 14 : 8, vertical: Responsive.isDesktop(context) ? 8 : 3),
+                    padding: EdgeInsets.symmetric(horizontal: Responsive.isDesktop(context) ? 10 : 8, vertical: Responsive.isDesktop(context) ? 4 : 3),
                     decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                    child: Text('ID: ${course['id']}', style: TextStyle(color: color, fontSize: Responsive.isDesktop(context) ? 16 : 12, fontWeight: FontWeight.bold)),
+                    child: Text('ID: ${course['id']}', style: TextStyle(color: color, fontSize: Responsive.isDesktop(context) ? 12 : 12, fontWeight: FontWeight.bold)),
                   ),
                   Chip(
                     label: Text(
                       count == null ? '— students' : '$count student${count == 1 ? '' : 's'}',
-                      style: TextStyle(fontSize: Responsive.isDesktop(context) ? 14 : 11),
+                      style: TextStyle(fontSize: Responsive.isDesktop(context) ? 13 : 11),
                     ),
                     backgroundColor: AppColors.lightColor,
                     visualDensity: VisualDensity.compact,
-                    padding: Responsive.isDesktop(context) ? const EdgeInsets.all(6) : null,
+                    padding: Responsive.isDesktop(context) ? const EdgeInsets.all(4) : null,
                   ),
                 ]),
-                SizedBox(height: Responsive.isDesktop(context) ? 16 : 8),
-                Text(course['name'], style: TextStyle(fontSize: Responsive.isDesktop(context) ? 26 : 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
+                SizedBox(height: Responsive.isDesktop(context) ? 8 : 8),
+                Text(course['name'], style: TextStyle(fontSize: Responsive.isDesktop(context) ? 18 : 16, fontWeight: FontWeight.bold, color: AppColors.darkColor)),
                 if (role != null) ...[
-                  SizedBox(height: Responsive.isDesktop(context) ? 16 : 8),
+                  SizedBox(height: Responsive.isDesktop(context) ? 8 : 8),
                   Chip(
-                    label: Text(role, style: TextStyle(color: Colors.white, fontSize: Responsive.isDesktop(context) ? 14 : 12)),
+                    label: Text(role, style: TextStyle(color: Colors.white, fontSize: Responsive.isDesktop(context) ? 12 : 12)),
                     backgroundColor: role.toLowerCase().contains('main') ? Colors.blue : Colors.grey,
                     visualDensity: VisualDensity.compact,
-                    padding: Responsive.isDesktop(context) ? const EdgeInsets.all(6) : null,
+                    padding: Responsive.isDesktop(context) ? const EdgeInsets.all(4) : null,
                   ),
                 ],
               ]),

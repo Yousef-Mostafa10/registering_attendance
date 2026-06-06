@@ -172,7 +172,7 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
         constraints: const BoxConstraints(maxWidth: 1200),
         child: LayoutBuilder(builder: (context, constraints) {
           final w = constraints.maxWidth;
-          final cols = w >= 900 ? 3 : w >= 600 ? 2 : 1;
+          final cols = w >= 1100 ? 4 : w >= 850 ? 3 : w >= 600 ? 2 : 1;
           final isMobile = w < 600;
           if (cols > 1) {
             return GridView.builder(
@@ -181,7 +181,7 @@ class _CourseSessionsHistoryPageState extends State<CourseSessionsHistoryPage> w
                 crossAxisCount: cols,
                 mainAxisSpacing: isMobile ? 8 : 12,
                 crossAxisSpacing: isMobile ? 8 : 12,
-                childAspectRatio: cols == 3 ? 2.5 : 3.0,
+                mainAxisExtent: 95,
               ),
               itemCount: sessions.length,
               itemBuilder: (context, index) => _buildSessionCard(sessions[index], type, sessions, isMobile: isMobile),
