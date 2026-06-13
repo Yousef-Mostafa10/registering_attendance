@@ -1,7 +1,7 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
-import '../../Auth/api_service.dart';
-import '../../Auth/auth_storage.dart';
+import '../../core/network/api_service.dart';
+import '../../core/storage/auth_storage.dart';
 import '../../core/network/app_exception.dart';
 import 'session_models.dart';
 

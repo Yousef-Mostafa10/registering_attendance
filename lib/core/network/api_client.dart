@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../../Auth/api_service.dart';
-import '../../Auth/auth_storage.dart';
+import 'api_service.dart';
+import '../storage/auth_storage.dart';
 import '../app_router.dart';
 import 'app_exception.dart';
 

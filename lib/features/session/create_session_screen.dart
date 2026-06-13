@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,7 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'session_models.dart';
 import 'session_service.dart';
 import 'qr_display_screen.dart';
-import '../../Auth/colors.dart';
+import '../../core/constants/app_colors.dart';
 
 class CreateSessionScreen extends StatefulWidget {
   final int courseId;

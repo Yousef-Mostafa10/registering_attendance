@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../Auth/colors.dart';
+import '../constants/app_colors.dart';
 import 'app_exception.dart';
 
 /// Snackbar/toast helper for user-friendly messages.

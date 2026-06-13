@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as native_http;
-import '../Auth/auth_storage.dart';
-import '../Auth/api_service.dart';
-import '../Auth/main_file.dart';
+import 'storage/auth_storage.dart';
+import 'network/api_service.dart';
+import '../features/auth/screens/activation_login_page.dart';
 import 'app_router.dart';
 
 const String _sessionExpiredMessage =

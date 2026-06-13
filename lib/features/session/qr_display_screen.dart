@@ -1,14 +1,14 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 import 'dart:convert';
 import 'package:registering_attendance/core/http_interceptor.dart' as http;
-import '../../Auth/api_service.dart';
-import '../../Auth/auth_storage.dart';
+import '../../core/network/api_service.dart';
+import '../../core/storage/auth_storage.dart';
 import 'dart:async';
 import '../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'session_service.dart';
-import '../../Auth/colors.dart';
+import '../../core/constants/app_colors.dart';
 
 class QrDisplayScreen extends StatefulWidget {
   final int sessionId;

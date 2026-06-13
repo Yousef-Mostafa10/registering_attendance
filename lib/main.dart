@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 
-import 'Auth/main_file.dart';
+import 'features/auth/screens/activation_login_page.dart';
 import 'core/app_router.dart';
 import 'core/providers/locale_provider.dart';
 
